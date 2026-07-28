@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Secret scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan repository history
+        uses: gitleaks/gitleaks-action@v2
+
+  node:
+    name: Node validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm check
+      - run: pnpm test
+      - run: pnpm build
+
+  dotnet:
+    name: .NET validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - run: dotnet restore NoorPath.slnx
+      - run: dotnet format NoorPath.slnx --verify-no-changes --no-restore
+      - run: dotnet build NoorPath.slnx --configuration Release --no-restore
+      - run: dotnet test NoorPath.slnx --configuration Release --no-build
+      - name: Validate foundation migration state
+        run: ./scripts/validate-foundation-migrations.sh
+
+  postgres:
+    name: PostgreSQL configuration
+    runs-on: ubuntu-latest
+    env:
+      NOORPATH_DB_PASSWORD: ci-local-only
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose configuration
+        run: docker compose config --quiet
+      - name: Start PostgreSQL and wait for health
+        run: |
+          docker compose up -d --wait postgres
+          docker compose exec -T postgres pg_isready -U noorpath -d noorpath
+      - name: Stop PostgreSQL
+        if: always()
+        run: docker compose down --volumes
