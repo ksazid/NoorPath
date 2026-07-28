@@ -50,9 +50,9 @@ jobs:
       - name: Validate foundation migration state
         run: ./scripts/validate-foundation-migrations.sh
 
-    postgres:
-    name: PostgreSQL configuration
-    runs-on: ubuntu-latest
+  -postgres:
+      name: PostgreSQL configuration
+      runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
       NOORPATH_DB_PASSWORD: ci-local-only-password
