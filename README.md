@@ -42,6 +42,10 @@ docs/
 - pnpm 10
 - Docker with Compose
 
+Toolchain versions are pinned in `.node-version`, `package.json`, and
+`global.json`. CI is the source of truth when a pinned runtime is unavailable
+locally.
+
 ## Start local PostgreSQL
 
 Copy `.env.example` to `.env`, set a local-only database password, then run:
@@ -49,6 +53,22 @@ Copy `.env.example` to `.env`, set a local-only database password, then run:
 ```bash
 docker compose up -d postgres
 ```
+
+The example password is intentionally non-secret and is used only for local
+development. `.env` files remain ignored by Git. CI validates the Compose file,
+starts PostgreSQL, waits for its health check, and removes its test volume.
+
+## Validation boundaries
+
+- `apps/web` owns the Next.js shell and its tests.
+- `apps/api` is the ASP.NET Core host; reusable inward dependencies live under
+  `src`, and .NET tests live under `tests`.
+- `packages/design-tokens` exposes machine-readable JSON and consumable CSS.
+- `docs/adr`, `docs/design`, and `docs/slices` contain durable decisions,
+  design governance, and approved slice specifications.
+- `.github/workflows/ci.yml` gates secret scanning, dependency restore,
+  formatting, linting, type checking, builds, tests, the empty foundation
+  migration state, and a healthy PostgreSQL startup.
 
 ## Working agreement
 
