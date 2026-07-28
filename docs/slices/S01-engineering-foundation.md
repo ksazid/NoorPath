@@ -40,3 +40,21 @@
 - Design-token validation
 - Approved foundation pull request
 
+## Completed
+
+- Status: Complete
+- Accepted by: Sazid Khan, Product Owner
+- Accepted on: 2026-07-28
+
+## Product-owner acceptance
+
+- Decision: Accepted
+- Product owner: Sazid Khan
+- Date: 2026-07-28
+- Foundation PR: <PR link>
+- Repair PR: <PR link>
+- CI run: <successful Actions run>
+- Result: All S01 acceptance criteria passed.
+- Accepted limitations: None
+- Follow-up slice: S02 — Operator and Batch Publication
+
