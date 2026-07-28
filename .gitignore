@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+out/
+bin/
+obj/
+coverage/
+
+# Local environment and tooling
+.env
+.env.*
+!.env.example
+*.user
+.DS_Store
+
+# Compiler caches
+*.tsbuildinfo

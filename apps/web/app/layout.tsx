@@ -7,11 +7,12 @@ export const metadata: Metadata = {
   description: "A trusted path for your Umrah journey.",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en">
       <body>{children}</body>
     </html>
   );
 }
-
