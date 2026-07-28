@@ -1,0 +1,31 @@
+:root {
+  --color-brand-haram: #f7f2e8;
+  --color-brand-kaaba: #171715;
+  --color-brand-kiswah: #b89548;
+  --color-brand-madinah: #176b50;
+  --color-brand-sand: #cba77b;
+  --color-surface-canvas: #fbf9f5;
+  --color-surface-raised: #ffffff;
+  --color-text-primary: #1d211f;
+  --color-text-secondary: #5d645f;
+  --font-family-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --space-3: 0.75rem;
+  --space-6: 1.5rem;
+  --space-16: 4rem;
+  --radius-md: 0.875rem;
+  --motion-fast: 120ms;
+  --motion-standard: 200ms;
+  --motion-easing: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+

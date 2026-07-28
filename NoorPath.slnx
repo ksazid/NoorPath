@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/apps/">
+    <Project Path="apps/api/NoorPath.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/NoorPath.BuildingBlocks/NoorPath.BuildingBlocks.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/NoorPath.Architecture.Tests/NoorPath.Architecture.Tests.csproj" />
+  </Folder>
+</Solution>
+

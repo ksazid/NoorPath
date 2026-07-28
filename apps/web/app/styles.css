@@ -1,0 +1,43 @@
+@import "@noorpath/design-tokens/tokens.css";
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-surface-canvas);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-sans);
+}
+
+main {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: var(--space-16) var(--space-6);
+}
+
+h1 {
+  max-width: 14ch;
+  margin: var(--space-3) 0;
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 0.98;
+}
+
+p {
+  max-width: 42rem;
+  color: var(--color-text-secondary);
+  font-size: 1.125rem;
+  line-height: 1.7;
+}
+
+.eyebrow {
+  color: var(--color-brand-madinah);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+

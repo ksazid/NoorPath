@@ -1,0 +1,19 @@
+{
+  "name": "@noorpath/design-tokens",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./tokens.css": "./tokens.css",
+    "./tokens.json": "./tokens.json"
+  },
+  "scripts": {
+    "build": "node -e \"JSON.parse(require('fs').readFileSync('tokens.json','utf8'))\"",
+    "check": "node -e \"JSON.parse(require('fs').readFileSync('tokens.json','utf8'))\"",
+    "format:check": "prettier --check .",
+    "test": "node -e \"JSON.parse(require('fs').readFileSync('tokens.json','utf8'))\""
+  },
+  "devDependencies": {
+    "prettier": "^3.0.0"
+  }
+}
+

@@ -1,0 +1,11 @@
+{
+  "name": "noorpath",
+  "private": true,
+  "packageManager": "pnpm@10.14.0",
+  "scripts": {
+    "build": "pnpm --recursive build",
+    "check": "pnpm --recursive check",
+    "format:check": "pnpm --recursive format:check",
+    "test": "pnpm --recursive test"
+  }
+}
