@@ -11,9 +11,14 @@ permissions:
   checks: write
 
 jobs:
-  secrets:
+   secrets:
     name: Secret scanning
     runs-on: ubuntu-latest
+    # Only run on push or on PRs from the same repository (skip fork PRs)
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      checks: write
     steps:
       - uses: actions/checkout@v4
         with:
