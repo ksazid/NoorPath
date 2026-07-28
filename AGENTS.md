@@ -14,6 +14,45 @@ Build a calm, trustworthy Umrah platform that makes operator identity, price, in
 
 If sources conflict, stop and record the conflict. Do not silently invent product policy.
 
+## Agent skills
+
+### UI/UX work
+
+For UI/UX analysis, design-system extraction, component design, responsive
+behaviour, accessibility review, and visual consistency, use the installed
+`.agents/skills/ui-ux-pro-max` skill.
+
+The approved NoorPath Landing page and Package page are the primary visual
+source of truth. UI UX Pro Max may improve usability, accessibility,
+responsiveness, and consistency, but must not replace NoorPath's established
+visual identity with a generic design system.
+
+### Engineering work
+
+For coding, refactoring, bug fixing, dependency decisions, and implementation
+design, use the installed `.agents/skills/ponytail` skill in full mode.
+
+Ponytail's minimalism is subordinate to NoorPath requirements, architecture,
+security, accessibility, testing, auditability, financial correctness, and
+Definition of Done.
+
+Prefer, in order:
+1. Existing NoorPath implementation or component
+2. Existing platform/framework capability
+3. Existing dependency
+4. Minimum new implementation required
+
+Do not remove required validation, security, accessibility, observability,
+tests, audit behaviour, or documented product requirements in the name of
+simplification.
+
+When UI UX Pro Max and Ponytail are both relevant:
+- UI UX Pro Max governs UX/design analysis.
+- Approved NoorPath design governs visual identity.
+- Ponytail governs implementation simplicity.
+- This AGENTS.md and the governing sources above remain authoritative.
+
+
 ## Architecture rules
 
 - Keep a modular monolith. Do not introduce microservices.
