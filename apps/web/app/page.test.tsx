@@ -9,4 +9,3 @@ describe("NoorPath foundation page", () => {
     expect(JSON.stringify(page.props.children)).toContain("NoorPath pilot");
   });
 });
-
