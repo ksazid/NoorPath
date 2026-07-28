@@ -13,7 +13,7 @@ services:
       timeout: 5s
       retries: 10
     volumes:
-      - noorpath-postgres:/var/lib/postgresql/data
+      - noorpath-postgres:/var/lib/postgresql
 
 volumes:
   noorpath-postgres:
