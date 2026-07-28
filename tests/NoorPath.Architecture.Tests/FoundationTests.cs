@@ -1,3 +1,4 @@
+using Xunit;
 namespace NoorPath.Architecture.Tests;
 
 public sealed class FoundationTests
