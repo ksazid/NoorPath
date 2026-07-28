@@ -19,6 +19,8 @@ jobs:
           fetch-depth: 0
       - name: Scan repository history
         uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   node:
     name: Node validation
@@ -51,15 +53,17 @@ jobs:
         run: ./scripts/validate-foundation-migrations.sh
 
   postgres:
-      name: PostgreSQL configuration
-      runs-on: ubuntu-latest
-      timeout-minutes: 10
-      env:
-       NOORPATH_DB_PASSWORD: ci-local-only-password
-      steps:
+    name: PostgreSQL configuration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      NOORPATH_DB_PASSWORD: ci-local-only-password
+    steps:
       - uses: actions/checkout@v4
       - name: Validate Compose
         run: docker compose config --quiet
+      - name: Ensure clean PostgreSQL data
+        run: docker compose down --volumes --remove-orphans || true
       - name: Start PostgreSQL and wait for health
         run: docker compose up -d --wait postgres
       - name: Show PostgreSQL logs on failure
