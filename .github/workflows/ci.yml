@@ -50,19 +50,25 @@ jobs:
       - name: Validate foundation migration state
         run: ./scripts/validate-foundation-migrations.sh
 
-  postgres:
+    postgres:
     name: PostgreSQL configuration
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
-      NOORPATH_DB_PASSWORD: ci-local-only
+      NOORPATH_DB_PASSWORD: ci-local-only-password
     steps:
       - uses: actions/checkout@v4
-      - name: Validate Compose configuration
+
+      - name: Validate Compose
         run: docker compose config --quiet
+
       - name: Start PostgreSQL and wait for health
-        run: |
-          docker compose up -d --wait postgres
-          docker compose exec -T postgres pg_isready -U noorpath -d noorpath
-      - name: Stop PostgreSQL
+        run: docker compose up -d --wait postgres
+
+      - name: Show PostgreSQL logs on failure
+        if: failure()
+        run: docker compose logs postgres
+
+      - name: Clean up PostgreSQL
         if: always()
-        run: docker compose down --volumes
+        run: docker compose down --volumes --remove-orphans
