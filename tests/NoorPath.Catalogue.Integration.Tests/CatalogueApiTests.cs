@@ -187,8 +187,6 @@ public sealed class CatalogueApi : WebApplicationFactory<Program>
         return app;
     }
 
-    //protected override void ConfigureWebHost(IWebHostBuilder builder) => builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:NoorPath"] = connection }));
-
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>
