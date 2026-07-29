@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NoorPath.Catalogue;
 using NoorPath.Catalogue.Infrastructure;
 using Xunit;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace NoorPath.Catalogue.Integration.Tests;
 
@@ -186,7 +187,22 @@ public sealed class CatalogueApi : WebApplicationFactory<Program>
         return app;
     }
 
-    protected override void ConfigureWebHost(IWebHostBuilder builder) => builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:NoorPath"] = connection }));
+    //protected override void ConfigureWebHost(IWebHostBuilder builder) => builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:NoorPath"] = connection }));
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.ConfigureServices(services =>
+        {
+            services.RemoveAll<DbContextOptions<CatalogueDbContext>>();
+            services.RemoveAll<CatalogueDbContext>();
+    
+            services.AddDbContext<CatalogueDbContext>(options =>
+                options.UseNpgsql(
+                    connection,
+                    postgres => postgres.MigrationsAssembly(
+                        typeof(CatalogueDbContext).Assembly.FullName)));
+        });
+    }
 
     public HttpClient CreateAdminClient()
     {
