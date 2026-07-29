@@ -36,7 +36,7 @@ fi
 # A snapshot must be frozen generated metadata. Delegating back to the live
 # DbContext makes drift detection meaningless because the snapshot changes with
 # the runtime model.
-if rg -q '=>\s*[A-Za-z0-9_]+DbContext\.Configure\(modelBuilder\)' "$snapshot"; then
+if grep -q '=>\s*[A-Za-z0-9_]+DbContext\.Configure\(modelBuilder\)' "$snapshot"; then
   echo "invalid live-model snapshot detected: $snapshot" >&2
   echo "regenerate the migration baseline with dotnet ef; do not hand-wire snapshots to DbContext.Configure" >&2
   exit 65
@@ -66,6 +66,7 @@ dotnet ef migrations has-pending-model-changes \
   --project "$project" \
   --startup-project "$startup" \
   --context "$context" \
+  --configuration Release \
   --no-build
 
 echo "Migration metadata and model parity are valid for $context. Database application/upgrade evidence remains PostgreSQL-backed integration-test responsibility."
