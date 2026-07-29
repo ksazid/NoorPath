@@ -2,6 +2,7 @@
   "name": "@noorpath/web",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "next build",
     "check": "tsc --noEmit && eslint .",
