@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using NoorPath.Catalogue;
 using NoorPath.Catalogue.Infrastructure;
 using Xunit;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace NoorPath.Catalogue.Integration.Tests;
 
