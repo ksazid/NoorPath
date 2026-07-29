@@ -187,6 +187,8 @@ public sealed class CatalogueApi : WebApplicationFactory<Program>
         return app;
     }
 
+    //Integration tests explicitly override the production DbContext registration.
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>
