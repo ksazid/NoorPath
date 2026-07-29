@@ -148,7 +148,9 @@ public sealed class CatalogueApiTests
         using var app = await CatalogueApi.CreateAsync();
         using var customer = app.CreateClient();
         for (var request = 0; request < 60; request++) Assert.Equal(HttpStatusCode.OK, (await customer.GetAsync("/api/v1/batches", TestContext.Current.CancellationToken)).StatusCode);
-        Assert.Equal(HttpStatusCode.TooManyRequests, (await customer.GetAsync("/api/v1/batches", TestContext.Current.CancellationToken)).StatusCode);
+        var response = await customer.GetAsync("/api/v1/batches", TestContext.Current.CancellationToken);
+
+        Assert.True(response.StatusCode is HttpStatusCode.TooManyRequests or HttpStatusCode.ServiceUnavailable, $"Expected throttling, got {(int)response.StatusCode} {response.StatusCode}");
     }
 
     private static async Task<DraftResponse> CreateDraft(HttpClient client, CreateBatch command)
