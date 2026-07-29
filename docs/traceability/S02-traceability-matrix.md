@@ -105,3 +105,41 @@ new secret or production-data feature in S02.
   `FR/SEC/NFR/OPS` requirements; authoritative `US/TR/S02-AC` identifiers are
   used without inventing IDs
 - Implementation authorization: Granted for S02 within the boundaries above
+
+## Automated evidence implementation
+
+The following committed tests implement the S02 automated evidence and execute in
+CI with `NOORPATH_TEST_DB`:
+
+- `CatalogueApiTests`: authorised/denied draft creation (`S02-AC-01`–`04`),
+  operator isolation and publication rejection (`S02-AC-02`–`06`), published-only
+  safe projection and caching (`S02-AC-07`, `09`, `10`, `12`), and public-query
+  rate limiting (`TR-SEC-010`).
+- `CataloguePersistenceTests`: empty-database migration and durable atomic
+  publication/audit persistence (`S02-AC-01`, `05`, `06`, `12`).
+- `BatchTests`: validation, lifecycle, inclusion normalization, and availability
+  allowlisting (`S02-AC-04`–`08`).
+- `FoundationTests`: domain dependency direction and Operators-persistence
+  separation (`S02-AC-03`).
+
+Browser E2E, automated accessibility, keyboard review, and desktop/390 px visual
+comparison remain required evidence under `S02-AC-11`, `13`, and `14`; this
+matrix does not mark those checks complete until they execute and are accepted.
+
+### Browser evidence implementation
+
+- `apps/web/e2e/publication.spec.ts` implements the positive publish-to-public
+  and negative draft-never-public browser paths (`S02-AC-01`, `04`–`07`, `11`,
+  `14`), including explicit confirmation, dialog focus, Escape, focus return,
+  retained values, correction, and status announcements.
+- `apps/web/e2e/customer-states.spec.ts` implements loading, results, empty,
+  error/retry, offline/recovery, axe WCAG 2.2 AA scanning, keyboard focus,
+  44 CSS px targets, reduced motion, text expansion, and overflow checks
+  (`S02-AC-08`–`11`).
+- `apps/web/playwright.config.ts` runs Chromium at 1363 × 936 and 390 × 844 and
+  enforces reviewed visual snapshots (`S02-AC-11`, `13`). Reproduction and
+  approval rules are recorded in `docs/design/S02-browser-visual-qa.md`.
+
+The automated browser implementation does not replace the required human
+visual comparison, manual accessibility review, or dated product-owner
+acceptance. Those remain incomplete until recorded against the final commit.

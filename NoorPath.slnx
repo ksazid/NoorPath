@@ -4,9 +4,13 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/NoorPath.BuildingBlocks/NoorPath.BuildingBlocks.csproj" />
+    <Project Path="src/Modules/NoorPath.Catalogue/NoorPath.Catalogue.csproj" />
+    <Project Path="src/Modules/NoorPath.Catalogue.Infrastructure/NoorPath.Catalogue.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/NoorPath.Architecture.Tests/NoorPath.Architecture.Tests.csproj" />
+    <Project Path="tests/NoorPath.Catalogue.Tests/NoorPath.Catalogue.Tests.csproj" />
+    <Project Path="tests/NoorPath.Catalogue.Integration.Tests/NoorPath.Catalogue.Integration.Tests.csproj" />
   </Folder>
 </Solution>
 
