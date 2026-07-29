@@ -8,7 +8,8 @@
     "dev": "next dev",
     "format:check": "prettier --check .",
     "start": "next start",
-    "test": "vitest run"
+    "test": "vitest run",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@noorpath/design-tokens": "workspace:*",
@@ -24,6 +25,8 @@
     "eslint-config-next": "16.2.12",
     "prettier": "^3.0.0",
     "typescript": "^5.9.0",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "@playwright/test": "1.55.0",
+    "axe-core": "4.12.1"
   }
 }
