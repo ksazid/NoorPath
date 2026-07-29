@@ -21,7 +21,7 @@ public sealed class CatalogueApiTests
         using var app = await CatalogueApi.CreateAsync();
         using var admin = app.CreateAdminClient();
         var draft = await CreateDraft(admin, BatchCommand());
-        var publish = await admin.PostAsJsonAsync($"/api/v1/admin/batches/{draft.Id}/publish", new { expectedVersion = draft.Version, operatorId = "test-approved-noor" }, cancellationToken: TestContext.Current.CancellationToken);
+        var publish = await admin.PostAsJsonAsync($"/api/v1/admin/batches/{draft.Id}/publish", new { expectedVersion = draft.Version, operatorId = "test-approved-noor" }, cancellationToken: TestContex[...]
         Assert.Equal(HttpStatusCode.OK, publish.StatusCode);
 
         using var customer = app.CreateClient();
@@ -49,7 +49,7 @@ public sealed class CatalogueApiTests
         using var app = await CatalogueApi.CreateAsync();
         var draft = await CreateDraft(app.CreateAdminClient(), BatchCommand());
         using var customer = app.CreateClient();
-        var response = await customer.PostAsJsonAsync($"/api/v1/admin/batches/{draft.Id}/publish", new { expectedVersion = draft.Version, operatorId = "test-approved-noor" }, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await customer.PostAsJsonAsync($"/api/v1/admin/batches/{draft.Id}/publish", new { expectedVersion = draft.Version, operatorId = "test-approved-noor" }, cancellationToken: TestCo[...]
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
@@ -59,7 +59,7 @@ public sealed class CatalogueApiTests
         using var app = await CatalogueApi.CreateAsync();
         using var admin = app.CreateAdminClient();
         var draft = await CreateDraft(admin, BatchCommand());
-        var response = await admin.PostAsJsonAsync($"/api/v1/admin/batches/{draft.Id}/publish", new { expectedVersion = draft.Version, operatorId = "test-approved-rahma" }, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await admin.PostAsJsonAsync($"/api/v1/admin/batches/{draft.Id}/publish", new { expectedVersion = draft.Version, operatorId = "test-approved-rahma" }, cancellationToken: TestCont[...]
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         await AssertDraftHasNoAudit(app, draft.Id);
     }
@@ -100,7 +100,7 @@ public sealed class CatalogueApiTests
         using var app = await CatalogueApi.CreateAsync();
         using var admin = app.CreateAdminClient();
         var draft = await CreateDraft(admin, BatchCommand());
-        var response = await admin.PostAsJsonAsync($"/api/v1/admin/batches/{draft.Id}/publish", new { expectedVersion = draft.Version + 1, operatorId = "test-approved-noor" }, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await admin.PostAsJsonAsync($"/api/v1/admin/batches/{draft.Id}/publish", new { expectedVersion = draft.Version + 1, operatorId = "test-approved-noor" }, cancellationToken: [...]
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         await AssertDraftHasNoAudit(app, draft.Id);
     }
@@ -113,7 +113,7 @@ public sealed class CatalogueApiTests
         var draft = await CreateDraft(admin, BatchCommand());
         var request = new { expectedVersion = draft.Version, operatorId = "test-approved-noor" };
         Assert.Equal(HttpStatusCode.OK, (await admin.PostAsJsonAsync($"/api/v1/admin/batches/{draft.Id}/publish", request, cancellationToken: TestContext.Current.CancellationToken)).StatusCode);
-        Assert.Equal(HttpStatusCode.Conflict, (await admin.PostAsJsonAsync($"/api/v1/admin/batches/{draft.Id}/publish", request, cancellationToken: TestContext.Current.CancellationToken)).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await admin.PostAsJsonAsync($"/api/v1/admin/batches/{draft.Id}/publish", request, cancellationToken: TestContext.Current.CancellationToken)).StatusC[...]
         using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<CatalogueDbContext>();
         Assert.Single(await db.PublicationAudits.Where(x => x.BatchId == draft.Id).ToListAsync(cancellationToken: TestContext.Current.CancellationToken));
@@ -126,7 +126,7 @@ public sealed class CatalogueApiTests
         using var admin = app.CreateAdminClient();
         var draft = await CreateDraft(admin, BatchCommand() with { PackageName = "Never public draft" });
         var published = await CreateDraft(admin, BatchCommand() with { PackageName = "Visible journey" });
-        await admin.PostAsJsonAsync($"/api/v1/admin/batches/{published.Id}/publish", new { expectedVersion = published.Version, operatorId = "test-approved-noor" }, cancellationToken: TestContext.Current.CancellationToken);
+        await admin.PostAsJsonAsync($"/api/v1/admin/batches/{published.Id}/publish", new { expectedVersion = published.Version, operatorId = "test-approved-noor" }, cancellationToken: TestContext[...]
 
         using var customer = app.CreateClient();
         var response = await customer.GetAsync("/api/v1/batches", TestContext.Current.CancellationToken);
@@ -158,7 +158,7 @@ public sealed class CatalogueApiTests
         return (await response.Content.ReadFromJsonAsync<DraftResponse>())!;
     }
 
-    private static CreateBatch BatchCommand() => new("test-approved-noor", "Noor Tours", "Noor Comfort", "A supported journey", "Comfort", "Delhi", "Jeddah to Makkah", new(2026, 10, 10), new(2026, 10, 22), 24, AvailabilityMode.Exact, 94500, ["Flights", "Breakfast"]);
+    private static CreateBatch BatchCommand() => new("test-approved-noor", "Noor Tours", "Noor Comfort", "A supported journey", "Comfort", "Delhi", "Jeddah to Makkah", new(2026, 10, 10), new(2026[...]
 
     private static async Task AssertDraftHasNoAudit(CatalogueApi app, Guid batchId)
     {
