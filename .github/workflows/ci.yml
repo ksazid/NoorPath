@@ -128,7 +128,7 @@ jobs:
       - run: dotnet restore NoorPath.slnx
       - run: dotnet build NoorPath.slnx --configuration Release --no-restore
       - name: Install Chromium
-        run: pnpm --filter @noorpath/web exec playwright install --with-deps chromium
+        run: pnpm --filter @noorpath/web exec playwright install --with-deps chromium webkit
       - name: Apply the S02 migration to the E2E database
         run: dotnet test tests/NoorPath.Catalogue.Integration.Tests/NoorPath.Catalogue.Integration.Tests.csproj --configuration Release --no-build --filter FullyQualifiedName~Migration_applies_and_publication_is_atomic_and_durable
       - name: Run S02 browser, accessibility, responsive, and visual checks
