@@ -35,7 +35,13 @@ public partial class V2OperatorsBaseline : Migration
             constraints: table =>
             {
                 table.PrimaryKey("PK_operator_memberships", x => x.Id);
-                table.ForeignKey("FK_operator_memberships_operators_OperatorId", x => x.OperatorId, "operators", "operators", "Id", onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_operator_memberships_operators_OperatorId",
+                    column: x => x.OperatorId,
+                    principalTable: "operators",
+                    principalColumn: "Id",
+                    principalSchema: "operators",
+                    onDelete: ReferentialAction.Restrict);
             });
         migrationBuilder.CreateTable(
             name: "operator_membership_permissions", schema: "operators",
@@ -48,7 +54,13 @@ public partial class V2OperatorsBaseline : Migration
             constraints: table =>
             {
                 table.PrimaryKey("PK_operator_membership_permissions", x => x.Id);
-                table.ForeignKey("FK_operator_membership_permissions_operator_memberships_MembershipId", x => x.MembershipId, "operators", "operator_memberships", "Id", onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_operator_membership_permissions_operator_memberships_MembershipId",
+                    column: x => x.MembershipId,
+                    principalTable: "operator_memberships",
+                    principalColumn: "Id",
+                    principalSchema: "operators",
+                    onDelete: ReferentialAction.Cascade);
             });
         migrationBuilder.CreateIndex(name: "IX_operator_memberships_AccountId", schema: "operators", table: "operator_memberships", column: "AccountId");
 
