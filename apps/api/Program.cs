@@ -13,6 +13,7 @@ builder.Services.AddDbContext<OperatorsDbContext>(options => options.UseNpgsql(c
 builder.Services.AddDbContext<PricingDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(PricingDbContext).Assembly.FullName)));
 builder.Services.AddDbContext<InventoryDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(InventoryDbContext).Assembly.FullName)));
 builder.Services.AddScoped<IOperatorAccess>(services => services.GetRequiredService<OperatorsDbContext>());
+builder.Services.AddScoped<IOperatorPublicationEligibility>(services => services.GetRequiredService<OperatorsDbContext>());
 builder.Services.AddNoorPathAuthentication(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
@@ -31,6 +32,7 @@ app.MapGet("/health/ready", () => Results.Ok(new HealthResponse("Ready")));
 app.MapOperatorAccess();
 app.MapCatalogueAuthoring();
 app.MapCommercialAuthoring();
+app.MapPublicationReview();
 app.Run();
 
 public partial class Program;

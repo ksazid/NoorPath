@@ -24,3 +24,15 @@ public interface IOperatorAccess
 {
     Task<OperatorAccess?> FindActiveMembershipAsync(AccountId accountId, CancellationToken cancellationToken);
 }
+
+public sealed record OperatorPublicationEligibility(
+    string OperatorId,
+    OperatorState OperatorState,
+    bool CanPublish);
+
+public interface IOperatorPublicationEligibility
+{
+    Task<OperatorPublicationEligibility?> FindPublicationEligibilityAsync(
+        string operatorId,
+        CancellationToken cancellationToken);
+}

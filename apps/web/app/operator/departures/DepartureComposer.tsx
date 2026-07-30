@@ -57,7 +57,7 @@ type DraftResponse = {
   packageVersionId: string;
   departureId: string;
   version: number;
-  status: "draft";
+  status: "draft" | "readyForReview" | "published";
   packageName?: string;
   summary?: string;
   makkah?: AccommodationResponse;
@@ -437,6 +437,8 @@ export default function DepartureComposer({
   const [form, setForm] = useState<DraftForm>(createEmptyDraft);
   const [departureId, setDepartureId] = useState(initialDepartureId ?? "");
   const [version, setVersion] = useState<number | null>(null);
+  const [draftStatus, setDraftStatus] =
+    useState<DraftResponse["status"]>("draft");
   const [operator, setOperator] = useState<OperatorAccess | null>(null);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [problem, setProblem] = useState("");
@@ -445,6 +447,7 @@ export default function DepartureComposer({
   const [commercialDirty, setCommercialDirty] = useState(false);
   const [commercialBusy, setCommercialBusy] = useState(false);
   const hasUnsavedChanges = isDirty || commercialDirty;
+  const isLocked = draftStatus !== "draft";
 
   const duration = useMemo(() => {
     if (!form.departureDate || !form.returnDate) return 0;
@@ -504,6 +507,7 @@ export default function DepartureComposer({
         setForm(toDraftForm(draft));
         setDepartureId(draft.departureId);
         setVersion(draft.version);
+        setDraftStatus(draft.status);
         setIsDirty(false);
         setState("ready");
       } catch {
@@ -643,6 +647,7 @@ export default function DepartureComposer({
 
       setDepartureId(body.departureId);
       setVersion(body.version);
+      setDraftStatus(body.status);
       setIsDirty(false);
       setState("saved");
       if (!initialDepartureId)
@@ -773,14 +778,36 @@ export default function DepartureComposer({
             </p>
           </div>
           <span className="draft-pill">
-            Draft ·{" "}
-            {hasUnsavedChanges
-              ? "Unsaved changes"
-              : version
-                ? `Version ${version}`
-                : "Not saved"}
+            {draftStatus === "readyForReview"
+              ? "Awaiting approval"
+              : draftStatus === "published"
+                ? "Published"
+                : `Draft · ${
+                    hasUnsavedChanges
+                      ? "Unsaved changes"
+                      : version
+                        ? `Version ${version}`
+                        : "Not saved"
+                  }`}
           </span>
         </div>
+
+        {isLocked && (
+          <div className="composer-notice saved" role="status">
+            <Icon>✓</Icon>
+            <div>
+              <strong>
+                {draftStatus === "published"
+                  ? "This departure is published"
+                  : "This departure is awaiting approval"}
+              </strong>
+              <span>
+                Catalogue, pricing, and inventory are locked at the reviewed
+                versions.
+              </span>
+            </div>
+          </div>
+        )}
 
         {(Object.keys(errors).length > 0 ||
           state === "error" ||
@@ -855,7 +882,7 @@ export default function DepartureComposer({
         <form onSubmit={(event) => event.preventDefault()}>
           <fieldset
             className="composer-form-fieldset"
-            disabled={state === "saving" || state === "conflict"}
+            disabled={state === "saving" || state === "conflict" || isLocked}
           >
             <section className="form-card">
               <div className="form-card-heading">
@@ -1019,11 +1046,32 @@ export default function DepartureComposer({
           </fieldset>
         </form>
 
-        <CommercialEditor
-          departureId={departureId || undefined}
-          onDirtyChange={setCommercialDirty}
-          onBusyChange={setCommercialBusy}
-        />
+        {isLocked ? (
+          <section className="form-card commercial-locked-card">
+            <div className="form-card-heading">
+              <span>06</span>
+              <div>
+                <h2>Pricing &amp; inventory locked</h2>
+                <p>
+                  Submitted commercial facts remain visible in the publication
+                  review and cannot be edited here.
+                </p>
+              </div>
+            </div>
+            <Link
+              className="secondary-button"
+              href={`/operator/departures/${departureId}/review`}
+            >
+              Open publication review
+            </Link>
+          </section>
+        ) : (
+          <CommercialEditor
+            departureId={departureId || undefined}
+            onDirtyChange={setCommercialDirty}
+            onBusyChange={setCommercialBusy}
+          />
+        )}
       </section>
 
       <footer className="admin-sticky-footer composer-savebar">
@@ -1032,7 +1080,7 @@ export default function DepartureComposer({
           Private draft · Catalogue, pricing and inventory save independently
         </span>
         <div>
-          {departureId && (
+          {departureId && !isLocked && (
             <Link
               className="secondary-button"
               href="/operator/departures/new"
@@ -1041,13 +1089,22 @@ export default function DepartureComposer({
               New draft
             </Link>
           )}
+          {departureId && !hasUnsavedChanges && (
+            <Link
+              className="secondary-button"
+              href={`/operator/departures/${departureId}/review`}
+            >
+              Review publication
+            </Link>
+          )}
           <button
             className="primary-button"
             type="button"
             disabled={
               state === "saving" ||
               state === "conflict" ||
-              Boolean(departureId && !isDirty)
+              Boolean(departureId && !isDirty) ||
+              isLocked
             }
             onClick={() => void save()}
           >

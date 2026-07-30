@@ -4,7 +4,7 @@ using NoorPath.Operators;
 
 namespace NoorPath.Operators.Infrastructure;
 
-public sealed class OperatorsDbContext(DbContextOptions<OperatorsDbContext> options) : DbContext(options), IOperatorAccess
+public sealed class OperatorsDbContext(DbContextOptions<OperatorsDbContext> options) : DbContext(options), IOperatorAccess, IOperatorPublicationEligibility
 {
     public DbSet<OperatorRecord> Operators => Set<OperatorRecord>();
     public DbSet<OperatorMembershipRecord> Memberships => Set<OperatorMembershipRecord>();
@@ -60,6 +60,21 @@ public sealed class OperatorsDbContext(DbContextOptions<OperatorsDbContext> opti
             .ToHashSetAsync(cancellationToken);
 
         return new(membership.Operator.Id, membership.Operator.DisplayName, membership.Operator.State, permissions);
+    }
+
+    public async Task<OperatorPublicationEligibility?> FindPublicationEligibilityAsync(
+        string operatorId,
+        CancellationToken cancellationToken)
+    {
+        var operation = await Operators.AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Id == operatorId, cancellationToken);
+
+        return operation is null
+            ? null
+            : new(
+                operation.Id,
+                operation.State,
+                operation.State == OperatorState.Approved);
     }
 }
 
