@@ -1,61 +1,152 @@
 namespace NoorPath.Catalogue;
 
-public enum BatchStatus { Draft, Published }
-public enum AvailabilityMode { Exact, Limited, WaitlistOnly, Unavailable }
-
-public sealed record CreateBatch(
-    string OperatorId, string OperatorName, string PackageName, string Summary,
-    string Tier, string DepartureCity, string Route, DateOnly DepartureDate,
-    DateOnly ReturnDate, int Capacity, AvailabilityMode Availability,
-    decimal TotalPriceInr, IReadOnlyList<string> Inclusions);
-
-public sealed class Batch
+public enum FactConfirmationState
 {
-    public Guid Id { get; } = Guid.NewGuid();
-    public CreateBatch Details { get; }
-    public BatchStatus Status { get; private set; } = BatchStatus.Draft;
-    public int Version { get; private set; } = 1;
-    public DateTimeOffset? PublishedAt { get; private set; }
+    Pending,
+    Confirmed
+}
 
-    public Batch(CreateBatch details)
+public enum CatalogueDraftStatus
+{
+    Draft
+}
+
+public sealed record AccommodationDraft(
+    string HotelName,
+    string Classification,
+    string DistanceDisclosure,
+    int Nights,
+    FactConfirmationState ConfirmationState);
+
+public sealed record TravelDraft(
+    string RouteSummary,
+    string Details,
+    FactConfirmationState ConfirmationState);
+
+public sealed record PackageDepartureDraftDetails(
+    string PackageName,
+    string Summary,
+    AccommodationDraft Makkah,
+    AccommodationDraft Madinah,
+    TravelDraft Travel,
+    string Origin,
+    DateOnly DepartureDate,
+    DateOnly ReturnDate,
+    IReadOnlyList<string> Inclusions,
+    IReadOnlyList<string> Exclusions);
+
+public sealed class PackageDepartureDraft
+{
+    public PackageDepartureDraftDetails Details { get; }
+
+    public PackageDepartureDraft(PackageDepartureDraftDetails details)
     {
         var errors = Validate(details);
-        if (errors.Count != 0) throw new BatchValidationException(errors);
-        Details = details with { Inclusions = details.Inclusions.Select(x => x.Trim()).Where(x => x.Length > 0).Distinct().ToArray() };
+        if (errors.Count != 0)
+            throw new CatalogueDraftValidationException(errors);
+
+        Details = details with
+        {
+            PackageName = details.PackageName.Trim(),
+            Summary = details.Summary.Trim(),
+            Makkah = Normalize(details.Makkah),
+            Madinah = Normalize(details.Madinah),
+            Travel = details.Travel with
+            {
+                RouteSummary = details.Travel.RouteSummary.Trim(),
+                Details = details.Travel.Details.Trim()
+            },
+            Origin = details.Origin.Trim(),
+            Inclusions = NormalizeItems(details.Inclusions),
+            Exclusions = NormalizeItems(details.Exclusions)
+        };
     }
 
-    public PublicationAudit Publish(int expectedVersion, string actor, string correlationId, bool operatorApproved)
-    {
-        if (!operatorApproved) throw new InvalidOperationException("The operator is not approved for publication.");
-        if (Status == BatchStatus.Published) throw new InvalidOperationException("The batch is already published.");
-        if (Version != expectedVersion) throw new InvalidOperationException("The draft changed. Refresh and review it again.");
-        var previous = Status;
-        Status = BatchStatus.Published;
-        Version++;
-        PublishedAt = DateTimeOffset.UtcNow;
-        return new(Id, actor, correlationId, previous, Status, PublishedAt.Value);
-    }
-
-    public static Dictionary<string, string[]> Validate(CreateBatch value)
+    public static Dictionary<string, string[]> Validate(PackageDepartureDraftDetails value)
     {
         var errors = new Dictionary<string, string[]>();
-        void Required(string key, string text, int max) { if (string.IsNullOrWhiteSpace(text)) errors[key] = ["This field is required."]; else if (text.Length > max) errors[key] = [$"Must be {max} characters or fewer."]; }
-        Required("operatorId", value.OperatorId, 80); Required("operatorName", value.OperatorName, 120);
-        Required("packageName", value.PackageName, 120); Required("summary", value.Summary, 300);
-        Required("tier", value.Tier, 40); Required("departureCity", value.DepartureCity, 80); Required("route", value.Route, 160);
-        if (value.ReturnDate <= value.DepartureDate) errors["returnDate"] = ["Return date must be after departure."];
-        if (value.Capacity <= 0) errors["capacity"] = ["Capacity must be greater than zero."];
-        if (value.TotalPriceInr <= 0) errors["totalPriceInr"] = ["An effective INR total price is required."];
-        if (value.Inclusions.Count > 20 || value.Inclusions.Any(x => x.Length > 80)) errors["inclusions"] = ["Use at most 20 inclusion highlights of 80 characters each."];
+
+        Required(errors, "packageName", value.PackageName, 120);
+        Required(errors, "summary", value.Summary, 600);
+        Required(errors, "origin", value.Origin, 120);
+        Required(errors, "travel.routeSummary", value.Travel.RouteSummary, 200);
+        OptionalMax(errors, "travel.details", value.Travel.Details, 600);
+
+        ValidateAccommodation(errors, "makkah", value.Makkah);
+        ValidateAccommodation(errors, "madinah", value.Madinah);
+
+        if (value.ReturnDate <= value.DepartureDate)
+            errors["returnDate"] = ["Return date must be after departure date."];
+
+        if (value.Makkah.Nights + value.Madinah.Nights <= 0)
+            errors["stays"] = ["At least one accommodation night is required."];
+
+        ValidateItems(errors, "inclusions", value.Inclusions);
+        ValidateItems(errors, "exclusions", value.Exclusions);
+
         return errors;
+    }
+
+    private static AccommodationDraft Normalize(AccommodationDraft value) => value with
+    {
+        HotelName = value.HotelName.Trim(),
+        Classification = value.Classification.Trim(),
+        DistanceDisclosure = value.DistanceDisclosure.Trim()
+    };
+
+    private static string[] NormalizeItems(IReadOnlyList<string> values) => values
+        .Select(value => value.Trim())
+        .Where(value => value.Length > 0)
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .ToArray();
+
+    private static void ValidateAccommodation(
+        IDictionary<string, string[]> errors,
+        string prefix,
+        AccommodationDraft value)
+    {
+        Required(errors, $"{prefix}.hotelName", value.HotelName, 160);
+        OptionalMax(errors, $"{prefix}.classification", value.Classification, 80);
+        OptionalMax(errors, $"{prefix}.distanceDisclosure", value.DistanceDisclosure, 120);
+
+        if (value.Nights < 0)
+            errors[$"{prefix}.nights"] = ["Nights cannot be negative."];
+    }
+
+    private static void ValidateItems(
+        IDictionary<string, string[]> errors,
+        string key,
+        IReadOnlyList<string> values)
+    {
+        if (values.Count > 30 || values.Any(value => value.Trim().Length > 120))
+            errors[key] = ["Use at most 30 items of 120 characters each."];
+    }
+
+    private static void Required(
+        IDictionary<string, string[]> errors,
+        string key,
+        string value,
+        int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            errors[key] = ["This field is required."];
+        else if (value.Trim().Length > maxLength)
+            errors[key] = [$"Must be {maxLength} characters or fewer."];
+    }
+
+    private static void OptionalMax(
+        IDictionary<string, string[]> errors,
+        string key,
+        string value,
+        int maxLength)
+    {
+        if (value.Trim().Length > maxLength)
+            errors[key] = [$"Must be {maxLength} characters or fewer."];
     }
 }
 
-public sealed class BatchValidationException(Dictionary<string, string[]> errors) : Exception("Batch validation failed.") { public Dictionary<string, string[]> Errors { get; } = errors; }
-public sealed record PublicationAudit(Guid BatchId, string Actor, string CorrelationId, BatchStatus PreviousStatus, BatchStatus NewStatus, DateTimeOffset Timestamp);
-public sealed record PublicBatch(Guid Id, string OperatorName, bool OperatorVerified, string PackageName, string Summary, string Tier, string DepartureCity, string Route, DateOnly DepartureDate, DateOnly ReturnDate, int DurationDays, int Capacity, decimal TotalStartingPriceInr, AvailabilityMode Availability, IReadOnlyList<string> Inclusions);
-
-public interface IOperatorApproval
+public sealed class CatalogueDraftValidationException(Dictionary<string, string[]> errors)
+    : Exception("Catalogue draft validation failed.")
 {
-    bool IsApprovedTestOperator(string operatorId);
+    public Dictionary<string, string[]> Errors { get; } = errors;
 }
