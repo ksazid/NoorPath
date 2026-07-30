@@ -1,6 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
-import { publicPackagePreviews } from "./public-package-preview";
+import { CustomerDiscovery } from "./CustomerDiscovery";
 import { Icon, PublicFooter, PublicHeader } from "./public-ui";
 
 const trustPoints = [
@@ -43,13 +42,6 @@ const servicePoints = [
     copy: "Real people, here for you every step of the way",
   },
 ] as const;
-
-const inclusionIcons = ["bed", "fork-knife", "file-text"] as const;
-const packageTiers = [
-  "Verified journey",
-  "Comfort journey",
-  "Extended journey",
-];
 
 export default function HomePage() {
   return (
@@ -155,70 +147,7 @@ export default function HomePage() {
               </a>
             </div>
 
-            <div className="landing-package-grid">
-              {publicPackagePreviews.map((packagePreview, index) => (
-                <article
-                  className="landing-package-card"
-                  key={packagePreview.departureId}
-                >
-                  <div
-                    className={`landing-package-image landing-package-image-${index + 1}`}
-                  >
-                    <Image
-                      src={packagePreview.image}
-                      alt={
-                        packagePreview.image.includes("madinah")
-                          ? "Al-Masjid an-Nabawi in Madinah"
-                          : "Masjid al-Haram in Makkah"
-                      }
-                      fill
-                      sizes="(max-width: 760px) 100vw, (max-width: 980px) 50vw, 33vw"
-                    />
-                    <span className="package-tier">{packageTiers[index]}</span>
-                  </div>
-                  <div className="landing-package-body">
-                    <h3>{packagePreview.packageName.replace(" ·", "")}</h3>
-                    <p className="package-stay">
-                      Makkah {packagePreview.makkah.nights} Nights
-                      <span aria-hidden="true">·</span>
-                      Madinah {packagePreview.madinah.nights} Nights
-                    </p>
-                    <div
-                      className="package-inclusions"
-                      aria-label="Inclusion highlights"
-                    >
-                      {["3★ Hotels", "Breakfast", "Group Visa"].map(
-                        (inclusion, index) => (
-                          <span key={inclusion}>
-                            <Icon name={inclusionIcons[index]} />
-                            {inclusion}
-                          </span>
-                        ),
-                      )}
-                    </div>
-                    <dl className="package-departure">
-                      <div>
-                        <dt>Departure</dt>
-                        <dd>{packagePreview.departureDate}</dd>
-                      </div>
-                      <div>
-                        <dt>From {packagePreview.origin.split(" ")[0]}</dt>
-                        <dd>Availability on request</dd>
-                      </div>
-                    </dl>
-                    <div className="package-card-footer">
-                      <span>
-                        <strong>Details confirmed</strong>
-                        <small>before booking</small>
-                      </span>
-                      <Link href={`/packages/${packagePreview.departureId}`}>
-                        View package <span aria-hidden="true">→</span>
-                      </Link>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
+            <CustomerDiscovery />
           </section>
 
           <section
