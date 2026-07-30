@@ -157,12 +157,7 @@ function Brand({
   onNavigate?: (event: MouseEvent<HTMLAnchorElement>) => void;
 }) {
   return (
-    <Link
-      className="brand"
-      href={href}
-      aria-label={label}
-      onClick={onNavigate}
-    >
+    <Link className="brand" href={href} aria-label={label} onClick={onNavigate}>
       <span className="brand-mark" aria-hidden="true">
         ◇
       </span>
