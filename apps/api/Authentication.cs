@@ -69,8 +69,6 @@ public static class NoorPathAuthentication
                 if (response.StatusCode is not (401 or 403))
                     return;
 
-                response.ContentType = "application/problem+json";
-
                 await response.WriteAsJsonAsync(
                     new
                     {
@@ -84,6 +82,8 @@ public static class NoorPathAuthentication
                             : "forbidden",
                         correlationId = httpContext.TraceIdentifier
                     },
+                    options: null,
+                    contentType: "application/problem+json",
                     cancellationToken: httpContext.RequestAborted);
             });
     }
