@@ -39,6 +39,12 @@ jobs:
           node-version-file: .node-version
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
+      - name: Show refinement Prettier diff
+        if: github.head_ref == 'ui/refinement-implementation'
+        shell: bash
+        run: |
+          pnpm --dir apps/web exec prettier 'app/packages/[departureId]/page.tsx' > /tmp/package-details.formatted.tsx
+          diff -u 'apps/web/app/packages/[departureId]/page.tsx' /tmp/package-details.formatted.tsx || true
       - run: pnpm format:check
       - run: pnpm check
       - run: pnpm test
