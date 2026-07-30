@@ -75,7 +75,7 @@ test("published package detail renders authoritative facts", async ({ page }) =>
   await expect(
     page.getByRole("heading", { name: "Noor International Tours & Travels" }),
   ).toBeVisible();
-  await expect(page.getByText("Browser Verified Journey")).toBeVisible();
+  await expect(page.getByText("Browser Verified Journey").first()).toBeVisible();
   await expect(page.getByText("Makkah Hotel")).toBeVisible();
   await expect(page.getByText("Madinah Hotel")).toBeVisible();
   await expect(page.getByText("Delhi → Jeddah → Makkah → Madinah")).toBeVisible();
@@ -84,8 +84,8 @@ test("published package detail renders authoritative facts", async ({ page }) =>
   await expect(page.getByText("₹1,10,000")).toBeVisible();
   await expect(page.getByText("₹1,00,000")).toBeVisible();
   await expect(page.getByText("Currently unavailable")).toBeVisible();
-  await expect(page.getByText("₹90,000")).toBeVisible();
-  await expect(page.getByText("Pending confirmation")).toBeVisible();
+  await expect(page.getByText("₹90,000").first()).toBeVisible();
+  await expect(page.getByText("Pending confirmation").first()).toBeVisible();
 
   await expect(page.getByText("IATA Accredited")).toHaveCount(0);
   await expect(page.getByText("ISO 9001:2015")).toHaveCount(0);
@@ -128,7 +128,7 @@ test("package detail retry recovers after a public API error", async ({ page }) 
   );
   await expect(page.getByRole("alert")).toContainText("detail-test-503");
   await page.getByRole("button", { name: "Try again" }).click();
-  await expect(page.getByText("Browser Verified Journey")).toBeVisible();
+  await expect(page.getByText("Browser Verified Journey").first()).toBeVisible();
 });
 
 test("package detail remains usable at mobile widths, zoom and reduced motion", async ({
@@ -141,8 +141,8 @@ test("package detail remains usable at mobile widths, zoom and reduced motion", 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`/packages/${departureId}`);
 
-  await expect(page.getByText("Browser Verified Journey")).toBeVisible();
-  await expect(page.getByText("₹90,000")).toBeVisible();
+  await expect(page.getByText("Browser Verified Journey").first()).toBeVisible();
+  await expect(page.getByText("₹90,000").first()).toBeVisible();
   await expect(page.getByText("Currently unavailable")).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await expectMinimumTargets(page);
@@ -164,7 +164,7 @@ test("package detail remains usable at mobile widths, zoom and reduced motion", 
     document.documentElement.style.fontSize = "100%";
   });
   await page.setViewportSize({ width: 360, height: 800 });
-  await expect(page.getByText("Browser Verified Journey")).toBeVisible();
+  await expect(page.getByText("Browser Verified Journey").first()).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await expectMinimumTargets(page);
 });
