@@ -120,9 +120,7 @@ test("mobile, keyboard, targets and reduced motion remain usable", async ({
   await expect(
     page.getByRole("heading", { name: "Browser Verified Journey" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: /View package/ }),
-  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /View package/ })).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await expectMinimumTargets(page);
 
