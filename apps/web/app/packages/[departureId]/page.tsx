@@ -112,7 +112,9 @@ export default async function PackageDetailsPage({ params }: PackagePageProps) {
             />
           </div>
           <div className="public-detail-copy public-detail-copy-refined">
-            <span className="public-eyebrow">{packagePreview.operatorName}</span>
+            <span className="public-eyebrow">
+              {packagePreview.operatorName}
+            </span>
             <h1>{packagePreview.packageName}</h1>
             <p className="public-detail-route">
               {packagePreview.travel.routeSummary}
@@ -161,7 +163,9 @@ export default async function PackageDetailsPage({ params }: PackagePageProps) {
             </div>
           </section>
 
-          <section className="public-detail-section public-detail-section-refined">
+          <section
+            className="public-detail-section public-detail-section-refined"
+          >
             <div className="public-travel-heading">
               <h2>Travel</h2>
               <ConfirmationBadge
@@ -176,9 +180,13 @@ export default async function PackageDetailsPage({ params }: PackagePageProps) {
             </div>
           </section>
 
-          <section className="public-detail-section public-detail-section-refined">
+          <section
+            className="public-detail-section public-detail-section-refined"
+          >
             <div className="public-list-grid">
-              <div className="public-list-panel public-list-panel-refined included">
+              <div
+                className="public-list-panel public-list-panel-refined included"
+              >
                 <h3>Included</h3>
                 <ul>
                   {packagePreview.inclusions.map((item) => (
@@ -186,7 +194,9 @@ export default async function PackageDetailsPage({ params }: PackagePageProps) {
                   ))}
                 </ul>
               </div>
-              <div className="public-list-panel public-list-panel-refined excluded">
+              <div
+                className="public-list-panel public-list-panel-refined excluded"
+              >
                 <h3>Not included</h3>
                 <ul>
                   {packagePreview.exclusions.map((item) => (
