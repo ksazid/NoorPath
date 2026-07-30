@@ -57,20 +57,36 @@ public static class NoorPathAuthentication
         return new(new($"oidc:{Convert.ToHexString(digest).ToLowerInvariant()}"));
     }
 
-    public static IApplicationBuilder UseNoorPathAuthenticationErrors(this IApplicationBuilder app) =>
-        app.UseStatusCodePages(async context =>
+    public static IApplicationBuilder UseNoorPathAuthenticationErrors(
+    this IApplicationBuilder app)
+{
+    return app.UseStatusCodePages(
+        async (Microsoft.AspNetCore.Diagnostics.StatusCodeContext context) =>
         {
-            var response = context.HttpContext.Response;
-            if (response.StatusCode is not (401 or 403)) return;
-            await response.WriteAsJsonAsync(new
-            {
-                type = "about:blank",
-                title = response.StatusCode == 401 ? "Sign in required" : "Access unavailable",
-                status = response.StatusCode,
-                code = response.StatusCode == 401 ? "not_authenticated" : "forbidden",
-                correlationId = context.HttpContext.TraceIdentifier
-            }, contentType: "application/problem+json");
+            var httpContext = context.HttpContext;
+            var response = httpContext.Response;
+
+            if (response.StatusCode is not (401 or 403))
+                return;
+
+            response.ContentType = "application/problem+json";
+
+            await response.WriteAsJsonAsync(
+                new
+                {
+                    type = "about:blank",
+                    title = response.StatusCode == 401
+                        ? "Sign in required"
+                        : "Access unavailable",
+                    status = response.StatusCode,
+                    code = response.StatusCode == 401
+                        ? "not_authenticated"
+                        : "forbidden",
+                    correlationId = httpContext.TraceIdentifier
+                },
+                cancellationToken: httpContext.RequestAborted);
         });
+}
 }
 
 public sealed class TestAuthenticationHandler(
