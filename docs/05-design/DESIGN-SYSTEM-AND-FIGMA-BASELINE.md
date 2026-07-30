@@ -17,7 +17,11 @@ This document defines how NoorPath's approved visual identity, UX rules, design 
 5. Design tokens and production components
 6. Implementation details that do not contradict the above
 
-The existing NoorPath visual identity is extended, not replaced.
+The existing NoorPath visual identity is extended, not replaced. This
+authority and workflow applies to every existing and future customer,
+operator, and admin screen. Existing screens are refined slice-by-slice; a
+material redesign requires explicit Product Owner approval and change-control
+evidence.
 
 ## 2. Design Principle
 
@@ -133,15 +137,44 @@ Applied during implementation after design approval to keep code/UI implementati
 
 Repository-level AI skills live under `.agents/skills/` and are versioned with the repository where installed.
 
-Known project skills:
+Required project skills for the complete UI/UX workflow:
 - `.agents/skills/ui-ux-pro-max/SKILL.md`
+- `.agents/skills/impeccable/SKILL.md`
+- `.agents/skills/emil-design-eng/SKILL.md`
 - `.agents/skills/ponytail/SKILL.md`
 
-Agents must inspect/read the relevant SKILL.md in the active checkout before relying on it.
+Agents must verify and read each relevant `SKILL.md` in the active checkout
+before relying on it. A documented methodology role is not evidence that its
+skill is installed; absent or unreadable skill resources block claims of full
+skill execution.
 
 Figma is available as a connected design tool rather than a repository skill.
+It becomes screen/component authority only for artifacts placed in the
+approved Figma areas defined above.
 
-Impeccable and Emil guidance must only be described as installed when corresponding repository/plugin resources are actually verified; until then they are approved methodology/tooling roles rather than assumed installed dependencies.
+The project skill source must be pinned through the repository
+`skills-lock.json` and committed with its complete required resources and
+licence. Do not substitute similarly named third-party skills.
+
+## 13.1 Universal UI/UX review contract
+
+For every existing screen changed and every new screen introduced:
+
+1. identify the active slice and approved requirement IDs;
+2. map the surface to the approved Landing/Package visual language;
+3. reuse existing tokens, components, customer chrome, and operator patterns;
+4. review all relevant states and realistic long/dynamic content;
+5. apply only purposeful, performant interaction feedback with a
+   reduced-motion equivalent;
+6. verify WCAG 2.2 AA, keyboard flow, 200% zoom/reflow, text expansion, mobile
+   and desktop layouts;
+7. compare captured production screenshots with the applicable approved
+   reference at the same viewport and interaction state; and
+8. record the Product Owner decision before marking visual work complete.
+
+Source review, unit tests, build success, or generated snapshots do not replace
+rendered visual comparison. Work without accessible reference and rendered
+screens remains explicitly blocked at visual acceptance.
 
 ## 14. Design-to-Code Contract
 
