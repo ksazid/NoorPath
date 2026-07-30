@@ -28,12 +28,15 @@
 ## Verification
 
 - [x] Core API/integration coverage for publication visibility, operator eligibility, published snapshot price and availability.
-- [ ] Add explicit edge coverage for no-saleable-occupancy, deterministic/bounded results and public-response privacy.
+- [x] Explicit no-saleable-occupancy fail-closed coverage.
+- [x] Explicit deterministic ordering coverage.
+- [x] Public-response privacy assertions for internal commercial/audit identifiers.
+- [ ] Add explicit bounded-result integration coverage for the 50-item public cap.
 - [ ] Add frontend unit coverage for populated/loading/empty/error states.
-- [x] Playwright customer-discovery scenarios authored.
+- [x] Playwright customer-discovery scenarios authored for desktop behaviour, 390 px and 360 px reflow assertions.
 - [ ] Execute browser E2E and capture rendered evidence at desktop, 390 px and 360 px.
 - [ ] Complete keyboard/accessibility browser verification from the rendered build.
-- [x] CI run #279: formatting, TypeScript/ESLint, frontend unit tests, Next.js production build, .NET formatting/build/tests, migration-state checks, PostgreSQL validation and secret scanning are green.
+- [x] CI run #281: formatting, TypeScript/ESLint, frontend unit tests, Next.js production build, .NET formatting/build/tests including the added discovery integration coverage, migration-state checks, PostgreSQL validation and secret scanning are green.
 - [ ] Product Owner visual acceptance.
 
 ## Post-merge note
