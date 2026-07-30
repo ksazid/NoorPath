@@ -59,6 +59,8 @@ jobs:
           --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       NOORPATH_TEST_DB: Host=localhost;Port=5432;Database=noorpath_test;Username=noorpath;Password=ci-local-only-password
+      NOORPATH_CATALOGUE_TEST_DB: Host=localhost;Port=5432;Database=noorpath_catalogue_test;Username=noorpath;Password=ci-local-only-password
+      NOORPATH_OPERATORS_TEST_DB: Host=localhost;Port=5432;Database=noorpath_operators_test;Username=noorpath;Password=ci-local-only-password
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v5
@@ -71,11 +73,22 @@ jobs:
       - run: dotnet restore NoorPath.slnx
       - run: dotnet format NoorPath.slnx --verify-no-changes --no-restore
       - run: dotnet build NoorPath.slnx --configuration Release --no-restore
-      - run: dotnet test NoorPath.slnx --configuration Release --no-build
-      - name: Validate migration state
+
+      - name: Create module test databases
+        shell: bash
+        run: |
+          set -euo pipefail
+          postgres_container="$(docker ps --filter "publish=5432" --format '{{.ID}}' | head -n 1)"
+          test -n "$postgres_container"
+          docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_catalogue_test;'
+          docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_operators_test;'
+
+      - name: Validate Catalogue migration state
         run: ./scripts/validate-catalogue-migrations.sh
       - name: Validate Operators migration state
         run: ./scripts/validate-operators-migrations.sh
+
+      - run: dotnet test NoorPath.slnx --configuration Release --no-build
 
   postgres:
     name: PostgreSQL configuration
@@ -98,4 +111,3 @@ jobs:
         if: always()
         run: docker compose down --volumes --remove-orphans
 
-  
