@@ -61,9 +61,10 @@ bar, two-line hero, corrected gallery crop, and real desert image asset.
   or placeholder art remain.
 - Icons: visible functional icons come from one Phosphor source family;
   approved page-specific logos are retained.
-- Copy/content: dynamic package values remain data-backed. Exact package names
-  may differ from the static approved board without changing the visual
-  contract.
+- Copy/content: exact package names may differ from the static approved board
+  without changing the visual contract. Commercial values remain absent until
+  a later approved slice provides authoritative data; the same approved visual
+  slots instead show clear confirmation states.
 
 Residual P3: the approved composite does not provide isolated licensed source
 photos, so implementation imagery matches subject, palette, crop direction,

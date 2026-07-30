@@ -45,13 +45,11 @@ const servicePoints = [
 ] as const;
 
 const inclusionIcons = ["bed", "fork-knife", "file-text"] as const;
-
-const formatPrice = (price: number) =>
-  new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(price);
+const packageTiers = [
+  "Verified journey",
+  "Comfort journey",
+  "Extended journey",
+];
 
 export default function HomePage() {
   return (
@@ -176,7 +174,7 @@ export default function HomePage() {
                       fill
                       sizes="(max-width: 760px) 100vw, (max-width: 980px) 50vw, 33vw"
                     />
-                    <span className="package-tier">{packagePreview.badge}</span>
+                    <span className="package-tier">{packageTiers[index]}</span>
                   </div>
                   <div className="landing-package-body">
                     <h3>{packagePreview.packageName.replace(" ·", "")}</h3>
@@ -205,13 +203,13 @@ export default function HomePage() {
                       </div>
                       <div>
                         <dt>From {packagePreview.origin.split(" ")[0]}</dt>
-                        <dd>{packagePreview.seatsRemaining} seats left</dd>
+                        <dd>Availability on request</dd>
                       </div>
                     </dl>
                     <div className="package-card-footer">
                       <span>
-                        <strong>{formatPrice(packagePreview.price)}</strong>
-                        <small>per person</small>
+                        <strong>Details confirmed</strong>
+                        <small>before booking</small>
                       </span>
                       <Link href={`/packages/${packagePreview.departureId}`}>
                         View package <span aria-hidden="true">→</span>

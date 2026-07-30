@@ -23,11 +23,6 @@ export type PublicPackagePreview = {
   departureDate: string;
   returnDate: string;
   durationNights: number;
-  price: number;
-  amountDueToday: number;
-  seatsRemaining: number;
-  capacity: number;
-  badge: string;
   makkah: StayPreview;
   madinah: StayPreview;
   travel: TravelPreview;
@@ -47,11 +42,6 @@ export const publicPackagePreviews: readonly PublicPackagePreview[] = [
     departureDate: "18 Sep 2026",
     returnDate: "30 Sep 2026",
     durationNights: 12,
-    price: 185000,
-    amountDueToday: 35000,
-    seatsRemaining: 18,
-    capacity: 24,
-    badge: "Most popular",
     makkah: {
       hotelName: "Swissôtel Makkah",
       classification: "5 star",
@@ -91,11 +81,6 @@ export const publicPackagePreviews: readonly PublicPackagePreview[] = [
     departureDate: "09 Oct 2026",
     returnDate: "19 Oct 2026",
     durationNights: 10,
-    price: 94500,
-    amountDueToday: 18900,
-    seatsRemaining: 18,
-    capacity: 24,
-    badge: "Best value",
     makkah: {
       hotelName: "Makkah stay",
       classification: "Comfort category",
@@ -133,11 +118,6 @@ export const publicPackagePreviews: readonly PublicPackagePreview[] = [
     departureDate: "06 Nov 2026",
     returnDate: "20 Nov 2026",
     durationNights: 14,
-    price: 128500,
-    amountDueToday: 25700,
-    seatsRemaining: 9,
-    capacity: 24,
-    badge: "Premium",
     makkah: {
       hotelName: "Makkah stay",
       classification: "To be confirmed",

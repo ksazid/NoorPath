@@ -96,13 +96,6 @@ const pending = [
   "Ziyarah timings — To be confirmed",
 ] as const;
 
-const formatPrice = (price: number) =>
-  new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(price);
-
 export function generateStaticParams() {
   return publicPackagePreviews.map((packagePreview) => ({
     departureId: packagePreview.departureId,
@@ -128,10 +121,6 @@ export default async function PackageDetailsPage({ params }: PackagePageProps) {
   const packagePreview = findPublicPackagePreview(departureId);
 
   if (!packagePreview) notFound();
-
-  const remaining = packagePreview.price - packagePreview.amountDueToday;
-  const secondPayment = Math.round(remaining / 2 / 500) * 500;
-  const finalPayment = remaining - secondPayment;
 
   return (
     <div className="public-page package-page">
@@ -166,10 +155,8 @@ export default async function PackageDetailsPage({ params }: PackagePageProps) {
               />
             </div>
             <span className="package-gallery-status">
-              Available seats
-              <strong>
-                {packagePreview.seatsRemaining} / {packagePreview.capacity}
-              </strong>
+              Seat status
+              <strong>Confirm with operator</strong>
             </span>
           </div>
 
@@ -193,13 +180,7 @@ export default async function PackageDetailsPage({ params }: PackagePageProps) {
             <StaySummary city="Madinah" stay={packagePreview.madinah} />
           </div>
 
-          <PaymentSummary
-            price={packagePreview.price}
-            dueToday={packagePreview.amountDueToday}
-            remaining={remaining}
-            secondPayment={secondPayment}
-            finalPayment={finalPayment}
-          />
+          <PaymentSummary />
         </section>
 
         <div className="package-content-grid" id="journey-facts">
@@ -259,20 +240,20 @@ export default async function PackageDetailsPage({ params }: PackagePageProps) {
               <h2>Cancellation summary</h2>
               <dl>
                 <div>
-                  <dt>Before 30 days of departure</dt>
-                  <dd>₹10,000 per person</dd>
+                  <dt>Operator policy</dt>
+                  <dd>Provided before booking</dd>
                 </div>
                 <div>
-                  <dt>15–30 days of departure</dt>
-                  <dd>25% of package</dd>
+                  <dt>Cancellation window</dt>
+                  <dd>Confirmed in writing</dd>
                 </div>
                 <div>
-                  <dt>7–14 days of departure</dt>
-                  <dd>50% of package</dd>
+                  <dt>Refund terms</dt>
+                  <dd>Shown before payment</dd>
                 </div>
                 <div>
-                  <dt>Within 7 days of departure</dt>
-                  <dd>No refund</dd>
+                  <dt>Need clarification?</dt>
+                  <dd>Ask human support</dd>
                 </div>
               </dl>
               <a href="#payment-plan">
@@ -289,15 +270,11 @@ export default async function PackageDetailsPage({ params }: PackagePageProps) {
         role="region"
         aria-label="Package actions"
       >
-        <PriceCell label="Total package" value={packagePreview.price} />
-        <PriceCell
-          label="Pay today"
-          value={packagePreview.amountDueToday}
-          tone="green"
-        />
-        <PriceCell label="Remaining" value={remaining} tone="gold" />
+        <SummaryCell label="Journey details" value="Operator verified" />
+        <SummaryCell label="Payment" value="Confirmed first" tone="green" />
+        <SummaryCell label="Availability" value="On request" tone="gold" />
         <a href="mailto:support@noorpath.example">
-          Book now <span aria-hidden="true">›</span>
+          Request details <span aria-hidden="true">›</span>
         </a>
       </div>
     </div>
@@ -325,50 +302,35 @@ function StaySummary({
   );
 }
 
-function PaymentSummary({
-  price,
-  dueToday,
-  remaining,
-  secondPayment,
-  finalPayment,
-}: {
-  price: number;
-  dueToday: number;
-  remaining: number;
-  secondPayment: number;
-  finalPayment: number;
-}) {
+function PaymentSummary() {
   return (
     <aside className="payment-summary-card" aria-label="Payment summary">
       <h2>Payment summary</h2>
       <div className="payment-totals">
-        <PriceCell label="Total package" value={price} />
-        <PriceCell
-          label={`Pay ${formatPrice(dueToday)} today`}
-          value={dueToday}
-          tone="green"
+        <SummaryCell label="Package amount" value="Pending confirmation" />
+        <SummaryCell label="Pay today" value="Nothing yet" tone="green" />
+        <SummaryCell
+          label="Remaining"
+          value="Shown before payment"
+          tone="gold"
         />
-        <PriceCell label="Remaining" value={remaining} tone="gold" />
       </div>
-      <h3 id="payment-plan">Instalment plan</h3>
+      <h3 id="payment-plan">Payment process</h3>
       <ol className="instalment-plan">
         <PaymentStep
-          amount={dueToday}
-          label="Reserve seat"
-          note="At the time of booking"
-          date="25 May 2025"
+          label="Review confirmed journey"
+          note="Hotels, travel, and inclusions"
+          date="Before payment"
         />
         <PaymentStep
-          amount={secondPayment}
-          label="After documents verified"
-          note="Within 10–15 days"
-          date="10 Jun 2025"
+          label="Receive operator terms"
+          note="Amount, schedule, and cancellation"
+          date="In writing"
         />
         <PaymentStep
-          amount={finalPayment}
-          label="Before ticketing"
-          note="30–35 days before departure"
-          date="15 Jul 2025"
+          label="Choose whether to proceed"
+          note="Human support remains available"
+          date="Your decision"
         />
       </ol>
       <a href="#payment-plan">
@@ -379,12 +341,10 @@ function PaymentSummary({
 }
 
 function PaymentStep({
-  amount,
   label,
   note,
   date,
 }: {
-  amount: number;
   label: string;
   note: string;
   date: string;
@@ -393,9 +353,7 @@ function PaymentStep({
     <li>
       <span className="payment-dot" aria-hidden="true" />
       <div>
-        <strong>
-          {formatPrice(amount)} <span aria-hidden="true">—</span> {label}
-        </strong>
+        <strong>{label}</strong>
         <small>{note}</small>
       </div>
       <time>{date}</time>
@@ -432,19 +390,19 @@ function IconGrid({
   );
 }
 
-function PriceCell({
+function SummaryCell({
   label,
   value,
   tone,
 }: {
   label: string;
-  value: number;
+  value: string;
   tone?: "green" | "gold";
 }) {
   return (
     <div className={`price-cell${tone ? ` price-cell-${tone}` : ""}`}>
       <span>{label}</span>
-      <strong>{formatPrice(value)}</strong>
+      <strong>{value}</strong>
     </div>
   );
 }
