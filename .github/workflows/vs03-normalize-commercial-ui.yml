@@ -1,3 +1,4 @@
+# Temporary branch-only normalizer; remove after one successful bot commit.
 name: Normalize VS-03 commercial UI
 
 on:
