@@ -11,46 +11,6 @@ permissions:
   checks: write
 
 jobs:
-  normalize-vs03-ui:
-    name: Normalize VS-03 UI
-    if: github.event_name == 'pull_request' && github.head_ref == 'vs03/pricing-inventory' && github.actor != 'github-actions[bot]'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .node-version
-      - run: corepack enable
-      - run: pnpm install --frozen-lockfile
-      - name: Make draft badge include commercial edits
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path("apps/web/app/operator/departures/DepartureComposer.tsx")
-          text = path.read_text()
-          old = "{isDirty"
-          new = "{hasUnsavedChanges"
-          if text.count(old) != 1:
-              raise SystemExit(f"Expected one draft badge match, found {text.count(old)}")
-          path.write_text(text.replace(old, new, 1))
-          PY
-      - name: Format changed UI files
-        run: >-
-          pnpm --dir apps/web exec prettier --write
-          app/operator/departures/CommercialEditor.tsx
-          app/operator/departures/DepartureComposer.tsx
-      - name: Commit deterministic UI normalization
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/web/app/operator/departures/CommercialEditor.tsx apps/web/app/operator/departures/DepartureComposer.tsx
-          git commit -m "Polish VS-03 commercial editor"
-          git push origin HEAD:${{ github.head_ref }}
-
   secrets:
     name: Secret scanning
     runs-on: ubuntu-latest
