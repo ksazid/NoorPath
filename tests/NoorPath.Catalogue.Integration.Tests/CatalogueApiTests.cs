@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using NoorPath.Catalogue;
 using NoorPath.Catalogue.Infrastructure;
+using NoorPath.Testing;
 using Xunit;
 
 namespace NoorPath.Catalogue.Integration.Tests;
@@ -180,7 +181,10 @@ public sealed class CatalogueApi : WebApplicationFactory<Program>
 
     public static async Task<CatalogueApi> CreateAsync()
     {
-        var connection = Environment.GetEnvironmentVariable("NOORPATH_TEST_DB") ?? throw new InvalidOperationException("NOORPATH_TEST_DB is required for Catalogue API integration tests.");
+        var connection = IntegrationTestSettings.GetDatabaseConnection(
+            "NOORPATH_CATALOGUE_TEST_DB",
+            "Catalogue API");
+
         var app = new CatalogueApi(connection);
         using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<CatalogueDbContext>();
@@ -193,6 +197,8 @@ public sealed class CatalogueApi : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        IntegrationTestSettings.ConfigureTestHost(builder);
+
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<DbContextOptions<CatalogueDbContext>>();
