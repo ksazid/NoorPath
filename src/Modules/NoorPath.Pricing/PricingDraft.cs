@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace NoorPath.Pricing;
 
 public enum PricingOccupancy
@@ -41,7 +39,7 @@ public sealed class PricingDraft
         var errors = new Dictionary<string, string[]>();
         var currency = value.Currency?.Trim() ?? string.Empty;
 
-        if (currency.Length != 3 || currency.Any(character => character is < 'A' or > 'Z' and < 'a' or > 'z'))
+        if (currency.Length != 3 || !currency.All(char.IsAsciiLetter))
             errors["currency"] = ["Use a three-letter currency code such as INR."];
 
         if (value.Occupancies.Count is < 1 or > 3)
