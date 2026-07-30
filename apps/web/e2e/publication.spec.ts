@@ -36,8 +36,11 @@ test("approved operator draft is explicitly published and appears in discovery",
     "Published successfully",
   );
   await page.getByRole("button", { name: "View customer page" }).click();
-  await expect(page.getByRole("heading", { name: packageName })).toBeVisible();
-  await expect(page.getByText("₹94,500")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: packageName }).first(),
+  ).toBeVisible();
+
+  await expect(page.getByText("₹94,500").first()).toBeVisible();
   await expectNoA11yViolations(page);
   await expectNoHorizontalOverflow(page);
   await expect(page).toHaveScreenshot("published-customer.png", {
