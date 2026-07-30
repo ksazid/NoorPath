@@ -121,13 +121,18 @@ export function validateDraft(form: DraftForm): FieldErrors {
   if (!form.origin.trim()) errors.origin = "Add the departure origin.";
   if (!form.departureDate) errors.departureDate = "Choose a departure date.";
   if (!form.returnDate) errors.returnDate = "Choose a return date.";
-  if (form.departureDate && form.returnDate && form.returnDate <= form.departureDate)
+  if (
+    form.departureDate &&
+    form.returnDate &&
+    form.returnDate <= form.departureDate
+  )
     errors.returnDate = "Return date must be after departure.";
 
   const makkahNights = Number(form.makkah.nights || 0);
   const madinahNights = Number(form.madinah.nights || 0);
   if (makkahNights < 0) errors["makkah.nights"] = "Nights cannot be negative.";
-  if (madinahNights < 0) errors["madinah.nights"] = "Nights cannot be negative.";
+  if (madinahNights < 0)
+    errors["madinah.nights"] = "Nights cannot be negative.";
   if (makkahNights + madinahNights <= 0)
     errors.stays = "Add at least one night across Makkah and Madinah.";
 
@@ -172,7 +177,11 @@ function Field({
         {label} {required && <em aria-hidden="true">*</em>}
       </span>
       {children}
-      {error ? <small className="error-text">{error}</small> : hint && <small>{hint}</small>}
+      {error ? (
+        <small className="error-text">{error}</small>
+      ) : (
+        hint && <small>{hint}</small>
+      )}
     </label>
   );
 }
@@ -259,7 +268,9 @@ function AccommodationSection({
             maxLength={80}
             value={value.classification}
             placeholder="e.g. 4 star"
-            onChange={(event) => onChange({ classification: event.target.value })}
+            onChange={(event) =>
+              onChange({ classification: event.target.value })
+            }
           />
         </Field>
         <Field label="Distance disclosure" required={false}>
@@ -271,7 +282,9 @@ function AccommodationSection({
                 ? "e.g. 850 m from Masjid al-Haram"
                 : "e.g. 450 m from Al-Masjid an-Nabawi"
             }
-            onChange={(event) => onChange({ distanceDisclosure: event.target.value })}
+            onChange={(event) =>
+              onChange({ distanceDisclosure: event.target.value })
+            }
           />
         </Field>
         <Field label="Nights" error={errors[`${key}.nights`]}>
@@ -324,7 +337,9 @@ function TagEditor({
               <button
                 type="button"
                 aria-label={`Remove ${value}`}
-                onClick={() => onChange(values.filter((item) => item !== value))}
+                onClick={() =>
+                  onChange(values.filter((item) => item !== value))
+                }
               >
                 ×
               </button>
@@ -438,11 +453,14 @@ export default function DepartureComposer({
           return;
         }
 
-        const response = await fetch(`/api/v1/operator/departures/${initialDepartureId}`, {
-          cache: "no-store",
-          credentials: "include",
-          headers: requestHeaders(),
-        });
+        const response = await fetch(
+          `/api/v1/operator/departures/${initialDepartureId}`,
+          {
+            cache: "no-store",
+            credentials: "include",
+            headers: requestHeaders(),
+          },
+        );
         if (cancelled) return;
         if (response.status === 401) return setState("unauthenticated");
         if (response.status === 403) return setState("forbidden");
@@ -456,7 +474,9 @@ export default function DepartureComposer({
         setState("ready");
       } catch {
         if (!cancelled) {
-          setProblem("We couldn’t load this workspace. Check the connection and retry.");
+          setProblem(
+            "We couldn’t load this workspace. Check the connection and retry.",
+          );
           setState("load-error");
         }
       }
@@ -487,7 +507,10 @@ export default function DepartureComposer({
     city: "makkah" | "madinah",
     patch: Partial<AccommodationForm>,
   ) => {
-    setForm((current) => ({ ...current, [city]: { ...current[city], ...patch } }));
+    setForm((current) => ({
+      ...current,
+      [city]: { ...current[city], ...patch },
+    }));
     setErrors((current) => {
       const next = { ...current };
       Object.keys(patch).forEach((key) => delete next[`${city}.${key}`]);
@@ -498,7 +521,10 @@ export default function DepartureComposer({
   };
 
   const changeTravel = (patch: Partial<TravelForm>) => {
-    setForm((current) => ({ ...current, travel: { ...current.travel, ...patch } }));
+    setForm((current) => ({
+      ...current,
+      travel: { ...current.travel, ...patch },
+    }));
     setErrors((current) => {
       const next = { ...current };
       Object.keys(patch).forEach((key) => delete next[`travel.${key}`]);
@@ -522,13 +548,17 @@ export default function DepartureComposer({
     try {
       const request = buildRequest(form);
       const response = await fetch(
-        departureId ? `/api/v1/operator/departures/${departureId}` : "/api/v1/operator/departures",
+        departureId
+          ? `/api/v1/operator/departures/${departureId}`
+          : "/api/v1/operator/departures",
         {
           method: departureId ? "PUT" : "POST",
           credentials: "include",
           headers: requestHeaders(true),
           body: JSON.stringify(
-            departureId ? { expectedVersion: version, draft: request } : request,
+            departureId
+              ? { expectedVersion: version, draft: request }
+              : request,
           ),
         },
       );
@@ -556,22 +586,40 @@ export default function DepartureComposer({
         );
         return;
       }
-      if (!response.ok) throw new Error(body.detail ?? body.title ?? "save failed");
+      if (!response.ok)
+        throw new Error(body.detail ?? body.title ?? "save failed");
 
       setDepartureId(body.departureId);
       setVersion(body.version);
       setState("saved");
       if (!initialDepartureId)
-        window.history.replaceState(null, "", `/operator/departures/${body.departureId}`);
+        window.history.replaceState(
+          null,
+          "",
+          `/operator/departures/${body.departureId}`,
+        );
     } catch {
-      setProblem("We couldn’t save the draft. Your entries are still here; retry safely.");
+      setProblem(
+        "We couldn’t save the draft. Your entries are still here; retry safely.",
+      );
       setState("error");
     }
   };
 
-  if (["loading", "unauthenticated", "forbidden", "not-found", "load-error"].includes(state)) {
+  if (
+    [
+      "loading",
+      "unauthenticated",
+      "forbidden",
+      "not-found",
+      "load-error",
+    ].includes(state)
+  ) {
     const copy = {
-      loading: ["Loading workspace", "Checking your operator access and latest draft state."],
+      loading: [
+        "Loading workspace",
+        "Checking your operator access and latest draft state.",
+      ],
       unauthenticated: [
         "Sign in required",
         "Sign in with an operator staff account to author catalogue drafts.",
@@ -591,7 +639,11 @@ export default function DepartureComposer({
     return (
       <main className="composer-state-page">
         <Brand />
-        <section className="composer-state-card" role="status" aria-live="polite">
+        <section
+          className="composer-state-card"
+          role="status"
+          aria-live="polite"
+        >
           <Icon>{state === "loading" ? "…" : "◇"}</Icon>
           <span className="eyebrow">Operator catalogue</span>
           <h1>{title}</h1>
@@ -602,7 +654,11 @@ export default function DepartureComposer({
             </a>
           )}
           {state === "load-error" && (
-            <button className="primary-button" type="button" onClick={() => window.location.reload()}>
+            <button
+              className="primary-button"
+              type="button"
+              onClick={() => window.location.reload()}
+            >
               Retry
             </button>
           )}
@@ -625,7 +681,8 @@ export default function DepartureComposer({
           <span className="composer-access-badge">Verified scope</span>
           <strong>{operator?.displayName ?? "Operator workspace"}</strong>
           <small>
-            Your operator is resolved from staff access. It cannot be selected in this form.
+            Your operator is resolved from staff access. It cannot be selected
+            in this form.
           </small>
         </div>
       </aside>
@@ -633,11 +690,15 @@ export default function DepartureComposer({
       <section className="admin-content composer-content">
         <div className="admin-titlebar">
           <div>
-            <span className="eyebrow">Catalogue · Package & departure authoring</span>
-            <h1>{departureId ? "Edit draft journey" : "Create a draft journey"}</h1>
+            <span className="eyebrow">
+              Catalogue · Package & departure authoring
+            </span>
+            <h1>
+              {departureId ? "Edit draft journey" : "Create a draft journey"}
+            </h1>
             <p>
-              Record truthful Makkah, Madinah, travel and departure facts. Pricing,
-              inventory and publication come later.
+              Record truthful Makkah, Madinah, travel and departure facts.
+              Pricing, inventory and publication come later.
             </p>
           </div>
           <span className="draft-pill">
@@ -645,9 +706,15 @@ export default function DepartureComposer({
           </span>
         </div>
 
-        {(Object.keys(errors).length > 0 || state === "error" || state === "conflict") && (
+        {(Object.keys(errors).length > 0 ||
+          state === "error" ||
+          state === "conflict") && (
           <div
-            className={state === "conflict" ? "composer-notice conflict" : "error-summary"}
+            className={
+              state === "conflict"
+                ? "composer-notice conflict"
+                : "error-summary"
+            }
             role="alert"
             tabIndex={-1}
           >
@@ -674,7 +741,11 @@ export default function DepartureComposer({
                 </button>
               )}
               {state === "error" && (
-                <button className="composer-inline-action" type="button" onClick={() => void save()}>
+                <button
+                  className="composer-inline-action"
+                  type="button"
+                  onClick={() => void save()}
+                >
                   Retry save
                 </button>
               )}
@@ -683,11 +754,17 @@ export default function DepartureComposer({
         )}
 
         {state === "saved" && (
-          <div className="composer-notice saved" role="status" aria-live="polite">
+          <div
+            className="composer-notice saved"
+            role="status"
+            aria-live="polite"
+          >
             <Icon>✓</Icon>
             <div>
               <strong>Draft saved</strong>
-              <span>Version {version} is safely stored and remains private.</span>
+              <span>
+                Version {version} is safely stored and remains private.
+              </span>
             </div>
           </div>
         )}
@@ -707,7 +784,9 @@ export default function DepartureComposer({
                   maxLength={120}
                   placeholder="e.g. Noor Harmony 12 Nights"
                   value={form.packageName}
-                  onChange={(event) => change("packageName", event.target.value)}
+                  onChange={(event) =>
+                    change("packageName", event.target.value)
+                  }
                 />
               </Field>
               <Field label="Journey summary" error={errors.summary}>
@@ -737,14 +816,18 @@ export default function DepartureComposer({
             errors={errors}
             onChange={(patch) => changeAccommodation("madinah", patch)}
           />
-          {errors.stays && <p className="composer-section-error">{errors.stays}</p>}
+          {errors.stays && (
+            <p className="composer-section-error">{errors.stays}</p>
+          )}
 
           <section className="form-card">
             <div className="form-card-heading">
               <span>04</span>
               <div>
                 <h2>Travel & departure</h2>
-                <p>Dates, origin and route facts for this specific departure.</p>
+                <p>
+                  Dates, origin and route facts for this specific departure.
+                </p>
               </div>
             </div>
             <div className="form-grid">
@@ -756,19 +839,26 @@ export default function DepartureComposer({
                   onChange={(event) => change("origin", event.target.value)}
                 />
               </Field>
-              <Field label="Route summary" error={errors["travel.routeSummary"]}>
+              <Field
+                label="Route summary"
+                error={errors["travel.routeSummary"]}
+              >
                 <input
                   maxLength={200}
                   placeholder="e.g. Delhi → Jeddah → Makkah → Madinah"
                   value={form.travel.routeSummary}
-                  onChange={(event) => changeTravel({ routeSummary: event.target.value })}
+                  onChange={(event) =>
+                    changeTravel({ routeSummary: event.target.value })
+                  }
                 />
               </Field>
               <Field label="Departure date" error={errors.departureDate}>
                 <input
                   type="date"
                   value={form.departureDate}
-                  onChange={(event) => change("departureDate", event.target.value)}
+                  onChange={(event) =>
+                    change("departureDate", event.target.value)
+                  }
                 />
               </Field>
               <Field
@@ -790,14 +880,18 @@ export default function DepartureComposer({
                   rows={3}
                   placeholder="Add flight or transfer detail only when it is known."
                   value={form.travel.details}
-                  onChange={(event) => changeTravel({ details: event.target.value })}
+                  onChange={(event) =>
+                    changeTravel({ details: event.target.value })
+                  }
                 />
               </Field>
               <ConfirmationField
                 name="travel-confirmation-state"
                 label="Travel fact status"
                 value={form.travel.confirmationState}
-                onChange={(confirmationState) => changeTravel({ confirmationState })}
+                onChange={(confirmationState) =>
+                  changeTravel({ confirmationState })
+                }
               />
             </div>
           </section>
@@ -807,7 +901,9 @@ export default function DepartureComposer({
               <span>05</span>
               <div>
                 <h2>Included & excluded</h2>
-                <p>Keep the commercial boundary clear without adding pricing.</p>
+                <p>
+                  Keep the commercial boundary clear without adding pricing.
+                </p>
               </div>
             </div>
             <div className="composer-content-grid">
@@ -845,7 +941,11 @@ export default function DepartureComposer({
             disabled={state === "saving" || state === "conflict"}
             onClick={() => void save()}
           >
-            {state === "saving" ? "Saving…" : departureId ? "Save changes" : "Save draft"}
+            {state === "saving"
+              ? "Saving…"
+              : departureId
+                ? "Save changes"
+                : "Save draft"}
           </button>
         </div>
       </footer>
