@@ -133,6 +133,13 @@ public static class CatalogueAuthoringEndpoints
         if (departure is null)
             return Results.NotFound();
 
+        if (departure.Status != CatalogueDraftStatus.Draft)
+            return Results.Problem(
+                statusCode: 409,
+                title: "Departure authoring is locked",
+                detail: "Submitted and published departures cannot be edited.",
+                extensions: ProblemExtensions(http, "departure_not_editable"));
+
         if (departure.Version != request.ExpectedVersion)
             return StaleVersion(http);
 
@@ -387,7 +394,7 @@ public static class CatalogueAuthoringEndpoints
             packageVersionId = packageVersion.Id,
             departureId = departure.Id,
             version = departure.Version,
-            status = "draft",
+            status = StatusKey(departure.Status),
             packageName = packageVersion.Name,
             summary = packageVersion.Summary,
             makkah = new
@@ -418,6 +425,13 @@ public static class CatalogueAuthoringEndpoints
             inclusions = items.Where(x => x.Kind == PackageContentKind.Inclusion).OrderBy(x => x.Position).Select(x => x.Text),
             exclusions = items.Where(x => x.Kind == PackageContentKind.Exclusion).OrderBy(x => x.Position).Select(x => x.Text)
         };
+
+    private static string StatusKey(CatalogueDraftStatus status) => status switch
+    {
+        CatalogueDraftStatus.ReadyForReview => "readyForReview",
+        CatalogueDraftStatus.Published => "published",
+        _ => "draft"
+    };
 
     private static IResult StaleVersion(HttpContext http) => Results.Problem(
         statusCode: 409,
