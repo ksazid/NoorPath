@@ -3,12 +3,59 @@ using Xunit;
 
 namespace NoorPath.Catalogue.Tests;
 
-public sealed class BatchTests
+public sealed class PackageDepartureDraftTests
 {
-    private static CreateBatch Valid() => new("test-approved-noor", "Noor Tours", "Noor Comfort", "A supported journey", "Comfort", "Delhi", "Jeddah to Makkah", new(2026, 10, 10), new(2026, 10, 22), 24, AvailabilityMode.Exact, 94500, ["Flights", "", "Flights", "Breakfast"]);
+    private static PackageDepartureDraftDetails Valid() => new(
+        " Noor Harmony 12 Nights ",
+        " A guided Umrah journey with clearly labelled travel facts. ",
+        new(" Makkah Hotel ", "4 star", "850 m from Masjid al-Haram", 6, FactConfirmationState.Confirmed),
+        new(" Madinah Hotel ", "4 star", "450 m from Al-Masjid an-Nabawi", 5, FactConfirmationState.Pending),
+        new(" Delhi → Jeddah → Makkah → Madinah ", "Flight details pending final confirmation.", FactConfirmationState.Pending),
+        " Delhi (DEL) ",
+        new(2026, 10, 10),
+        new(2026, 10, 22),
+        [" Return flights ", "Breakfast", "return flights", ""],
+        ["Personal expenses", " Personal expenses ", ""]);
 
-    [Fact] public void Draft_normalizes_dynamic_inclusions() { var batch = new Batch(Valid()); Assert.Equal(["Flights", "Breakfast"], batch.Details.Inclusions); }
-    [Fact] public void Invalid_dates_and_capacity_are_rejected() { var command = Valid() with { ReturnDate = new(2026, 10, 9), Capacity = 0 }; var error = Assert.Throws<BatchValidationException>(() => new Batch(command)); Assert.Contains("returnDate", error.Errors.Keys); Assert.Contains("capacity", error.Errors.Keys); }
-    [Fact] public void Publishing_requires_approval_and_current_version() { var batch = new Batch(Valid()); Assert.Throws<InvalidOperationException>(() => batch.Publish(1, "admin", "trace", false)); Assert.Throws<InvalidOperationException>(() => batch.Publish(2, "admin", "trace", true)); var audit = batch.Publish(1, "admin", "trace", true); Assert.Equal(BatchStatus.Published, batch.Status); Assert.Equal(BatchStatus.Draft, audit.PreviousStatus); Assert.Throws<InvalidOperationException>(() => batch.Publish(2, "admin", "trace", true)); }
-    [Theory][InlineData(AvailabilityMode.Exact)][InlineData(AvailabilityMode.Limited)][InlineData(AvailabilityMode.WaitlistOnly)][InlineData(AvailabilityMode.Unavailable)] public void Availability_modes_are_allowlisted(AvailabilityMode mode) { var batch = new Batch(Valid() with { Availability = mode }); Assert.Equal(mode, batch.Details.Availability); }
+    [Fact]
+    public void Draft_normalizes_text_and_ordered_content()
+    {
+        var draft = new PackageDepartureDraft(Valid());
+
+        Assert.Equal("Noor Harmony 12 Nights", draft.Details.PackageName);
+        Assert.Equal("Delhi (DEL)", draft.Details.Origin);
+        Assert.Equal(["Return flights", "Breakfast"], draft.Details.Inclusions);
+        Assert.Equal(["Personal expenses"], draft.Details.Exclusions);
+    }
+
+    [Fact]
+    public void Draft_requires_independent_accommodation_and_valid_dates()
+    {
+        var value = Valid() with
+        {
+            Makkah = Valid().Makkah with { HotelName = "", Nights = -1 },
+            Madinah = Valid().Madinah with { Nights = 0 },
+            ReturnDate = new(2026, 10, 9)
+        };
+
+        var error = Assert.Throws<CatalogueDraftValidationException>(() => new PackageDepartureDraft(value));
+
+        Assert.Contains("makkah.hotelName", error.Errors.Keys);
+        Assert.Contains("makkah.nights", error.Errors.Keys);
+        Assert.Contains("returnDate", error.Errors.Keys);
+    }
+
+    [Fact]
+    public void Draft_requires_at_least_one_stay_night()
+    {
+        var value = Valid() with
+        {
+            Makkah = Valid().Makkah with { Nights = 0 },
+            Madinah = Valid().Madinah with { Nights = 0 }
+        };
+
+        var error = Assert.Throws<CatalogueDraftValidationException>(() => new PackageDepartureDraft(value));
+
+        Assert.Contains("stays", error.Errors.Keys);
+    }
 }

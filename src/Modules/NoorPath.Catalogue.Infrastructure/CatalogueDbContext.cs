@@ -5,27 +5,149 @@ namespace NoorPath.Catalogue.Infrastructure;
 
 public sealed class CatalogueDbContext(DbContextOptions<CatalogueDbContext> options) : DbContext(options)
 {
-    public DbSet<PackageRecord> Packages => Set<PackageRecord>();
-    public DbSet<BatchRecord> Batches => Set<BatchRecord>();
-    public DbSet<PriceVersionRecord> PriceVersions => Set<PriceVersionRecord>();
-    public DbSet<InclusionRecord> Inclusions => Set<InclusionRecord>();
-    public DbSet<PublicationAuditRecord> PublicationAudits => Set<PublicationAuditRecord>();
+    public DbSet<PackageTemplateRecord> PackageTemplates => Set<PackageTemplateRecord>();
+    public DbSet<PackageVersionRecord> PackageVersions => Set<PackageVersionRecord>();
+    public DbSet<DepartureBatchRecord> DepartureBatches => Set<DepartureBatchRecord>();
+    public DbSet<PackageContentItemRecord> PackageContentItems => Set<PackageContentItemRecord>();
+    public DbSet<CatalogueDraftAuditRecord> DraftAudits => Set<CatalogueDraftAuditRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) => Configure(modelBuilder);
 
     public static void Configure(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("catalogue");
-        modelBuilder.Entity<PackageRecord>(entity => { entity.ToTable("packages"); entity.HasKey(x => x.Id); entity.Property(x => x.OperatorId).HasMaxLength(80); entity.Property(x => x.OperatorName).HasMaxLength(120); entity.Property(x => x.Name).HasMaxLength(120); entity.Property(x => x.Summary).HasMaxLength(300); entity.Property(x => x.Tier).HasMaxLength(40); });
-        modelBuilder.Entity<BatchRecord>(entity => { entity.ToTable("batches"); entity.HasKey(x => x.Id); entity.Property(x => x.DepartureCity).HasMaxLength(80); entity.Property(x => x.Route).HasMaxLength(160); entity.Property(x => x.Version).IsConcurrencyToken(); entity.HasOne<PackageRecord>().WithMany().HasForeignKey(x => x.PackageId).OnDelete(DeleteBehavior.Restrict); });
-        modelBuilder.Entity<PriceVersionRecord>(entity => { entity.ToTable("price_versions"); entity.HasKey(x => x.Id); entity.Property(x => x.Currency).HasMaxLength(3); entity.Property(x => x.TotalStartingPrice).HasPrecision(12, 2); entity.HasOne<BatchRecord>().WithMany().HasForeignKey(x => x.BatchId).OnDelete(DeleteBehavior.Cascade); });
-        modelBuilder.Entity<InclusionRecord>(entity => { entity.ToTable("inclusions"); entity.HasKey(x => x.Id); entity.Property(x => x.Text).HasMaxLength(80); entity.HasIndex(x => new { x.PackageId, x.Position }).IsUnique(); entity.HasOne<PackageRecord>().WithMany().HasForeignKey(x => x.PackageId).OnDelete(DeleteBehavior.Cascade); });
-        modelBuilder.Entity<PublicationAuditRecord>(entity => { entity.ToTable("publication_audits"); entity.HasKey(x => x.Id); entity.Property(x => x.Actor).HasMaxLength(100); entity.Property(x => x.CorrelationId).HasMaxLength(100); entity.Property(x => x.PreviousStatus).HasMaxLength(20); entity.Property(x => x.NewStatus).HasMaxLength(20); entity.HasIndex(x => x.BatchId).IsUnique(); entity.HasOne<BatchRecord>().WithMany().HasForeignKey(x => x.BatchId).OnDelete(DeleteBehavior.Restrict); });
+
+        modelBuilder.Entity<PackageTemplateRecord>(entity =>
+        {
+            entity.ToTable("package_templates");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.OperatorId).HasMaxLength(80);
+            entity.Property(x => x.WorkingName).HasMaxLength(120);
+            entity.HasIndex(x => x.OperatorId);
+        });
+
+        modelBuilder.Entity<PackageVersionRecord>(entity =>
+        {
+            entity.ToTable("package_versions");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+            entity.Property(x => x.Name).HasMaxLength(120);
+            entity.Property(x => x.Summary).HasMaxLength(600);
+            entity.Property(x => x.MakkahHotelName).HasMaxLength(160);
+            entity.Property(x => x.MakkahClassification).HasMaxLength(80);
+            entity.Property(x => x.MakkahDistanceDisclosure).HasMaxLength(120);
+            entity.Property(x => x.MakkahConfirmationState).HasConversion<string>().HasMaxLength(16);
+            entity.Property(x => x.MadinahHotelName).HasMaxLength(160);
+            entity.Property(x => x.MadinahClassification).HasMaxLength(80);
+            entity.Property(x => x.MadinahDistanceDisclosure).HasMaxLength(120);
+            entity.Property(x => x.MadinahConfirmationState).HasConversion<string>().HasMaxLength(16);
+            entity.Property(x => x.TravelRouteSummary).HasMaxLength(200);
+            entity.Property(x => x.TravelDetails).HasMaxLength(600);
+            entity.Property(x => x.TravelConfirmationState).HasConversion<string>().HasMaxLength(16);
+            entity.HasIndex(x => new { x.PackageTemplateId, x.Sequence }).IsUnique();
+            entity.HasOne<PackageTemplateRecord>().WithMany().HasForeignKey(x => x.PackageTemplateId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<DepartureBatchRecord>(entity =>
+        {
+            entity.ToTable("departure_batches");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.OperatorId).HasMaxLength(80);
+            entity.Property(x => x.Origin).HasMaxLength(120);
+            entity.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+            entity.Property(x => x.Version).IsConcurrencyToken();
+            entity.HasIndex(x => x.OperatorId);
+            entity.HasIndex(x => x.PackageVersionId);
+            entity.HasOne<PackageVersionRecord>().WithMany().HasForeignKey(x => x.PackageVersionId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PackageContentItemRecord>(entity =>
+        {
+            entity.ToTable("package_content_items");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Kind).HasConversion<string>().HasMaxLength(16);
+            entity.Property(x => x.Text).HasMaxLength(120);
+            entity.HasIndex(x => new { x.PackageVersionId, x.Kind, x.Position }).IsUnique();
+            entity.HasOne<PackageVersionRecord>().WithMany().HasForeignKey(x => x.PackageVersionId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<CatalogueDraftAuditRecord>(entity =>
+        {
+            entity.ToTable("draft_audits");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.ActorAccountId).HasMaxLength(120);
+            entity.Property(x => x.CorrelationId).HasMaxLength(100);
+            entity.Property(x => x.Action).HasMaxLength(20);
+            entity.HasIndex(x => new { x.DepartureBatchId, x.Version });
+            entity.HasOne<DepartureBatchRecord>().WithMany().HasForeignKey(x => x.DepartureBatchId).OnDelete(DeleteBehavior.Restrict);
+        });
     }
 }
 
-public sealed class PackageRecord { public Guid Id { get; set; } public required string OperatorId { get; set; } public required string OperatorName { get; set; } public required string Name { get; set; } public required string Summary { get; set; } public required string Tier { get; set; } }
-public sealed class BatchRecord { public Guid Id { get; set; } public Guid PackageId { get; set; } public required string DepartureCity { get; set; } public required string Route { get; set; } public DateOnly DepartureDate { get; set; } public DateOnly ReturnDate { get; set; } public int Capacity { get; set; } public AvailabilityMode Availability { get; set; } public BatchStatus Status { get; set; } = BatchStatus.Draft; public int Version { get; set; } = 1; public DateTimeOffset? PublishedAt { get; set; } }
-public sealed class PriceVersionRecord { public Guid Id { get; set; } public Guid BatchId { get; set; } public required string Currency { get; set; } = "INR"; public decimal TotalStartingPrice { get; set; } public DateTimeOffset EffectiveAt { get; set; } public int Version { get; set; } = 1; }
-public sealed class InclusionRecord { public Guid Id { get; set; } public Guid PackageId { get; set; } public int Position { get; set; } public required string Text { get; set; } }
-public sealed class PublicationAuditRecord { public Guid Id { get; set; } public Guid BatchId { get; set; } public required string Actor { get; set; } public required string CorrelationId { get; set; } public required string PreviousStatus { get; set; } public required string NewStatus { get; set; } public int ExpectedVersion { get; set; } public DateTimeOffset Timestamp { get; set; } }
+public sealed class PackageTemplateRecord
+{
+    public Guid Id { get; set; }
+    public required string OperatorId { get; set; }
+    public required string WorkingName { get; set; }
+    public DateTimeOffset CreatedAtUtc { get; set; }
+    public DateTimeOffset UpdatedAtUtc { get; set; }
+}
+
+public sealed class PackageVersionRecord
+{
+    public Guid Id { get; set; }
+    public Guid PackageTemplateId { get; set; }
+    public int Sequence { get; set; } = 1;
+    public CatalogueDraftStatus Status { get; set; } = CatalogueDraftStatus.Draft;
+    public required string Name { get; set; }
+    public required string Summary { get; set; }
+    public required string MakkahHotelName { get; set; }
+    public required string MakkahClassification { get; set; }
+    public required string MakkahDistanceDisclosure { get; set; }
+    public int MakkahNights { get; set; }
+    public FactConfirmationState MakkahConfirmationState { get; set; }
+    public required string MadinahHotelName { get; set; }
+    public required string MadinahClassification { get; set; }
+    public required string MadinahDistanceDisclosure { get; set; }
+    public int MadinahNights { get; set; }
+    public FactConfirmationState MadinahConfirmationState { get; set; }
+    public required string TravelRouteSummary { get; set; }
+    public required string TravelDetails { get; set; }
+    public FactConfirmationState TravelConfirmationState { get; set; }
+    public DateTimeOffset CreatedAtUtc { get; set; }
+    public DateTimeOffset UpdatedAtUtc { get; set; }
+}
+
+public sealed class DepartureBatchRecord
+{
+    public Guid Id { get; set; }
+    public required string OperatorId { get; set; }
+    public Guid PackageVersionId { get; set; }
+    public required string Origin { get; set; }
+    public DateOnly DepartureDate { get; set; }
+    public DateOnly ReturnDate { get; set; }
+    public CatalogueDraftStatus Status { get; set; } = CatalogueDraftStatus.Draft;
+    public int Version { get; set; } = 1;
+    public DateTimeOffset CreatedAtUtc { get; set; }
+    public DateTimeOffset UpdatedAtUtc { get; set; }
+}
+
+public sealed class PackageContentItemRecord
+{
+    public Guid Id { get; set; }
+    public Guid PackageVersionId { get; set; }
+    public PackageContentKind Kind { get; set; }
+    public int Position { get; set; }
+    public required string Text { get; set; }
+}
+
+public sealed class CatalogueDraftAuditRecord
+{
+    public Guid Id { get; set; }
+    public Guid DepartureBatchId { get; set; }
+    public required string ActorAccountId { get; set; }
+    public required string CorrelationId { get; set; }
+    public required string Action { get; set; }
+    public int Version { get; set; }
+    public DateTimeOffset Timestamp { get; set; }
+}

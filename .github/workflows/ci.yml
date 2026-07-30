@@ -111,4 +111,3 @@ jobs:
       - name: Clean up PostgreSQL
         if: always()
         run: docker compose down --volumes --remove-orphans
-

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using NoorPath.Catalogue;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -8,9 +9,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NoorPath.Catalogue.Infrastructure.Migrations;
 
 [DbContext(typeof(CatalogueDbContext))]
-partial class CatalogueDbContextModelSnapshot : ModelSnapshot
+[Migration("20260730150000_VS02PackageDepartureAuthoring")]
+partial class VS02PackageDepartureAuthoring
 {
-    protected override void BuildModel(ModelBuilder modelBuilder)
+    protected override void BuildTargetModel(ModelBuilder modelBuilder)
     {
         modelBuilder
             .HasDefaultSchema("catalogue")
@@ -106,17 +108,14 @@ partial class CatalogueDbContextModelSnapshot : ModelSnapshot
         {
             b.HasOne("NoorPath.Catalogue.Infrastructure.PackageTemplateRecord", null).WithMany().HasForeignKey("PackageTemplateId").OnDelete(DeleteBehavior.Restrict).IsRequired();
         });
-
         modelBuilder.Entity("NoorPath.Catalogue.Infrastructure.DepartureBatchRecord", b =>
         {
             b.HasOne("NoorPath.Catalogue.Infrastructure.PackageVersionRecord", null).WithMany().HasForeignKey("PackageVersionId").OnDelete(DeleteBehavior.Restrict).IsRequired();
         });
-
         modelBuilder.Entity("NoorPath.Catalogue.Infrastructure.PackageContentItemRecord", b =>
         {
             b.HasOne("NoorPath.Catalogue.Infrastructure.PackageVersionRecord", null).WithMany().HasForeignKey("PackageVersionId").OnDelete(DeleteBehavior.Cascade).IsRequired();
         });
-
         modelBuilder.Entity("NoorPath.Catalogue.Infrastructure.CatalogueDraftAuditRecord", b =>
         {
             b.HasOne("NoorPath.Catalogue.Infrastructure.DepartureBatchRecord", null).WithMany().HasForeignKey("DepartureBatchId").OnDelete(DeleteBehavior.Restrict).IsRequired();
