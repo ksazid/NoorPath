@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using NoorPath.Catalogue;
 using NoorPath.Catalogue.Infrastructure;
 using NoorPath.Inventory.Infrastructure;
 using NoorPath.Operators;
@@ -164,6 +165,166 @@ public sealed class CommercialAuthoringApiTests
         Assert.Equal(1, (await inventoryDb.Configurations.SingleAsync(cancellationToken: TestContext.Current.CancellationToken)).Version);
     }
 
+    [Fact]
+    public async Task Publication_requires_independent_approval_and_persists_immutable_versions()
+    {
+        using var app = await CommercialApi.CreateAsync(TestContext.Current.CancellationToken);
+        using var author = app.CreateOperatorClient(CommercialApi.AuthorIdentity);
+        using var approver = app.CreateOperatorClient(CommercialApi.PlatformApproverIdentity);
+        var departureId = await CreateDraftAsync(author, TestContext.Current.CancellationToken);
+
+        (await author.PutAsJsonAsync(
+            $"/api/v1/operator/departures/{departureId}/pricing",
+            ValidPricing(),
+            TestContext.Current.CancellationToken)).EnsureSuccessStatusCode();
+        (await author.PutAsJsonAsync(
+            $"/api/v1/operator/departures/{departureId}/inventory",
+            PublishableInventory(),
+            TestContext.Current.CancellationToken)).EnsureSuccessStatusCode();
+
+        var review = await author.GetFromJsonAsync<PublicationReviewResponse>(
+            $"/api/v1/operator/departures/{departureId}/publication-review",
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(review);
+        Assert.True(review.Ready);
+
+        var versions = new PublicationVersionRequest(
+            review.DepartureVersion,
+            review.PricingVersion,
+            review.InventoryVersion);
+        var submitted = await author.PostAsJsonAsync(
+            $"/api/v1/operator/departures/{departureId}/submit-review",
+            versions,
+            TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, submitted.StatusCode);
+
+        var sameAccountApproval = await author.PostAsJsonAsync(
+            $"/api/v1/platform/publications/{departureId}/publish",
+            versions with { ExpectedDepartureVersion = review.DepartureVersion + 1 },
+            TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.Forbidden, sameAccountApproval.StatusCode);
+        using (var problem = JsonDocument.Parse(
+            await sameAccountApproval.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)))
+            Assert.Equal("dual_control_required", problem.RootElement.GetProperty("code").GetString());
+
+        var submittedReview = await approver.GetFromJsonAsync<PublicationReviewResponse>(
+            $"/api/v1/platform/publications/{departureId}",
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(submittedReview);
+        Assert.Equal("readyForReview", submittedReview.Status);
+
+        var published = await approver.PostAsJsonAsync(
+            $"/api/v1/platform/publications/{departureId}/publish",
+            new PublicationVersionRequest(
+                submittedReview.DepartureVersion,
+                submittedReview.PricingVersion,
+                submittedReview.InventoryVersion),
+            TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, published.StatusCode);
+
+        using var scope = app.Services.CreateScope();
+        var catalogue = scope.ServiceProvider.GetRequiredService<CatalogueDbContext>();
+        var pricing = scope.ServiceProvider.GetRequiredService<PricingDbContext>();
+        Assert.Equal(
+            CatalogueDraftStatus.Published,
+            (await catalogue.DepartureBatches.SingleAsync(
+                cancellationToken: TestContext.Current.CancellationToken)).Status);
+        var events = await catalogue.OutboxMessages
+            .OrderBy(x => x.EventType)
+            .ToListAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(
+            ["DeparturePublished", "PackageVersionPublished"],
+            events.Select(x => x.EventType));
+        var priceVersion = await pricing.PriceVersions.SingleAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        Assert.Equal(review.PricingVersion, priceVersion.SourcePlanVersion);
+        Assert.Equal(
+            3,
+            await pricing.PublishedOccupancyPrices.CountAsync(
+                TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task Incomplete_departure_cannot_be_submitted_for_publication()
+    {
+        using var app = await CommercialApi.CreateAsync(TestContext.Current.CancellationToken);
+        using var author = app.CreateOperatorClient(CommercialApi.AuthorIdentity);
+        var departureId = await CreateDraftAsync(author, TestContext.Current.CancellationToken);
+
+        var review = await author.GetFromJsonAsync<PublicationReviewResponse>(
+            $"/api/v1/operator/departures/{departureId}/publication-review",
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(review);
+        Assert.False(review.Ready);
+
+        var response = await author.PostAsJsonAsync(
+            $"/api/v1/operator/departures/{departureId}/submit-review",
+            new PublicationVersionRequest(
+                review.DepartureVersion,
+                review.PricingVersion,
+                review.InventoryVersion),
+            TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Stale_publication_review_cannot_submit_newer_commercial_facts()
+    {
+        using var app = await CommercialApi.CreateAsync(TestContext.Current.CancellationToken);
+        using var author = app.CreateOperatorClient(CommercialApi.AuthorIdentity);
+        var departureId = await CreateDraftAsync(author, TestContext.Current.CancellationToken);
+
+        (await author.PutAsJsonAsync(
+            $"/api/v1/operator/departures/{departureId}/pricing",
+            ValidPricing(),
+            TestContext.Current.CancellationToken)).EnsureSuccessStatusCode();
+        (await author.PutAsJsonAsync(
+            $"/api/v1/operator/departures/{departureId}/inventory",
+            PublishableInventory(),
+            TestContext.Current.CancellationToken)).EnsureSuccessStatusCode();
+        var review = await author.GetFromJsonAsync<PublicationReviewResponse>(
+            $"/api/v1/operator/departures/{departureId}/publication-review",
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(review);
+
+        (await author.PutAsJsonAsync(
+            $"/api/v1/operator/departures/{departureId}/pricing",
+            new SavePricingRequest(
+                1,
+                "INR",
+                [
+                    new("double", 115000m),
+                    new("triple", 105000m),
+                    new("quad", 95000m)
+                ]),
+            TestContext.Current.CancellationToken)).EnsureSuccessStatusCode();
+
+        var response = await author.PostAsJsonAsync(
+            $"/api/v1/operator/departures/{departureId}/submit-review",
+            new PublicationVersionRequest(
+                review.DepartureVersion,
+                review.PricingVersion,
+                review.InventoryVersion),
+            TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
+    private sealed record PublicationReviewResponse(
+        string Status,
+        bool Ready,
+        int DepartureVersion,
+        int PricingVersion,
+        int InventoryVersion);
+
+    private static SaveInventoryRequest PublishableInventory() => new(
+        0,
+        "Initial publication allocation",
+        [
+            new("double", 10),
+            new("triple", 8),
+            new("quad", 6)
+        ]);
+
     private static SavePricingRequest ValidPricing() => new(
         0,
         "inr",
@@ -211,6 +372,7 @@ public sealed class CommercialApi : WebApplicationFactory<Program>
     public const string AuthorIdentity = "commercial-author";
     public const string OtherIdentity = "commercial-other";
     public const string NoPermissionIdentity = "commercial-no-permission";
+    public const string PlatformApproverIdentity = "platform-publisher";
 
     private readonly string connection;
     private CommercialApi(string connection) => this.connection = connection;
@@ -239,6 +401,12 @@ public sealed class CommercialApi : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         IntegrationTestSettings.ConfigureTestHost(builder);
+        builder.UseSetting(
+            "Authorization:PlatformPublicationApproverAccountIds:0",
+            AuthorIdentity);
+        builder.UseSetting(
+            "Authorization:PlatformPublicationApproverAccountIds:1",
+            PlatformApproverIdentity);
 
         builder.ConfigureServices(services =>
         {
