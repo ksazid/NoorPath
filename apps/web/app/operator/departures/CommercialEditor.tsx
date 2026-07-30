@@ -5,12 +5,7 @@ import { useEffect, useState } from "react";
 type OccupancyKey = "double" | "triple" | "quad";
 type CapabilityState = "ready" | "saving" | "saved" | "conflict" | "error";
 type LoadState =
-  | "loading"
-  | "ready"
-  | "unauthenticated"
-  | "forbidden"
-  | "not-found"
-  | "error";
+  "loading" | "ready" | "unauthenticated" | "forbidden" | "not-found" | "error";
 type OccupancyValues = Record<OccupancyKey, string>;
 type FieldErrors = Record<string, string>;
 
@@ -154,7 +149,9 @@ function apiErrors(problem: ProblemDetails): FieldErrors {
   );
 }
 
-async function fetchCommercial(departureId: string): Promise<CommercialLoadResult> {
+async function fetchCommercial(
+  departureId: string,
+): Promise<CommercialLoadResult> {
   try {
     const response = await fetch(
       `/api/v1/operator/departures/${departureId}/commercial`,
@@ -351,7 +348,8 @@ export default function CommercialEditor({
       return;
     }
 
-    if (scope === "all" || scope === "pricing") applyPricing(result.body.pricing);
+    if (scope === "all" || scope === "pricing")
+      applyPricing(result.body.pricing);
     if (scope === "all" || scope === "inventory") {
       applyInventory(result.body.inventory);
     }
@@ -500,9 +498,12 @@ export default function CommercialEditor({
         return;
       }
 
-      const body = (await response.json()) as InventoryResponse & ProblemDetails;
+      const body = (await response.json()) as InventoryResponse &
+        ProblemDetails;
       if (response.status === 409) {
-        setInventoryProblem(body.detail ?? "Inventory changed in another session.");
+        setInventoryProblem(
+          body.detail ?? "Inventory changed in another session.",
+        );
         setInventoryState("conflict");
         return;
       }
