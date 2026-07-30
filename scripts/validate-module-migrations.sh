@@ -71,9 +71,9 @@ dotnet ef migrations has-pending-model-changes \
   --no-build
 
 if [ -n "$connection_env" ]; then
-  connection="${!connection_env:-}"
+  connection="${!connection_env:-${NOORPATH_TEST_DB:-}}"
   if [ -z "$connection" ]; then
-    echo "$connection_env is required to apply migrations for $context" >&2
+    echo "$connection_env (or legacy NOORPATH_TEST_DB) is required to apply migrations for $context" >&2
     exit 65
   fi
 
