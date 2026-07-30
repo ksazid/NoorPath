@@ -4,14 +4,15 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 type ConfirmationState = "pending" | "confirmed";
 type ComposerState =
-  | "ready"
   | "loading"
+  | "ready"
   | "saving"
   | "saved"
   | "conflict"
   | "unauthenticated"
   | "forbidden"
   | "not-found"
+  | "load-error"
   | "error";
 
 type AccommodationForm = {
@@ -41,6 +42,8 @@ type DraftForm = {
   exclusions: string[];
 };
 
+type FieldErrors = Record<string, string>;
+
 type DraftResponse = {
   packageTemplateId: string;
   packageVersionId: string;
@@ -49,25 +52,9 @@ type DraftResponse = {
   status: "draft";
   packageName?: string;
   summary?: string;
-  makkah?: {
-    hotelName: string;
-    classification: string;
-    distanceDisclosure: string;
-    nights: number;
-    confirmationState: ConfirmationState;
-  };
-  madinah?: {
-    hotelName: string;
-    classification: string;
-    distanceDisclosure: string;
-    nights: number;
-    confirmationState: ConfirmationState;
-  };
-  travel?: {
-    routeSummary: string;
-    details: string;
-    confirmationState: ConfirmationState;
-  };
+  makkah?: AccommodationResponse;
+  madinah?: AccommodationResponse;
+  travel?: TravelResponse;
   origin?: string;
   departureDate?: string;
   returnDate?: string;
@@ -75,8 +62,21 @@ type DraftResponse = {
   exclusions?: string[];
 };
 
+type AccommodationResponse = {
+  hotelName: string;
+  classification: string;
+  distanceDisclosure: string;
+  nights: number;
+  confirmationState: ConfirmationState;
+};
+
+type TravelResponse = {
+  routeSummary: string;
+  details: string;
+  confirmationState: ConfirmationState;
+};
+
 type OperatorAccess = {
-  operatorId: string;
   displayName: string;
   permissions: string[];
 };
@@ -84,11 +84,8 @@ type OperatorAccess = {
 type ProblemDetails = {
   detail?: string;
   title?: string;
-  code?: string;
   errors?: Record<string, string[]>;
 };
-
-type FieldErrors = Record<string, string>;
 
 const emptyAccommodation = (): AccommodationForm => ({
   hotelName: "",
@@ -103,11 +100,7 @@ export const createEmptyDraft = (): DraftForm => ({
   summary: "",
   makkah: emptyAccommodation(),
   madinah: emptyAccommodation(),
-  travel: {
-    routeSummary: "",
-    details: "",
-    confirmationState: "pending",
-  },
+  travel: { routeSummary: "", details: "", confirmationState: "pending" },
   origin: "",
   departureDate: "",
   returnDate: "",
@@ -128,28 +121,17 @@ export function validateDraft(form: DraftForm): FieldErrors {
   if (!form.origin.trim()) errors.origin = "Add the departure origin.";
   if (!form.departureDate) errors.departureDate = "Choose a departure date.";
   if (!form.returnDate) errors.returnDate = "Choose a return date.";
-  if (
-    form.departureDate &&
-    form.returnDate &&
-    form.returnDate <= form.departureDate
-  )
+  if (form.departureDate && form.returnDate && form.returnDate <= form.departureDate)
     errors.returnDate = "Return date must be after departure.";
+
   const makkahNights = Number(form.makkah.nights || 0);
   const madinahNights = Number(form.madinah.nights || 0);
   if (makkahNights < 0) errors["makkah.nights"] = "Nights cannot be negative.";
-  if (madinahNights < 0)
-    errors["madinah.nights"] = "Nights cannot be negative.";
+  if (madinahNights < 0) errors["madinah.nights"] = "Nights cannot be negative.";
   if (makkahNights + madinahNights <= 0)
     errors.stays = "Add at least one night across Makkah and Madinah.";
-  return errors;
-}
 
-function Icon({ children }: { children: ReactNode }) {
-  return (
-    <span className="composer-icon" aria-hidden="true">
-      {children}
-    </span>
-  );
+  return errors;
 }
 
 function Brand() {
@@ -160,6 +142,14 @@ function Brand() {
       </span>
       <span>NoorPath</span>
     </a>
+  );
+}
+
+function Icon({ children }: { children: ReactNode }) {
+  return (
+    <span className="composer-icon" aria-hidden="true">
+      {children}
+    </span>
   );
 }
 
@@ -182,26 +172,28 @@ function Field({
         {label} {required && <em aria-hidden="true">*</em>}
       </span>
       {children}
-      {hint && !error && <small>{hint}</small>}
-      {error && <small className="error-text">{error}</small>}
+      {error ? <small className="error-text">{error}</small> : hint && <small>{hint}</small>}
     </label>
   );
 }
 
 function ConfirmationField({
+  name,
+  label,
   value,
   onChange,
-  label,
 }: {
+  name: string;
+  label: string;
   value: ConfirmationState;
   onChange: (value: ConfirmationState) => void;
-  label: string;
 }) {
   return (
     <fieldset className="confirmation-field">
       <legend>{label}</legend>
       <label>
         <input
+          name={name}
           type="radio"
           checked={value === "pending"}
           onChange={() => onChange("pending")}
@@ -213,6 +205,7 @@ function ConfirmationField({
       </label>
       <label>
         <input
+          name={name}
           type="radio"
           checked={value === "confirmed"}
           onChange={() => onChange("confirmed")}
@@ -226,19 +219,92 @@ function ConfirmationField({
   );
 }
 
+function AccommodationSection({
+  number,
+  city,
+  value,
+  errors,
+  onChange,
+}: {
+  number: string;
+  city: "Makkah" | "Madinah";
+  value: AccommodationForm;
+  errors: FieldErrors;
+  onChange: (patch: Partial<AccommodationForm>) => void;
+}) {
+  const key = city.toLowerCase();
+  return (
+    <section className="form-card">
+      <div className="form-card-heading">
+        <span>{number}</span>
+        <div>
+          <h2>{city} stay</h2>
+          <p>
+            {city === "Makkah"
+              ? "Keep hotel, distance and confirmation state explicit."
+              : "Record Madinah independently; do not infer it from Makkah."}
+          </p>
+        </div>
+      </div>
+      <div className="form-grid">
+        <Field label="Hotel or stay name" error={errors[`${key}.hotelName`]}>
+          <input
+            maxLength={160}
+            value={value.hotelName}
+            onChange={(event) => onChange({ hotelName: event.target.value })}
+          />
+        </Field>
+        <Field label="Classification" required={false}>
+          <input
+            maxLength={80}
+            value={value.classification}
+            placeholder="e.g. 4 star"
+            onChange={(event) => onChange({ classification: event.target.value })}
+          />
+        </Field>
+        <Field label="Distance disclosure" required={false}>
+          <input
+            maxLength={120}
+            value={value.distanceDisclosure}
+            placeholder={
+              city === "Makkah"
+                ? "e.g. 850 m from Masjid al-Haram"
+                : "e.g. 450 m from Al-Masjid an-Nabawi"
+            }
+            onChange={(event) => onChange({ distanceDisclosure: event.target.value })}
+          />
+        </Field>
+        <Field label="Nights" error={errors[`${key}.nights`]}>
+          <input
+            min="0"
+            type="number"
+            value={value.nights}
+            onChange={(event) => onChange({ nights: event.target.value })}
+          />
+        </Field>
+      </div>
+      <ConfirmationField
+        name={`${key}-confirmation-state`}
+        label={`${city} fact status`}
+        value={value.confirmationState}
+        onChange={(confirmationState) => onChange({ confirmationState })}
+      />
+    </section>
+  );
+}
+
 function TagEditor({
   label,
   values,
-  onChange,
   placeholder,
+  onChange,
 }: {
   label: string;
   values: string[];
-  onChange: (values: string[]) => void;
   placeholder: string;
+  onChange: (values: string[]) => void;
 }) {
   const [nextValue, setNextValue] = useState("");
-
   const add = () => {
     const value = nextValue.trim();
     if (!value) return;
@@ -268,9 +334,10 @@ function TagEditor({
       )}
       <div className="add-inclusion">
         <input
-          value={nextValue}
+          aria-label={`Add ${label.toLowerCase()} item`}
           maxLength={120}
           placeholder={placeholder}
+          value={nextValue}
           onChange={(event) => setNextValue(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
@@ -287,27 +354,6 @@ function TagEditor({
   );
 }
 
-function buildRequest(form: DraftForm) {
-  return {
-    packageName: form.packageName,
-    summary: form.summary,
-    makkah: {
-      ...form.makkah,
-      nights: Number(form.makkah.nights || 0),
-    },
-    madinah: {
-      ...form.madinah,
-      nights: Number(form.madinah.nights || 0),
-    },
-    travel: form.travel,
-    origin: form.origin,
-    departureDate: form.departureDate,
-    returnDate: form.returnDate,
-    inclusions: form.inclusions,
-    exclusions: form.exclusions,
-  };
-}
-
 function requestHeaders(json = false): HeadersInit {
   const headers: Record<string, string> = {};
   if (json) headers["Content-Type"] = "application/json";
@@ -316,24 +362,28 @@ function requestHeaders(json = false): HeadersInit {
   return headers;
 }
 
+function buildRequest(form: DraftForm) {
+  return {
+    ...form,
+    makkah: { ...form.makkah, nights: Number(form.makkah.nights || 0) },
+    madinah: { ...form.madinah, nights: Number(form.madinah.nights || 0) },
+  };
+}
+
 function toDraftForm(response: DraftResponse): DraftForm {
+  const accommodation = (value?: AccommodationResponse): AccommodationForm => ({
+    hotelName: value?.hotelName ?? "",
+    classification: value?.classification ?? "",
+    distanceDisclosure: value?.distanceDisclosure ?? "",
+    nights: value ? String(value.nights) : "",
+    confirmationState: value?.confirmationState ?? "pending",
+  });
+
   return {
     packageName: response.packageName ?? "",
     summary: response.summary ?? "",
-    makkah: {
-      hotelName: response.makkah?.hotelName ?? "",
-      classification: response.makkah?.classification ?? "",
-      distanceDisclosure: response.makkah?.distanceDisclosure ?? "",
-      nights: String(response.makkah?.nights ?? ""),
-      confirmationState: response.makkah?.confirmationState ?? "pending",
-    },
-    madinah: {
-      hotelName: response.madinah?.hotelName ?? "",
-      classification: response.madinah?.classification ?? "",
-      distanceDisclosure: response.madinah?.distanceDisclosure ?? "",
-      nights: String(response.madinah?.nights ?? ""),
-      confirmationState: response.madinah?.confirmationState ?? "pending",
-    },
+    makkah: accommodation(response.makkah),
+    madinah: accommodation(response.madinah),
     travel: {
       routeSummary: response.travel?.routeSummary ?? "",
       details: response.travel?.details ?? "",
@@ -355,12 +405,10 @@ export default function DepartureComposer({
   const [form, setForm] = useState<DraftForm>(createEmptyDraft);
   const [departureId, setDepartureId] = useState(initialDepartureId ?? "");
   const [version, setVersion] = useState<number | null>(null);
-  const [state, setState] = useState<ComposerState>(
-    initialDepartureId ? "loading" : "ready",
-  );
+  const [operator, setOperator] = useState<OperatorAccess | null>(null);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [problem, setProblem] = useState("");
-  const [operator, setOperator] = useState<OperatorAccess | null>(null);
+  const [state, setState] = useState<ComposerState>("loading");
 
   const duration = useMemo(() => {
     if (!form.departureDate || !form.returnDate) return 0;
@@ -380,40 +428,27 @@ export default function DepartureComposer({
           headers: requestHeaders(),
         });
         if (cancelled) return;
-        if (accessResponse.status === 401) {
-          setState("unauthenticated");
-          return;
-        }
-        if (accessResponse.status === 403) {
-          setState("forbidden");
-          return;
-        }
-        if (!accessResponse.ok) throw new Error("access unavailable");
+        if (accessResponse.status === 401) return setState("unauthenticated");
+        if (accessResponse.status === 403) return setState("forbidden");
+        if (!accessResponse.ok) throw new Error("operator access unavailable");
         setOperator((await accessResponse.json()) as OperatorAccess);
 
-        if (!initialDepartureId) return;
-        const response = await fetch(
-          `/api/v1/operator/departures/${initialDepartureId}`,
-          {
-            cache: "no-store",
-            credentials: "include",
-            headers: requestHeaders(),
-          },
-        );
+        if (!initialDepartureId) {
+          setState("ready");
+          return;
+        }
+
+        const response = await fetch(`/api/v1/operator/departures/${initialDepartureId}`, {
+          cache: "no-store",
+          credentials: "include",
+          headers: requestHeaders(),
+        });
         if (cancelled) return;
-        if (response.status === 404) {
-          setState("not-found");
-          return;
-        }
-        if (response.status === 401) {
-          setState("unauthenticated");
-          return;
-        }
-        if (response.status === 403) {
-          setState("forbidden");
-          return;
-        }
+        if (response.status === 401) return setState("unauthenticated");
+        if (response.status === 403) return setState("forbidden");
+        if (response.status === 404) return setState("not-found");
         if (!response.ok) throw new Error("draft unavailable");
+
         const draft = (await response.json()) as DraftResponse;
         setForm(toDraftForm(draft));
         setDepartureId(draft.departureId);
@@ -421,8 +456,8 @@ export default function DepartureComposer({
         setState("ready");
       } catch {
         if (!cancelled) {
-          setProblem("We couldn’t load this draft. Check the connection and retry.");
-          setState("error");
+          setProblem("We couldn’t load this workspace. Check the connection and retry.");
+          setState("load-error");
         }
       }
     };
@@ -433,6 +468,11 @@ export default function DepartureComposer({
     };
   }, [initialDepartureId]);
 
+  const markDirty = () => {
+    if (["saved", "conflict", "error"].includes(state)) setState("ready");
+    setProblem("");
+  };
+
   const change = <K extends keyof DraftForm>(key: K, value: DraftForm[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
     setErrors((current) => {
@@ -440,18 +480,31 @@ export default function DepartureComposer({
       delete next[key];
       return next;
     });
-    if (state === "saved" || state === "conflict") setState("ready");
+    markDirty();
   };
 
   const changeAccommodation = (
     city: "makkah" | "madinah",
     patch: Partial<AccommodationForm>,
   ) => {
-    setForm((current) => ({
-      ...current,
-      [city]: { ...current[city], ...patch },
-    }));
-    if (state === "saved" || state === "conflict") setState("ready");
+    setForm((current) => ({ ...current, [city]: { ...current[city], ...patch } }));
+    setErrors((current) => {
+      const next = { ...current };
+      Object.keys(patch).forEach((key) => delete next[`${city}.${key}`]);
+      delete next.stays;
+      return next;
+    });
+    markDirty();
+  };
+
+  const changeTravel = (patch: Partial<TravelForm>) => {
+    setForm((current) => ({ ...current, travel: { ...current.travel, ...patch } }));
+    setErrors((current) => {
+      const next = { ...current };
+      Object.keys(patch).forEach((key) => delete next[`travel.${key}`]);
+      return next;
+    });
+    markDirty();
   };
 
   const save = async () => {
@@ -469,9 +522,7 @@ export default function DepartureComposer({
     try {
       const request = buildRequest(form);
       const response = await fetch(
-        departureId
-          ? `/api/v1/operator/departures/${departureId}`
-          : "/api/v1/operator/departures",
+        departureId ? `/api/v1/operator/departures/${departureId}` : "/api/v1/operator/departures",
         {
           method: departureId ? "PUT" : "POST",
           credentials: "include",
@@ -481,16 +532,10 @@ export default function DepartureComposer({
           ),
         },
       );
-
       const body = (await response.json()) as DraftResponse & ProblemDetails;
-      if (response.status === 401) {
-        setState("unauthenticated");
-        return;
-      }
-      if (response.status === 403) {
-        setState("forbidden");
-        return;
-      }
+
+      if (response.status === 401) return setState("unauthenticated");
+      if (response.status === 403) return setState("forbidden");
       if (response.status === 409) {
         setProblem(body.detail ?? "This draft changed in another session.");
         setState("conflict");
@@ -516,28 +561,33 @@ export default function DepartureComposer({
       setDepartureId(body.departureId);
       setVersion(body.version);
       setState("saved");
-      if (!initialDepartureId && body.departureId)
-        window.history.replaceState(
-          null,
-          "",
-          `/operator/departures/${body.departureId}`,
-        );
+      if (!initialDepartureId)
+        window.history.replaceState(null, "", `/operator/departures/${body.departureId}`);
     } catch {
       setProblem("We couldn’t save the draft. Your entries are still here; retry safely.");
       setState("error");
     }
   };
 
-  const reload = () => window.location.reload();
-
-  if (["loading", "unauthenticated", "forbidden", "not-found"].includes(state)) {
+  if (["loading", "unauthenticated", "forbidden", "not-found", "load-error"].includes(state)) {
     const copy = {
-      loading: ["Loading draft", "Checking your operator access and latest saved version."],
-      unauthenticated: ["Sign in required", "Sign in with an operator staff account to author catalogue drafts."],
-      forbidden: ["Operator access unavailable", "Your account does not have permission to author operator catalogue drafts."],
-      "not-found": ["Draft not found", "This draft is unavailable or belongs to another operator."],
+      loading: ["Loading workspace", "Checking your operator access and latest draft state."],
+      unauthenticated: [
+        "Sign in required",
+        "Sign in with an operator staff account to author catalogue drafts.",
+      ],
+      forbidden: [
+        "Operator access unavailable",
+        "Your account does not have permission to author operator catalogue drafts.",
+      ],
+      "not-found": [
+        "Draft not found",
+        "This draft is unavailable or belongs to another operator.",
+      ],
+      "load-error": ["Workspace unavailable", problem],
     } as const;
     const [title, detail] = copy[state as keyof typeof copy];
+
     return (
       <main className="composer-state-page">
         <Brand />
@@ -550,6 +600,11 @@ export default function DepartureComposer({
             <a className="primary-button" href="/operator/departures/new">
               Start a new draft
             </a>
+          )}
+          {state === "load-error" && (
+            <button className="primary-button" type="button" onClick={() => window.location.reload()}>
+              Retry
+            </button>
           )}
         </section>
       </main>
@@ -609,9 +664,18 @@ export default function DepartureComposer({
                 {problem ||
                   "Your valid entries have been preserved. Correct the highlighted facts and save again."}
               </span>
-              {(state === "conflict" || state === "error") && (
-                <button className="composer-inline-action" type="button" onClick={reload}>
+              {state === "conflict" && (
+                <button
+                  className="composer-inline-action"
+                  type="button"
+                  onClick={() => window.location.reload()}
+                >
                   Reload latest draft
+                </button>
+              )}
+              {state === "error" && (
+                <button className="composer-inline-action" type="button" onClick={() => void save()}>
+                  Retry save
                 </button>
               )}
             </div>
@@ -641,145 +705,39 @@ export default function DepartureComposer({
               <Field label="Package name" error={errors.packageName}>
                 <input
                   maxLength={120}
+                  placeholder="e.g. Noor Harmony 12 Nights"
                   value={form.packageName}
                   onChange={(event) => change("packageName", event.target.value)}
-                  placeholder="e.g. Noor Harmony 12 Nights"
                 />
               </Field>
               <Field label="Journey summary" error={errors.summary}>
                 <textarea
                   maxLength={600}
                   rows={4}
+                  placeholder="Describe the journey using only facts you can support."
                   value={form.summary}
                   onChange={(event) => change("summary", event.target.value)}
-                  placeholder="Describe the journey using only facts you can support."
                 />
               </Field>
             </div>
           </section>
 
-          <section className="form-card">
-            <div className="form-card-heading">
-              <span>02</span>
-              <div>
-                <h2>Makkah stay</h2>
-                <p>Keep hotel, distance and confirmation state explicit.</p>
-              </div>
-            </div>
-            <div className="form-grid">
-              <Field label="Hotel or stay name" error={errors["makkah.hotelName"]}>
-                <input
-                  maxLength={160}
-                  value={form.makkah.hotelName}
-                  onChange={(event) =>
-                    changeAccommodation("makkah", { hotelName: event.target.value })
-                  }
-                />
-              </Field>
-              <Field label="Classification" required={false}>
-                <input
-                  maxLength={80}
-                  value={form.makkah.classification}
-                  onChange={(event) =>
-                    changeAccommodation("makkah", { classification: event.target.value })
-                  }
-                  placeholder="e.g. 4 star"
-                />
-              </Field>
-              <Field label="Distance disclosure" required={false}>
-                <input
-                  maxLength={120}
-                  value={form.makkah.distanceDisclosure}
-                  onChange={(event) =>
-                    changeAccommodation("makkah", {
-                      distanceDisclosure: event.target.value,
-                    })
-                  }
-                  placeholder="e.g. 850 m from Masjid al-Haram"
-                />
-              </Field>
-              <Field label="Nights" error={errors["makkah.nights"]}>
-                <input
-                  min="0"
-                  type="number"
-                  value={form.makkah.nights}
-                  onChange={(event) =>
-                    changeAccommodation("makkah", { nights: event.target.value })
-                  }
-                />
-              </Field>
-            </div>
-            <ConfirmationField
-              label="Makkah fact status"
-              value={form.makkah.confirmationState}
-              onChange={(confirmationState) =>
-                changeAccommodation("makkah", { confirmationState })
-              }
-            />
-          </section>
+          <AccommodationSection
+            number="02"
+            city="Makkah"
+            value={form.makkah}
+            errors={errors}
+            onChange={(patch) => changeAccommodation("makkah", patch)}
+          />
 
-          <section className="form-card">
-            <div className="form-card-heading">
-              <span>03</span>
-              <div>
-                <h2>Madinah stay</h2>
-                <p>Record Madinah independently; do not infer it from Makkah.</p>
-              </div>
-            </div>
-            <div className="form-grid">
-              <Field label="Hotel or stay name" error={errors["madinah.hotelName"]}>
-                <input
-                  maxLength={160}
-                  value={form.madinah.hotelName}
-                  onChange={(event) =>
-                    changeAccommodation("madinah", { hotelName: event.target.value })
-                  }
-                />
-              </Field>
-              <Field label="Classification" required={false}>
-                <input
-                  maxLength={80}
-                  value={form.madinah.classification}
-                  onChange={(event) =>
-                    changeAccommodation("madinah", {
-                      classification: event.target.value,
-                    })
-                  }
-                  placeholder="e.g. 4 star"
-                />
-              </Field>
-              <Field label="Distance disclosure" required={false}>
-                <input
-                  maxLength={120}
-                  value={form.madinah.distanceDisclosure}
-                  onChange={(event) =>
-                    changeAccommodation("madinah", {
-                      distanceDisclosure: event.target.value,
-                    })
-                  }
-                  placeholder="e.g. 450 m from Al-Masjid an-Nabawi"
-                />
-              </Field>
-              <Field label="Nights" error={errors["madinah.nights"]}>
-                <input
-                  min="0"
-                  type="number"
-                  value={form.madinah.nights}
-                  onChange={(event) =>
-                    changeAccommodation("madinah", { nights: event.target.value })
-                  }
-                />
-              </Field>
-            </div>
-            {errors.stays && <p className="composer-section-error">{errors.stays}</p>}
-            <ConfirmationField
-              label="Madinah fact status"
-              value={form.madinah.confirmationState}
-              onChange={(confirmationState) =>
-                changeAccommodation("madinah", { confirmationState })
-              }
-            />
-          </section>
+          <AccommodationSection
+            number="03"
+            city="Madinah"
+            value={form.madinah}
+            errors={errors}
+            onChange={(patch) => changeAccommodation("madinah", patch)}
+          />
+          {errors.stays && <p className="composer-section-error">{errors.stays}</p>}
 
           <section className="form-card">
             <div className="form-card-heading">
@@ -793,22 +751,17 @@ export default function DepartureComposer({
               <Field label="Departure origin" error={errors.origin}>
                 <input
                   maxLength={120}
+                  placeholder="e.g. Delhi (DEL)"
                   value={form.origin}
                   onChange={(event) => change("origin", event.target.value)}
-                  placeholder="e.g. Delhi (DEL)"
                 />
               </Field>
               <Field label="Route summary" error={errors["travel.routeSummary"]}>
                 <input
                   maxLength={200}
-                  value={form.travel.routeSummary}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      travel: { ...current.travel, routeSummary: event.target.value },
-                    }))
-                  }
                   placeholder="e.g. Delhi → Jeddah → Makkah → Madinah"
+                  value={form.travel.routeSummary}
+                  onChange={(event) => changeTravel({ routeSummary: event.target.value })}
                 />
               </Field>
               <Field label="Departure date" error={errors.departureDate}>
@@ -835,25 +788,16 @@ export default function DepartureComposer({
                 <textarea
                   maxLength={600}
                   rows={3}
-                  value={form.travel.details}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      travel: { ...current.travel, details: event.target.value },
-                    }))
-                  }
                   placeholder="Add flight or transfer detail only when it is known."
+                  value={form.travel.details}
+                  onChange={(event) => changeTravel({ details: event.target.value })}
                 />
               </Field>
               <ConfirmationField
+                name="travel-confirmation-state"
                 label="Travel fact status"
                 value={form.travel.confirmationState}
-                onChange={(confirmationState) =>
-                  setForm((current) => ({
-                    ...current,
-                    travel: { ...current.travel, confirmationState },
-                  }))
-                }
+                onChange={(confirmationState) => changeTravel({ confirmationState })}
               />
             </div>
           </section>
@@ -870,14 +814,14 @@ export default function DepartureComposer({
               <TagEditor
                 label="Included"
                 values={form.inclusions}
-                onChange={(values) => change("inclusions", values)}
                 placeholder="e.g. Return flights"
+                onChange={(values) => change("inclusions", values)}
               />
               <TagEditor
                 label="Not included"
                 values={form.exclusions}
-                onChange={(values) => change("exclusions", values)}
                 placeholder="e.g. Personal expenses"
+                onChange={(values) => change("exclusions", values)}
               />
             </div>
           </section>
@@ -899,7 +843,7 @@ export default function DepartureComposer({
             className="primary-button"
             type="button"
             disabled={state === "saving" || state === "conflict"}
-            onClick={save}
+            onClick={() => void save()}
           >
             {state === "saving" ? "Saving…" : departureId ? "Save changes" : "Save draft"}
           </button>
