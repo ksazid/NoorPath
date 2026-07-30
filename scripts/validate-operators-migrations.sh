@@ -4,4 +4,5 @@ set -euo pipefail
 bash ./scripts/validate-module-migrations.sh \
   src/Modules/NoorPath.Operators.Infrastructure/NoorPath.Operators.Infrastructure.csproj \
   OperatorsDbContext \
-  apps/api/NoorPath.Api.csproj
+  apps/api/NoorPath.Api.csproj \
+  NOORPATH_OPERATORS_TEST_DB
