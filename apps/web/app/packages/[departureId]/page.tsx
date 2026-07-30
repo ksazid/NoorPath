@@ -7,11 +7,7 @@ import {
   publicPackagePreviews,
   type StayPreview,
 } from "../../public-package-preview";
-import {
-  ConfirmationBadge,
-  PublicFooter,
-  PublicHeader,
-} from "../../public-ui";
+import { ConfirmationBadge, PublicFooter, PublicHeader } from "../../public-ui";
 
 type PackagePageProps = {
   params: Promise<{ departureId: string }>;
@@ -23,7 +19,9 @@ export function generateStaticParams() {
   }));
 }
 
-export async function generateMetadata({ params }: PackagePageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PackagePageProps): Promise<Metadata> {
   const { departureId } = await params;
   const packagePreview = findPublicPackagePreview(departureId);
 
@@ -35,7 +33,13 @@ export async function generateMetadata({ params }: PackagePageProps): Promise<Me
   };
 }
 
-function StayCard({ city, stay }: { city: "Makkah" | "Madinah"; stay: StayPreview }) {
+function StayCard({
+  city,
+  stay,
+}: {
+  city: "Makkah" | "Madinah";
+  stay: StayPreview;
+}) {
   return (
     <article className="public-stay-card">
       <div>
@@ -89,7 +93,9 @@ export default async function PackageDetailsPage({ params }: PackagePageProps) {
             />
           </div>
           <div className="public-detail-copy">
-            <span className="public-eyebrow">Journey preview · {packagePreview.operatorName}</span>
+            <span className="public-eyebrow">
+              Journey preview · {packagePreview.operatorName}
+            </span>
             <h1>{packagePreview.packageName}</h1>
             <p className="public-detail-summary">{packagePreview.summary}</p>
             <dl className="public-detail-meta">
@@ -128,7 +134,9 @@ export default async function PackageDetailsPage({ params }: PackagePageProps) {
               <span className="public-eyebrow">Travel</span>
               <h2>Journey route and travel facts</h2>
               <div className="public-travel-facts">
-                <ConfirmationBadge state={packagePreview.travel.confirmationState} />
+                <ConfirmationBadge
+                  state={packagePreview.travel.confirmationState}
+                />
                 <div>
                   <strong>{packagePreview.travel.routeSummary}</strong>
                   <p>{packagePreview.travel.details}</p>
@@ -164,9 +172,9 @@ export default async function PackageDetailsPage({ params }: PackagePageProps) {
             <span className="public-eyebrow">Need clarity?</span>
             <h2>Speak to a human before you decide.</h2>
             <p>
-              This is a V2 customer-experience preview. No booking, payment, price,
-              seat, or availability claim is being made. Human support can help you
-              understand the journey facts shown here.
+              This is a V2 customer-experience preview. No booking, payment,
+              price, seat, or availability claim is being made. Human support
+              can help you understand the journey facts shown here.
             </p>
             <a
               className="public-support-primary"

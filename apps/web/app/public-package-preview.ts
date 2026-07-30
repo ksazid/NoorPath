@@ -85,14 +85,16 @@ export const publicPackagePreviews: readonly PublicPackagePreview[] = [
     makkah: {
       hotelName: "Makkah stay",
       classification: "Comfort category",
-      distanceDisclosure: "Exact hotel and walking distance pending operator confirmation",
+      distanceDisclosure:
+        "Exact hotel and walking distance pending operator confirmation",
       nights: 6,
       confirmationState: "pending",
     },
     madinah: {
       hotelName: "Madinah stay",
       classification: "Comfort category",
-      distanceDisclosure: "Exact hotel and walking distance pending operator confirmation",
+      distanceDisclosure:
+        "Exact hotel and walking distance pending operator confirmation",
       nights: 4,
       confirmationState: "pending",
     },
@@ -147,7 +149,10 @@ export const publicPackagePreviews: readonly PublicPackagePreview[] = [
       "Intercity transfers",
       "Visa support",
     ],
-    exclusions: ["Personal expenses", "Items not explicitly listed as included"],
+    exclusions: [
+      "Personal expenses",
+      "Items not explicitly listed as included",
+    ],
     image: "/assets/kaaba-morning.png",
   },
 ] as const;

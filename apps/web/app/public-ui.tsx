@@ -40,7 +40,10 @@ export function PublicHeader() {
         <Link href="/#trust">Why NoorPath</Link>
         <a href="mailto:support@noorpath.example">Support</a>
       </nav>
-      <a className="public-support-button" href="mailto:support@noorpath.example">
+      <a
+        className="public-support-button"
+        href="mailto:support@noorpath.example"
+      >
         Human support
       </a>
     </header>
@@ -53,8 +56,8 @@ export function PublicFooter() {
       <div>
         <NoorPathBrand />
         <p>
-          Calm, factual Umrah journey information with operator accountability and
-          human support.
+          Calm, factual Umrah journey information with operator accountability
+          and human support.
         </p>
       </div>
       <div className="public-footer-links" aria-label="Footer navigation">
@@ -66,7 +69,11 @@ export function PublicFooter() {
   );
 }
 
-export function ConfirmationBadge({ state }: { state: "confirmed" | "pending" }) {
+export function ConfirmationBadge({
+  state,
+}: {
+  state: "confirmed" | "pending";
+}) {
   const confirmed = state === "confirmed";
   return (
     <span
