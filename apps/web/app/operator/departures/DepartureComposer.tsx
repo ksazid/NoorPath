@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 
 type ConfirmationState = "pending" | "confirmed";
 type ComposerState =
@@ -140,9 +146,18 @@ export function validateDraft(form: DraftForm): FieldErrors {
   return errors;
 }
 
-function Brand() {
+function Brand({
+  onNavigate,
+}: {
+  onNavigate?: (event: MouseEvent<HTMLAnchorElement>) => void;
+}) {
   return (
-    <Link className="brand" href="/" aria-label="NoorPath home">
+    <Link
+      className="brand"
+      href="/"
+      aria-label="NoorPath home"
+      onClick={onNavigate}
+    >
       <span className="brand-mark" aria-hidden="true">
         ◇
       </span>
@@ -504,6 +519,20 @@ export default function DepartureComposer({
     };
   }, [initialDepartureId]);
 
+  const guardNavigation = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (state === "saving") {
+      event.preventDefault();
+      return;
+    }
+
+    if (
+      isDirty &&
+      !window.confirm("Discard unsaved changes and leave this draft?")
+    ) {
+      event.preventDefault();
+    }
+  };
+
   const markDirty = () => {
     if (["saved", "error"].includes(state)) setState("ready");
     if (state !== "conflict") setProblem("");
@@ -694,15 +723,16 @@ export default function DepartureComposer({
         Skip to authoring form
       </a>
       <aside className="admin-sidebar composer-sidebar">
-        <Brand />
+        <Brand onNavigate={guardNavigation} />
         <nav aria-label="Operator navigation">
           <Link
             className="composer-nav-active"
             href="/operator/departures/new"
-            aria-current="page"
+            aria-current={departureId ? undefined : "page"}
+            onClick={guardNavigation}
           >
             <Icon>◈</Icon>
-            Package drafts
+            New package draft
           </Link>
         </nav>
         <div className="composer-access-card">
@@ -989,7 +1019,11 @@ export default function DepartureComposer({
         </span>
         <div>
           {departureId && (
-            <Link className="secondary-button" href="/operator/departures/new">
+            <Link
+              className="secondary-button"
+              href="/operator/departures/new"
+              onClick={guardNavigation}
+            >
               New draft
             </Link>
           )}
