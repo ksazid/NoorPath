@@ -200,7 +200,8 @@ export default function PublicationReview({
   }, [departureId, mode]);
 
   useEffect(() => {
-    void load();
+    const pending = window.setTimeout(() => void load(), 0);
+    return () => window.clearTimeout(pending);
   }, [load]);
 
   const transition = async () => {
