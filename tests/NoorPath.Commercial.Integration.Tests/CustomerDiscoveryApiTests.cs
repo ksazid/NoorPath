@@ -7,6 +7,8 @@ using NoorPath.Operators;
 using NoorPath.Operators.Infrastructure;
 using Xunit;
 
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
+
 namespace NoorPath.Commercial.Integration.Tests;
 
 public sealed class CustomerDiscoveryApiTests
@@ -40,7 +42,10 @@ public sealed class CustomerDiscoveryApiTests
             item.GetProperty("availability").GetProperty("occupancies").GetArrayLength());
         Assert.Equal(
             ["Return flights", "Breakfast"],
-            item.GetProperty("inclusionHighlights").EnumerateArray().Select(x => x.GetString()));
+            item.GetProperty("inclusionHighlights")
+                .EnumerateArray()
+                .Select(x => x.GetString()!)
+                .ToArray());
     }
 
     [Fact]
