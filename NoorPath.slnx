@@ -6,11 +6,14 @@
     <Project Path="src/NoorPath.BuildingBlocks/NoorPath.BuildingBlocks.csproj" />
     <Project Path="src/Modules/NoorPath.Catalogue/NoorPath.Catalogue.csproj" />
     <Project Path="src/Modules/NoorPath.Catalogue.Infrastructure/NoorPath.Catalogue.Infrastructure.csproj" />
+    <Project Path="src/Modules/NoorPath.Operators/NoorPath.Operators.csproj" />
+    <Project Path="src/Modules/NoorPath.Operators.Infrastructure/NoorPath.Operators.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/NoorPath.Architecture.Tests/NoorPath.Architecture.Tests.csproj" />
     <Project Path="tests/NoorPath.Catalogue.Tests/NoorPath.Catalogue.Tests.csproj" />
     <Project Path="tests/NoorPath.Catalogue.Integration.Tests/NoorPath.Catalogue.Integration.Tests.csproj" />
+    <Project Path="tests/NoorPath.Operators.Tests/NoorPath.Operators.Tests.csproj" />
+    <Project Path="tests/NoorPath.Operators.Integration.Tests/NoorPath.Operators.Integration.Tests.csproj" />
   </Folder>
 </Solution>
-

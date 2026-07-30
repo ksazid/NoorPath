@@ -1395,3 +1395,134 @@ select:focus-visible,
 .brand {
   min-height: 44px;
 }
+/* VS-01 operator access uses the established NoorPath tokens without adding a dashboard theme. */
+.skip-link {
+  position: fixed;
+  left: 1.5rem;
+  top: -5rem;
+  z-index: 1000;
+  padding: var(--space-3);
+  background: var(--raised);
+  color: var(--ink);
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+.operator-canvas {
+  min-height: 100dvh;
+  background: var(--canvas);
+  color: var(--ink);
+}
+.operator-header {
+  min-height: 4.5rem;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--raised);
+}
+.operator-brand {
+  color: var(--green);
+  font-family: Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.operator-header > span {
+  color: var(--muted);
+  font-weight: 600;
+}
+.operator-main {
+  width: min(100% - 3rem, 48rem);
+  margin: 0 auto;
+  padding: 4rem 0;
+}
+.operator-state {
+  padding: 4rem;
+  border: 1px solid var(--line);
+  border-radius: 1.25rem;
+  background: var(--raised);
+}
+.operator-state h1 {
+  max-width: 18ch;
+  margin: 0.5rem 0 1rem;
+  font-family: Georgia, serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.05;
+}
+.operator-state > p {
+  max-width: 62ch;
+  line-height: 1.65;
+  color: var(--muted);
+}
+.operator-eyebrow {
+  margin: 0;
+  color: var(--green) !important;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.operator-empty {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 0.875rem;
+  background: var(--canvas);
+}
+.operator-empty h2 {
+  margin-top: 0;
+  font-size: 1.125rem;
+}
+.operator-primary,
+.operator-secondary {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid var(--green);
+  border-radius: 0.5rem;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+.operator-primary {
+  background: var(--green);
+  color: white;
+}
+.operator-secondary {
+  background: transparent;
+  color: var(--green);
+}
+.operator-reference {
+  font-family: ui-monospace, monospace;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+.operator-primary:focus-visible,
+.operator-secondary:focus-visible,
+.operator-brand:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .operator-header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding-block: 1rem;
+  }
+  .operator-main {
+    width: min(100% - 2rem, 48rem);
+    padding: 2rem 0;
+  }
+  .operator-state {
+    padding: 1.5rem;
+  }
+}
