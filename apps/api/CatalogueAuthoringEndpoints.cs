@@ -176,7 +176,7 @@ public static class CatalogueAuthoringEndpoints
         log.LogInformation(
             "Catalogue draft outcome={Outcome} operatorId={OperatorId} departureId={DepartureId} version={Version} correlationId={CorrelationId}",
             "updated",
-            authorization.Access.OperatorId,
+            authorization.Access!.OperatorId,
             departure.Id,
             departure.Version,
             http.TraceIdentifier);
