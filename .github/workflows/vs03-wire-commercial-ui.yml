@@ -1,0 +1,77 @@
+name: Wire VS-03 commercial editor
+
+on:
+  push:
+    branches:
+      - vs03/pricing-inventory
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vs03/pricing-inventory
+      - name: Apply asserted composer integration
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("apps/web/app/operator/departures/DepartureComposer.tsx")
+          text = path.read_text()
+
+          def replace_once(old: str, new: str) -> None:
+              global text
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"Expected one match, found {count}: {old[:80]!r}")
+              text = text.replace(old, new, 1)
+
+          replace_once(
+              'import Link from "next/link";\nimport {',
+              'import Link from "next/link";\nimport CommercialEditor from "./CommercialEditor";\nimport {',
+          )
+          replace_once(
+              '  const [isDirty, setIsDirty] = useState(false);\n\n  const duration = useMemo(() => {',
+              '  const [isDirty, setIsDirty] = useState(false);\n  const [commercialDirty, setCommercialDirty] = useState(false);\n  const [commercialBusy, setCommercialBusy] = useState(false);\n  const hasUnsavedChanges = isDirty || commercialDirty;\n\n  const duration = useMemo(() => {',
+          )
+          replace_once('    if (!isDirty) return;\n', '    if (!hasUnsavedChanges) return;\n')
+          replace_once('  }, [isDirty]);\n', '  }, [hasUnsavedChanges]);\n')
+          replace_once(
+              '    if (state === "saving") {\n',
+              '    if (state === "saving" || commercialBusy) {\n',
+          )
+          replace_once(
+              '      isDirty &&\n      !window.confirm("Discard unsaved changes and leave this draft?")',
+              '      hasUnsavedChanges &&\n      !window.confirm("Discard unsaved changes and leave this draft?")',
+          )
+          replace_once(
+              '        aria-busy={state === "saving"}\n',
+              '        aria-busy={state === "saving" || commercialBusy}\n',
+          )
+          replace_once(
+              '              Record truthful Makkah, Madinah, travel and departure facts.\n              Pricing, inventory and publication come later.\n',
+              '              Record truthful Makkah, Madinah, travel and departure facts.\n              Configure pricing and capacity separately once the draft is saved.\n              Publication comes later.\n',
+          )
+          replace_once(
+              '        </form>\n      </section>\n\n      <footer className="admin-sticky-footer composer-savebar">',
+              '        </form>\n\n        <CommercialEditor\n          departureId={departureId || undefined}\n          onDirtyChange={setCommercialDirty}\n          onBusyChange={setCommercialBusy}\n        />\n      </section>\n\n      <footer className="admin-sticky-footer composer-savebar">',
+          )
+          replace_once(
+              '          Private draft · Operator scope enforced server-side\n',
+              '          Private draft · Catalogue, pricing and inventory save independently\n',
+          )
+
+          path.write_text(text)
+          PY
+      - name: Commit composer integration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web/app/operator/departures/DepartureComposer.tsx
+          git commit -m "Wire VS-03 commercial editor"
+          git push origin HEAD:vs03/pricing-inventory
