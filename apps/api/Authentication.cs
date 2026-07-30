@@ -59,34 +59,34 @@ public static class NoorPathAuthentication
 
     public static IApplicationBuilder UseNoorPathAuthenticationErrors(
     this IApplicationBuilder app)
-{
-    return app.UseStatusCodePages(
-        async (Microsoft.AspNetCore.Diagnostics.StatusCodeContext context) =>
-        {
-            var httpContext = context.HttpContext;
-            var response = httpContext.Response;
+    {
+        return app.UseStatusCodePages(
+            async (Microsoft.AspNetCore.Diagnostics.StatusCodeContext context) =>
+            {
+                var httpContext = context.HttpContext;
+                var response = httpContext.Response;
 
-            if (response.StatusCode is not (401 or 403))
-                return;
+                if (response.StatusCode is not (401 or 403))
+                    return;
 
-            response.ContentType = "application/problem+json";
+                response.ContentType = "application/problem+json";
 
-            await response.WriteAsJsonAsync(
-                new
-                {
-                    type = "about:blank",
-                    title = response.StatusCode == 401
-                        ? "Sign in required"
-                        : "Access unavailable",
-                    status = response.StatusCode,
-                    code = response.StatusCode == 401
-                        ? "not_authenticated"
-                        : "forbidden",
-                    correlationId = httpContext.TraceIdentifier
-                },
-                cancellationToken: httpContext.RequestAborted);
-        });
-}
+                await response.WriteAsJsonAsync(
+                    new
+                    {
+                        type = "about:blank",
+                        title = response.StatusCode == 401
+                            ? "Sign in required"
+                            : "Access unavailable",
+                        status = response.StatusCode,
+                        code = response.StatusCode == 401
+                            ? "not_authenticated"
+                            : "forbidden",
+                        correlationId = httpContext.TraceIdentifier
+                    },
+                    cancellationToken: httpContext.RequestAborted);
+            });
+    }
 }
 
 public sealed class TestAuthenticationHandler(
