@@ -33,6 +33,7 @@ app.MapOperatorAccess();
 app.MapCatalogueAuthoring();
 app.MapCommercialAuthoring();
 app.MapPublicationReview();
+app.MapPublicDiscovery();
 app.Run();
 
 public partial class Program;
