@@ -66,7 +66,14 @@ partial class CatalogueDbContextModelSnapshot : ModelSnapshot
             b.Property<string>("OperatorId").IsRequired().HasMaxLength(80).HasColumnType("character varying(80)");
             b.Property<string>("Origin").IsRequired().HasMaxLength(120).HasColumnType("character varying(120)");
             b.Property<Guid>("PackageVersionId").HasColumnType("uuid");
+            b.Property<DateTimeOffset?>("PublishedAtUtc").HasColumnType("timestamp with time zone");
+            b.Property<string>("PublishedByAccountId").HasMaxLength(120).HasColumnType("character varying(120)");
+            b.Property<int?>("PublishedInventoryVersion").HasColumnType("integer");
+            b.Property<Guid?>("PublishedPriceVersionId").HasColumnType("uuid");
+            b.Property<int?>("PublishedPricingVersion").HasColumnType("integer");
             b.Property<DateOnly>("ReturnDate").HasColumnType("date");
+            b.Property<DateTimeOffset?>("SubmittedAtUtc").HasColumnType("timestamp with time zone");
+            b.Property<string>("SubmittedByAccountId").HasMaxLength(120).HasColumnType("character varying(120)");
             b.Property<CatalogueDraftStatus>("Status").IsRequired().HasMaxLength(20).HasColumnType("character varying(20)");
             b.Property<DateTimeOffset>("UpdatedAtUtc").HasColumnType("timestamp with time zone");
             b.Property<int>("Version").IsConcurrencyToken().HasColumnType("integer");
@@ -100,6 +107,29 @@ partial class CatalogueDbContextModelSnapshot : ModelSnapshot
             b.HasKey("Id");
             b.HasIndex("DepartureBatchId", "Version");
             b.ToTable("draft_audits", "catalogue");
+        });
+
+        modelBuilder.Entity("NoorPath.Catalogue.Infrastructure.CatalogueOutboxRecord", b =>
+        {
+            b.Property<Guid>("EventId").ValueGeneratedOnAdd().HasColumnType("uuid");
+            b.Property<Guid>("AggregateId").HasColumnType("uuid");
+            b.Property<string>("AggregateType").IsRequired().HasMaxLength(40).HasColumnType("character varying(40)");
+            b.Property<int>("AggregateVersion").HasColumnType("integer");
+            b.Property<int>("AttemptCount").HasColumnType("integer");
+            b.Property<string>("CorrelationId").IsRequired().HasMaxLength(100).HasColumnType("character varying(100)");
+            b.Property<DateTimeOffset>("CreatedAtUtc").HasColumnType("timestamp with time zone");
+            b.Property<string>("EventType").IsRequired().HasMaxLength(80).HasColumnType("character varying(80)");
+            b.Property<int>("EventVersion").HasColumnType("integer");
+            b.Property<DateTimeOffset?>("NextAttemptAtUtc").HasColumnType("timestamp with time zone");
+            b.Property<DateTimeOffset>("OccurredAtUtc").HasColumnType("timestamp with time zone");
+            b.Property<string>("OperatorId").IsRequired().HasMaxLength(80).HasColumnType("character varying(80)");
+            b.Property<string>("Payload").IsRequired().HasColumnType("jsonb");
+            b.Property<DateTimeOffset?>("ProcessedAtUtc").HasColumnType("timestamp with time zone");
+            b.Property<string>("ProducerModule").IsRequired().HasMaxLength(40).HasColumnType("character varying(40)");
+            b.Property<string>("State").IsRequired().HasMaxLength(20).HasColumnType("character varying(20)");
+            b.HasKey("EventId");
+            b.HasIndex("State", "NextAttemptAtUtc");
+            b.ToTable("outbox_messages", "catalogue");
         });
 
         modelBuilder.Entity("NoorPath.Catalogue.Infrastructure.PackageVersionRecord", b =>
