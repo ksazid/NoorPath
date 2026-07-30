@@ -35,7 +35,10 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="public-catalogue public-catalogue-refined" id="packages">
+        <section
+          className="public-catalogue public-catalogue-refined"
+          id="packages"
+        >
           <div className="public-section-heading public-section-heading-refined">
             <div>
               <span className="public-eyebrow">Package previews</span>
