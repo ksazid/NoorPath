@@ -32,7 +32,7 @@ public sealed class OperatorAccessApiTests
     public async Task Access_is_unauthenticated_without_test_identity()
     {
         using var app = await OperatorApi.CreateAsync();
-        var response = await app.CreateClient().GetAsync("/api/v1/operator/access");
+        var response = await app.CreateClient().GetAsync("/api/v1/operator/access", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         Assert.Contains("application/problem+json", response.Content.Headers.ContentType?.MediaType);
         Assert.True(response.Headers.Contains("X-Correlation-ID"));
@@ -46,7 +46,7 @@ public sealed class OperatorAccessApiTests
     {
         using var app = await OperatorApi.CreateAsync();
         using var client = app.CreateClientFor(accountId);
-        var response = await client.GetAsync("/api/v1/operator/access");
+        var response = await client.GetAsync("/api/v1/operator/access", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         Assert.Contains("application/problem+json", response.Content.Headers.ContentType?.MediaType);
         Assert.True(response.Headers.Contains("X-Correlation-ID"));
@@ -58,9 +58,9 @@ public sealed class OperatorAccessApiTests
         using var app = await OperatorApi.CreateAsync();
         using var client = app.CreateClientFor("approved-account");
         client.DefaultRequestHeaders.Add("X-Operator-Id", "rahma");
-        var response = await client.GetAsync("/api/v1/operator/access");
+        var response = await client.GetAsync("/api/v1/operator/access", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var body = await response.Content.ReadAsStringAsync();
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Contains("Noor Tours", body);
         Assert.Contains(OperatorPermissions.AdminAccess, body);
         Assert.DoesNotContain("Rahma Tours", body);

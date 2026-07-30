@@ -50,9 +50,11 @@ public partial class V2OperatorsBaseline : Migration
                 table.PrimaryKey("PK_operator_membership_permissions", x => x.Id);
                 table.ForeignKey("FK_operator_membership_permissions_operator_memberships_MembershipId", x => x.MembershipId, "operators", "operator_memberships", "Id", onDelete: ReferentialAction.Cascade);
             });
-        migrationBuilder.CreateIndex("IX_operator_memberships_AccountId", "operators", "operator_memberships", "AccountId");
-        migrationBuilder.CreateIndex("IX_operator_memberships_OperatorId_AccountId", "operators", "operator_memberships", new[] { "OperatorId", "AccountId" }, unique: true);
-        migrationBuilder.CreateIndex("IX_operator_membership_permissions_MembershipId_Permission", "operators", "operator_membership_permissions", new[] { "MembershipId", "Permission" }, unique: true);
+        migrationBuilder.CreateIndex(name: "IX_operator_memberships_AccountId", schema: "operators", table: "operator_memberships", column: "AccountId");
+
+        migrationBuilder.CreateIndex(name: "IX_operator_memberships_OperatorId_AccountId", schema: "operators", table: "operator_memberships", columns: new[] { "OperatorId", "AccountId" }, unique: true);
+
+        migrationBuilder.CreateIndex(name: "IX_operator_membership_permissions_MembershipId_Permission", schema: "operators", table: "operator_membership_permissions", columns: new[] { "MembershipId", "Permission" }, unique: true);
     }
 
     protected override void Down(MigrationBuilder migrationBuilder)
