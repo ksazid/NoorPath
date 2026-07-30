@@ -1,13 +1,10 @@
 using System;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace NoorPath.Catalogue.Infrastructure.Migrations;
 
-[DbContext(typeof(CatalogueDbContext))]
-[Migration("20260731001000_VS04ReviewPublish")]
 public partial class VS04ReviewPublish : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
