@@ -673,10 +673,7 @@ export default function DepartureComposer({
       <aside className="admin-sidebar composer-sidebar">
         <Brand />
         <nav aria-label="Operator navigation">
-          <Link
-            className="composer-nav-active"
-            href="/operator/departures/new"
-          >
+          <Link className="composer-nav-active" href="/operator/departures/new">
             <Icon>◈</Icon>
             Package drafts
           </Link>
