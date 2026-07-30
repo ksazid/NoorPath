@@ -136,4 +136,15 @@ test("mobile, keyboard, targets and reduced motion remain usable", async ({
   });
   await expectNoHorizontalOverflow(page);
   await expectNoA11yViolations(page);
+
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = "100%";
+  });
+  await page.setViewportSize({ width: 360, height: 800 });
+  await expect(
+    page.getByRole("heading", { name: "Browser Verified Journey" }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /View package/ })).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  await expectMinimumTargets(page);
 });
