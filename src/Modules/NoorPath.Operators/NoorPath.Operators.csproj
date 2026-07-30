@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../NoorPath.BuildingBlocks/NoorPath.BuildingBlocks.csproj" />
+  </ItemGroup>
+</Project>

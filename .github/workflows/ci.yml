@@ -74,6 +74,8 @@ jobs:
       - run: dotnet test NoorPath.slnx --configuration Release --no-build
       - name: Validate migration state
         run: ./scripts/validate-catalogue-migrations.sh
+      - name: Validate Operators migration state
+        run: ./scripts/validate-operators-migrations.sh
 
   postgres:
     name: PostgreSQL configuration

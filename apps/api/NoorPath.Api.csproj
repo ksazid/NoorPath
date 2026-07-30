@@ -3,12 +3,14 @@
     <ProjectReference Include="../../src/NoorPath.BuildingBlocks/NoorPath.BuildingBlocks.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Catalogue/NoorPath.Catalogue.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Catalogue.Infrastructure/NoorPath.Catalogue.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Modules/NoorPath.Operators/NoorPath.Operators.csproj" />
+    <ProjectReference Include="../../src/Modules/NoorPath.Operators.Infrastructure/NoorPath.Operators.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
   </ItemGroup>
 </Project>
-
