@@ -11,6 +11,12 @@ public enum CatalogueDraftStatus
     Draft
 }
 
+public enum PackageContentKind
+{
+    Inclusion,
+    Exclusion
+}
+
 public sealed record AccommodationDraft(
     string HotelName,
     string Classification,
