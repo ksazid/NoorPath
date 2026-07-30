@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using NoorPath.Operators;
 using NoorPath.Operators.Infrastructure;
+using NoorPath.Testing;
 using Xunit;
 
 namespace NoorPath.Operators.Integration.Tests;
@@ -97,10 +98,9 @@ public sealed class OperatorApi : WebApplicationFactory<Program>
 
     public static async Task<OperatorApi> CreateAsync()
     {
-        var connection =
-            Environment.GetEnvironmentVariable("NOORPATH_TEST_DB")
-            ?? throw new InvalidOperationException(
-                "NOORPATH_TEST_DB is required for Operators integration tests.");
+        var connection = IntegrationTestSettings.GetDatabaseConnection(
+            "NOORPATH_OPERATORS_TEST_DB",
+            "Operators");
 
         var app = new OperatorApi(connection);
 
@@ -124,8 +124,7 @@ public sealed class OperatorApi : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Test");
-        builder.UseSetting("Authentication:Mode", "Test");
+        IntegrationTestSettings.ConfigureTestHost(builder);
 
         builder.ConfigureServices(services =>
         {
