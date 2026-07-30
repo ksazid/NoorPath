@@ -8,11 +8,7 @@ import {
   type FactConfirmationState,
   type StayPreview,
 } from "../../public-package-preview";
-import {
-  ConfirmationBadge,
-  PublicFooter,
-  PublicHeader,
-} from "../../public-ui";
+import { ConfirmationBadge, PublicFooter, PublicHeader } from "../../public-ui";
 
 type PackagePageProps = {
   params: Promise<{ departureId: string }>;
