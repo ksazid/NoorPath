@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import CommercialEditor from "./CommercialEditor";
 import {
   useEffect,
   useMemo,
@@ -442,6 +443,9 @@ export default function DepartureComposer({
   const [problem, setProblem] = useState("");
   const [state, setState] = useState<ComposerState>("loading");
   const [isDirty, setIsDirty] = useState(false);
+  const [commercialDirty, setCommercialDirty] = useState(false);
+  const [commercialBusy, setCommercialBusy] = useState(false);
+  const hasUnsavedChanges = isDirty || commercialDirty;
 
   const duration = useMemo(() => {
     if (!form.departureDate || !form.returnDate) return 0;
@@ -451,7 +455,7 @@ export default function DepartureComposer({
   }, [form.departureDate, form.returnDate]);
 
   useEffect(() => {
-    if (!isDirty) return;
+    if (!hasUnsavedChanges) return;
 
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
@@ -460,7 +464,7 @@ export default function DepartureComposer({
 
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [isDirty]);
+  }, [hasUnsavedChanges]);
 
   useEffect(() => {
     let cancelled = false;
@@ -520,13 +524,13 @@ export default function DepartureComposer({
   }, [initialDepartureId]);
 
   const guardNavigation = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (state === "saving") {
+    if (state === "saving" || commercialBusy) {
       event.preventDefault();
       return;
     }
 
     if (
-      isDirty &&
+      hasUnsavedChanges &&
       !window.confirm("Discard unsaved changes and leave this draft?")
     ) {
       event.preventDefault();
@@ -748,7 +752,7 @@ export default function DepartureComposer({
       <section
         id="composer-main"
         className="admin-content composer-content"
-        aria-busy={state === "saving"}
+        aria-busy={state === "saving" || commercialBusy}
         tabIndex={-1}
       >
         <div className="admin-titlebar">
@@ -761,7 +765,8 @@ export default function DepartureComposer({
             </h1>
             <p>
               Record truthful Makkah, Madinah, travel and departure facts.
-              Pricing, inventory and publication come later.
+              Configure pricing and capacity separately once the draft is saved.
+              Publication comes later.
             </p>
           </div>
           <span className="draft-pill">
@@ -1010,12 +1015,18 @@ export default function DepartureComposer({
             </section>
           </fieldset>
         </form>
+
+        <CommercialEditor
+          departureId={departureId || undefined}
+          onDirtyChange={setCommercialDirty}
+          onBusyChange={setCommercialBusy}
+        />
       </section>
 
       <footer className="admin-sticky-footer composer-savebar">
         <span>
           <Icon>◇</Icon>
-          Private draft · Operator scope enforced server-side
+          Private draft · Catalogue, pricing and inventory save independently
         </span>
         <div>
           {departureId && (
