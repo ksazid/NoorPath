@@ -1,13 +1,10 @@
 using System;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace NoorPath.Pricing.Infrastructure.Migrations;
 
-[DbContext(typeof(PricingDbContext))]
-[Migration("20260731001001_VS04PublishedPriceVersions")]
 public partial class VS04PublishedPriceVersions : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
