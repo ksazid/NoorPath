@@ -17,6 +17,13 @@ type StayDetails = {
   confirmationState: ConfirmationState;
 };
 
+type OccupancyDetail = {
+  occupancy: Occupancy;
+  amount: number;
+  availableQuantity: number;
+  status: "available" | "unavailable";
+};
+
 type PackageDetails = {
   departureId: string;
   operator: {
@@ -40,12 +47,7 @@ type PackageDetails = {
   exclusions: string[];
   pricing: {
     currency: string;
-    occupancies: Array<{
-      occupancy: Occupancy;
-      amount: number;
-      availableQuantity: number;
-      status: "available" | "unavailable";
-    }>;
+    occupancies: OccupancyDetail[];
   };
 };
 
@@ -66,10 +68,7 @@ export default function PackageDetailsPage() {
     try {
       const response = await fetch(
         `/api/v1/departures/${encodeURIComponent(departureId)}`,
-        {
-          cache: "no-store",
-          credentials: "same-origin",
-        },
+        { cache: "no-store", credentials: "same-origin" },
       );
       const correlationId =
         response.headers.get("X-Correlation-ID") ?? undefined;
@@ -121,13 +120,6 @@ export default function PackageDetailsPage() {
 }
 
 function PackageContent({ details }: { details: PackageDetails }) {
-  const available = details.pricing.occupancies.filter(
-    (item) => item.status === "available",
-  );
-  const startingPrice = available.reduce(
-    (lowest, item) => (item.amount < lowest.amount ? item : lowest),
-    available[0],
-  );
   const confirmedFacts = factLabels(details, "confirmed");
   const pendingFacts = factLabels(details, "pending");
 
@@ -300,14 +292,10 @@ function PackageContent({ details }: { details: PackageDetails }) {
         <p>{details.summary}</p>
         <p>
           Published prices and current availability are shown above. A
-          traveller-specific quote and any payment schedule are confirmed before
-          commitment.
+          traveller-specific quote and any applicable payment schedule are
+          shown before commitment.
         </p>
       </section>
-
-      <span className="sr-only">
-        Starting price {formatMoney(startingPrice.amount, details.pricing.currency)}
-      </span>
     </>
   );
 }
@@ -427,9 +415,8 @@ function StickySummary({ details }: { details: PackageDetails }) {
   const available = details.pricing.occupancies.filter(
     (item) => item.status === "available",
   );
-  const startingPrice = available.reduce(
-    (lowest, item) => (item.amount < lowest.amount ? item : lowest),
-    available[0],
+  const startingPrice = available.reduce((lowest, item) =>
+    item.amount < lowest.amount ? item : lowest,
   );
 
   return (
