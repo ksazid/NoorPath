@@ -70,7 +70,7 @@ export const publicPackagePreviews: readonly PublicPackagePreview[] = [
       "Human journey support",
     ],
     exclusions: ["Personal expenses", "Optional excursions not listed above"],
-    image: "/assets/kaaba-morning.png",
+    image: "/assets/kaaba-reference.svg",
   },
   {
     departureId: "cf0c2d15-5fbb-45ee-b745-20bb3578f76a",
@@ -111,7 +111,7 @@ export const publicPackagePreviews: readonly PublicPackagePreview[] = [
       "Visa support",
     ],
     exclusions: ["Meals unless explicitly confirmed", "Personal expenses"],
-    image: "/assets/kaaba-morning.png",
+    image: "/assets/madinah-reference.svg",
   },
   {
     departureId: "d823cb8a-3afe-41f4-83b7-40ca793012b5",
@@ -153,7 +153,7 @@ export const publicPackagePreviews: readonly PublicPackagePreview[] = [
       "Personal expenses",
       "Items not explicitly listed as included",
     ],
-    image: "/assets/kaaba-morning.png",
+    image: "/assets/kaaba-reference.svg",
   },
 ] as const;
 
