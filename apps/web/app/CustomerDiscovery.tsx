@@ -69,7 +69,8 @@ export function CustomerDiscovery() {
         cache: "no-store",
         credentials: "same-origin",
       });
-      const correlationId = response.headers.get("X-Correlation-ID") ?? undefined;
+      const correlationId =
+        response.headers.get("X-Correlation-ID") ?? undefined;
 
       if (!response.ok) {
         setState({ kind: "error", correlationId });
@@ -97,7 +98,10 @@ export function CustomerDiscovery() {
         aria-label="Loading published Umrah packages"
       >
         {[0, 1, 2].map((item) => (
-          <article className="landing-package-card discovery-skeleton" key={item}>
+          <article
+            className="landing-package-card discovery-skeleton"
+            key={item}
+          >
             <div className="landing-package-image" />
             <div className="landing-package-body">
               <span className="discovery-skeleton-line discovery-skeleton-title" />
