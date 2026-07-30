@@ -15,11 +15,7 @@ type QueueItem = {
 };
 
 type QueueState =
-  | "loading"
-  | "ready"
-  | "unauthenticated"
-  | "forbidden"
-  | "error";
+  "loading" | "ready" | "unauthenticated" | "forbidden" | "error";
 
 function requestHeaders(): HeadersInit {
   const testIdentity = process.env.NEXT_PUBLIC_NOORPATH_TEST_IDENTITY;
