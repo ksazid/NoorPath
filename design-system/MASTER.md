@@ -1,10 +1,11 @@
 # NoorPath UI/UX Implementation Baseline
 
-- **Status:** Canonical repository baseline, with source-evidence gap recorded below
-- **Version:** 1.0
+- **Status:** Canonical durable UI/UX baseline; historical repository inventory is superseded as recorded below
+- **Version:** 1.1
 - **Established:** 2026-07-28
-- **Applies to:** NoorPath customer and staff web surfaces
-- **Change scope:** Documentation only; no application implementation is changed
+- **Reconciled:** 2026-07-30
+- **Applies to:** Every existing and future NoorPath customer, operator, and admin web surface
+- **Change scope:** Design governance and durable implementation rules
 
 ## 1. Authority and use
 
@@ -27,6 +28,36 @@ Do not substitute a generated or generic design system for NoorPath's approved
 language. In particular, the UI UX Pro Max suggestion of a vibrant purple,
 block-based marketplace is rejected because it conflicts with the approved
 ivory, black, gold, green, and sandstone modern-minimalist direction.
+
+## 1.1 Current evidence reconciliation
+
+The transient repository inventory and missing-source statements originally
+recorded in sections 2, 3, 7, 8, and 9 describe the 2026-07-28 baseline checkout
+and are retained only as historical analysis. They must not be interpreted as
+current repository truth.
+
+As of 2026-07-30:
+
+- `design-references/noorpath-landing-reference.png` is present and is the
+  primary visual authority;
+- `design-references/noorpath-package-reference.png` is present and is the
+  second visual authority;
+- `NoorPath-S02-Approval-Prototype.zip` is present as slice-specific supporting
+  evidence;
+- VS-01 Operator Access and VS-02 Package & Departure Authoring UI are committed
+  implementation evidence; and
+- the current source inventory is governed by
+  `docs/00-governance/SOURCE-AUDIT-REGISTER.md`.
+
+The references being committed does not itself complete visual acceptance.
+Each changed screen still requires an accessible rendered implementation,
+same-viewport screenshot comparison, relevant accessibility/interaction
+evidence, and Product Owner acceptance.
+
+The full workflow in
+`docs/05-design/DESIGN-SYSTEM-AND-FIGMA-BASELINE.md` applies to every existing
+screen refinement and every new screen. Skills refine the approved NoorPath
+identity; they never supersede it.
 
 ## 2. Evidence gap and safe interpretation
 

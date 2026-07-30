@@ -18,14 +18,33 @@ If sources conflict, stop and record the conflict. Do not silently invent produc
 
 ### UI/UX work
 
-For UI/UX analysis, design-system extraction, component design, responsive
-behaviour, accessibility review, and visual consistency, use the installed
-`.agents/skills/ui-ux-pro-max` skill.
+These rules apply to every existing and future customer, operator, and admin
+screen. Refinement may correct usability, accessibility, responsiveness,
+interaction quality, visual drift, or missing states. It must not silently
+redesign an approved screen or change product behaviour.
 
-The approved NoorPath Landing page and Package page are the primary visual
-source of truth. UI UX Pro Max may improve usability, accessibility,
-responsiveness, and consistency, but must not replace NoorPath's established
-visual identity with a generic design system.
+Before any UI/UX task, verify and read the relevant installed project skills:
+
+- `.agents/skills/ui-ux-pro-max/SKILL.md` for IA, task flow, responsive
+  structure, accessibility, forms, feedback, and usability.
+- `.agents/skills/impeccable/SKILL.md` for bounded visual refinement,
+  hierarchy, spacing, typography, rhythm, consistency, content stress, and
+  design-drift detection.
+- `.agents/skills/emil-design-eng/SKILL.md` for purposeful interaction,
+  feedback, transitions, motion, performance, and reduced-motion equivalents.
+- `.agents/skills/ponytail/SKILL.md` in full mode for proportional,
+  minimum-change implementation.
+
+Do not claim a skill was used when its project `SKILL.md` is absent or unread.
+Install and commit the approved skill source first, or record the task as
+blocked.
+
+The approved NoorPath Landing and Package references in `design-references/`
+are the primary visual source of truth. `design-system/MASTER.md` and approved
+Figma screens/components translate that identity into reusable rules. Skills
+may improve usability, accessibility, responsiveness, consistency, craft, and
+purposeful feedback, but must not replace NoorPath's established identity with
+a generic design system.
 
 ### Engineering work
 
@@ -46,11 +65,27 @@ Do not remove required validation, security, accessibility, observability,
 tests, audit behaviour, or documented product requirements in the name of
 simplification.
 
-When UI UX Pro Max and Ponytail are both relevant:
-- UI UX Pro Max governs UX/design analysis.
-- Approved NoorPath design governs visual identity.
-- Ponytail governs implementation simplicity.
-- This AGENTS.md and the governing sources above remain authoritative.
+When multiple UI skills are relevant, apply them in this order:
+
+1. Approved requirement IDs and the active vertical slice define product scope.
+2. Approved Landing/Package references and `design-system/MASTER.md` govern
+   visual identity.
+3. UI UX Pro Max governs UX structure, states, accessibility, and responsive
+   behaviour.
+4. Approved Figma artifacts govern new screen/component decisions where they
+   exist.
+5. Impeccable performs a bounded visual-refinement pass; it refines rather than
+   redesigns.
+6. Emil principles apply selectively where interaction or motion adds feedback,
+   state clarity, causality, or spatial continuity.
+7. Product-owner approval closes material visual decisions.
+8. Ponytail governs implementation simplicity after the design decision.
+9. Automated accessibility, responsive, interaction, and screenshot comparison
+   verify production against the approved design.
+
+This AGENTS.md and the governing sources above remain authoritative. If a skill
+recommendation conflicts with them, follow the governing source and record the
+conflict.
 
 
 ## Architecture rules
@@ -85,7 +120,9 @@ When UI UX Pro Max and Ponytail are both relevant:
 - Always distinguish total price, amount due now, remaining balance, and due dates.
 - Meet WCAG 2.2 AA, keyboard navigation, visible focus, semantic HTML, and reduced-motion behavior.
 - Include loading, empty, error, offline, and retry states for every data-driven flow.
-- A screenshot comparison and product-owner acceptance are required before visual work is complete.
+- Every changed UI must be compared at approved desktop and mobile viewports against the applicable visual authority.
+- Record loading, empty, error, offline, validation, permission, stale/conflict, success, long-content, zoom/reflow, keyboard, and reduced-motion evidence where relevant.
+- A screenshot comparison and product-owner acceptance are required before visual work is complete; passing source tests alone is not visual acceptance.
 
 ## Loop engineering
 
