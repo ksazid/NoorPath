@@ -137,7 +137,11 @@ export default function HomePage() {
                 <div className="landing-package-image">
                   <Image
                     src={packagePreview.image}
-                    alt="Masjid al-Haram in Makkah"
+                    alt={
+                      packagePreview.image.includes("madinah")
+                        ? "Al-Masjid an-Nabawi in Madinah"
+                        : "Masjid al-Haram in Makkah"
+                    }
                     fill
                     sizes="(max-width: 760px) 100vw, (max-width: 980px) 50vw, 33vw"
                   />
