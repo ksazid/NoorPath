@@ -790,7 +790,7 @@ select:focus-visible,
   place-items: center;
   border-radius: 50%;
   background: var(--ivory);
-   color: var(--gold-text);
+  color: var(--gold-text);
   font-size: 11px;
   font-weight: 700;
 }
