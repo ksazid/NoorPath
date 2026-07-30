@@ -771,7 +771,7 @@ export default function DepartureComposer({
           </div>
           <span className="draft-pill">
             Draft ·{" "}
-            {isDirty
+            {hasUnsavedChanges
               ? "Unsaved changes"
               : version
                 ? `Version ${version}`

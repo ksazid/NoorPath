@@ -4,13 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 
 type OccupancyKey = "double" | "triple" | "quad";
 type CapabilityState =
-  | "loading"
-  | "ready"
-  | "saving"
-  | "saved"
-  | "conflict"
-  | "error";
-type LoadState = "loading" | "ready" | "unauthenticated" | "forbidden" | "not-found" | "error";
+  "loading" | "ready" | "saving" | "saved" | "conflict" | "error";
+type LoadState =
+  "loading" | "ready" | "unauthenticated" | "forbidden" | "not-found" | "error";
 type OccupancyValues = Record<OccupancyKey, string>;
 type FieldErrors = Record<string, string>;
 
@@ -41,7 +37,11 @@ type ProblemDetails = {
   errors?: Record<string, string[]>;
 };
 
-const occupancies: ReadonlyArray<{ key: OccupancyKey; label: string; detail: string }> = [
+const occupancies: ReadonlyArray<{
+  key: OccupancyKey;
+  label: string;
+  detail: string;
+}> = [
   { key: "double", label: "Double", detail: "Two adults sharing one room" },
   { key: "triple", label: "Triple", detail: "Three adults sharing one room" },
   { key: "quad", label: "Quad", detail: "Four adults sharing one room" },
@@ -57,7 +57,10 @@ function sameValues(left: OccupancyValues, right: OccupancyValues) {
   return occupancies.every(({ key }) => left[key] === right[key]);
 }
 
-export function validatePricing(currency: string, values: OccupancyValues): FieldErrors {
+export function validatePricing(
+  currency: string,
+  values: OccupancyValues,
+): FieldErrors {
   const errors: FieldErrors = {};
   if (!/^[A-Za-z]{3}$/.test(currency.trim()))
     errors.currency = "Use a three-letter currency code such as INR.";
@@ -69,13 +72,17 @@ export function validatePricing(currency: string, values: OccupancyValues): Fiel
   configured.forEach(({ key, label }) => {
     const raw = values[key].trim();
     if (!/^\d+(?:\.\d{1,2})?$/.test(raw) || Number(raw) <= 0)
-      errors[`price.${key}`] = `${label} price must be greater than zero with at most two decimal places.`;
+      errors[`price.${key}`] =
+        `${label} price must be greater than zero with at most two decimal places.`;
   });
 
   return errors;
 }
 
-export function validateInventory(values: OccupancyValues, reason: string): FieldErrors {
+export function validateInventory(
+  values: OccupancyValues,
+  reason: string,
+): FieldErrors {
   const errors: FieldErrors = {};
   const configured = occupancies.filter(({ key }) => values[key].trim() !== "");
 
@@ -85,11 +92,13 @@ export function validateInventory(values: OccupancyValues, reason: string): Fiel
   configured.forEach(({ key, label }) => {
     const raw = values[key].trim();
     if (!/^\d+$/.test(raw))
-      errors[`capacity.${key}`] = `${label} capacity must be a whole number of zero or more.`;
+      errors[`capacity.${key}`] =
+        `${label} capacity must be a whole number of zero or more.`;
   });
 
   const cleanReason = reason.trim();
-  if (!cleanReason) errors.reason = "Explain why this capacity is being set or changed.";
+  if (!cleanReason)
+    errors.reason = "Explain why this capacity is being set or changed.";
   else if (cleanReason.length > 240)
     errors.reason = "Adjustment reason must be 240 characters or fewer.";
 
@@ -112,7 +121,9 @@ function valuesFromPricing(pricing: PricingResponse | null): OccupancyValues {
   return values;
 }
 
-function valuesFromInventory(inventory: InventoryResponse | null): OccupancyValues {
+function valuesFromInventory(
+  inventory: InventoryResponse | null,
+): OccupancyValues {
   const values = emptyOccupancyValues();
   inventory?.pools.forEach((item) => {
     values[item.occupancy] = String(item.capacity);
@@ -174,9 +185,12 @@ export default function CommercialEditor({
   onDirtyChange: (dirty: boolean) => void;
   onBusyChange: (busy: boolean) => void;
 }) {
-  const [loadState, setLoadState] = useState<LoadState>(departureId ? "loading" : "ready");
+  const [loadState, setLoadState] = useState<LoadState>(
+    departureId ? "loading" : "ready",
+  );
   const [pricingState, setPricingState] = useState<CapabilityState>("ready");
-  const [inventoryState, setInventoryState] = useState<CapabilityState>("ready");
+  const [inventoryState, setInventoryState] =
+    useState<CapabilityState>("ready");
   const [pricingProblem, setPricingProblem] = useState("");
   const [inventoryProblem, setInventoryProblem] = useState("");
   const [pricingErrors, setPricingErrors] = useState<FieldErrors>({});
@@ -184,18 +198,25 @@ export default function CommercialEditor({
   const [currency, setCurrency] = useState("");
   const [savedCurrency, setSavedCurrency] = useState("");
   const [prices, setPrices] = useState<OccupancyValues>(emptyOccupancyValues);
-  const [savedPrices, setSavedPrices] = useState<OccupancyValues>(emptyOccupancyValues);
-  const [capacities, setCapacities] = useState<OccupancyValues>(emptyOccupancyValues);
-  const [savedCapacities, setSavedCapacities] = useState<OccupancyValues>(emptyOccupancyValues);
+  const [savedPrices, setSavedPrices] =
+    useState<OccupancyValues>(emptyOccupancyValues);
+  const [capacities, setCapacities] =
+    useState<OccupancyValues>(emptyOccupancyValues);
+  const [savedCapacities, setSavedCapacities] =
+    useState<OccupancyValues>(emptyOccupancyValues);
   const [adjustmentReason, setAdjustmentReason] = useState("");
   const [pricingVersion, setPricingVersion] = useState(0);
   const [inventoryVersion, setInventoryVersion] = useState(0);
 
-  const pricingDirty = currency !== savedCurrency || !sameValues(prices, savedPrices);
+  const pricingDirty =
+    currency !== savedCurrency || !sameValues(prices, savedPrices);
   const inventoryDirty = !sameValues(capacities, savedCapacities);
   const busy = pricingState === "saving" || inventoryState === "saving";
 
-  useEffect(() => onDirtyChange(pricingDirty || inventoryDirty), [inventoryDirty, onDirtyChange, pricingDirty]);
+  useEffect(
+    () => onDirtyChange(pricingDirty || inventoryDirty),
+    [inventoryDirty, onDirtyChange, pricingDirty],
+  );
   useEffect(() => onBusyChange(busy), [busy, onBusyChange]);
 
   const savedReadiness = useMemo(
@@ -237,11 +258,14 @@ export default function CommercialEditor({
     if (scope === "all") setLoadState("loading");
 
     try {
-      const response = await fetch(`/api/v1/operator/departures/${departureId}/commercial`, {
-        cache: "no-store",
-        credentials: "include",
-        headers: requestHeaders(),
-      });
+      const response = await fetch(
+        `/api/v1/operator/departures/${departureId}/commercial`,
+        {
+          cache: "no-store",
+          credentials: "include",
+          headers: requestHeaders(),
+        },
+      );
       if (response.status === 401) return setLoadState("unauthenticated");
       if (response.status === 403) return setLoadState("forbidden");
       if (response.status === 404) return setLoadState("not-found");
@@ -249,14 +273,19 @@ export default function CommercialEditor({
 
       const body = (await response.json()) as CommercialResponse;
       if (scope === "all" || scope === "pricing") applyPricing(body.pricing);
-      if (scope === "all" || scope === "inventory") applyInventory(body.inventory);
+      if (scope === "all" || scope === "inventory")
+        applyInventory(body.inventory);
       setLoadState("ready");
     } catch {
       if (scope === "pricing") {
-        setPricingProblem("We couldn’t reload pricing. Your inventory edits are untouched.");
+        setPricingProblem(
+          "We couldn’t reload pricing. Your inventory edits are untouched.",
+        );
         setPricingState("error");
       } else if (scope === "inventory") {
-        setInventoryProblem("We couldn’t reload inventory. Your pricing edits are untouched.");
+        setInventoryProblem(
+          "We couldn’t reload inventory. Your pricing edits are untouched.",
+        );
         setInventoryState("error");
       } else {
         setLoadState("error");
@@ -310,18 +339,24 @@ export default function CommercialEditor({
     setPricingState("saving");
     setPricingProblem("");
     try {
-      const response = await fetch(`/api/v1/operator/departures/${departureId}/pricing`, {
-        method: "PUT",
-        credentials: "include",
-        headers: requestHeaders(true),
-        body: JSON.stringify({
-          expectedVersion: pricingVersion,
-          currency: currency.trim(),
-          occupancies: occupancies
-            .filter(({ key }) => prices[key].trim() !== "")
-            .map(({ key }) => ({ occupancy: key, amount: Number(prices[key]) })),
-        }),
-      });
+      const response = await fetch(
+        `/api/v1/operator/departures/${departureId}/pricing`,
+        {
+          method: "PUT",
+          credentials: "include",
+          headers: requestHeaders(true),
+          body: JSON.stringify({
+            expectedVersion: pricingVersion,
+            currency: currency.trim(),
+            occupancies: occupancies
+              .filter(({ key }) => prices[key].trim() !== "")
+              .map(({ key }) => ({
+                occupancy: key,
+                amount: Number(prices[key]),
+              })),
+          }),
+        },
+      );
       const body = (await response.json()) as PricingResponse & ProblemDetails;
       if (response.status === 409) {
         setPricingProblem(body.detail ?? "Pricing changed in another session.");
@@ -333,7 +368,8 @@ export default function CommercialEditor({
         setPricingState("ready");
         return;
       }
-      if (!response.ok) throw new Error(body.detail ?? body.title ?? "pricing save failed");
+      if (!response.ok)
+        throw new Error(body.detail ?? body.title ?? "pricing save failed");
 
       const next = valuesFromPricing(body);
       setPricingVersion(body.version);
@@ -343,7 +379,9 @@ export default function CommercialEditor({
       setSavedPrices(next);
       setPricingState("saved");
     } catch {
-      setPricingProblem("We couldn’t save pricing. Your entries are still here; retry safely.");
+      setPricingProblem(
+        "We couldn’t save pricing. Your entries are still here; retry safely.",
+      );
       setPricingState("error");
     }
   };
@@ -357,21 +395,30 @@ export default function CommercialEditor({
     setInventoryState("saving");
     setInventoryProblem("");
     try {
-      const response = await fetch(`/api/v1/operator/departures/${departureId}/inventory`, {
-        method: "PUT",
-        credentials: "include",
-        headers: requestHeaders(true),
-        body: JSON.stringify({
-          expectedVersion: inventoryVersion,
-          adjustmentReason: adjustmentReason.trim(),
-          pools: occupancies
-            .filter(({ key }) => capacities[key].trim() !== "")
-            .map(({ key }) => ({ occupancy: key, capacity: Number(capacities[key]) })),
-        }),
-      });
-      const body = (await response.json()) as InventoryResponse & ProblemDetails;
+      const response = await fetch(
+        `/api/v1/operator/departures/${departureId}/inventory`,
+        {
+          method: "PUT",
+          credentials: "include",
+          headers: requestHeaders(true),
+          body: JSON.stringify({
+            expectedVersion: inventoryVersion,
+            adjustmentReason: adjustmentReason.trim(),
+            pools: occupancies
+              .filter(({ key }) => capacities[key].trim() !== "")
+              .map(({ key }) => ({
+                occupancy: key,
+                capacity: Number(capacities[key]),
+              })),
+          }),
+        },
+      );
+      const body = (await response.json()) as InventoryResponse &
+        ProblemDetails;
       if (response.status === 409) {
-        setInventoryProblem(body.detail ?? "Inventory changed in another session.");
+        setInventoryProblem(
+          body.detail ?? "Inventory changed in another session.",
+        );
         setInventoryState("conflict");
         return;
       }
@@ -380,7 +427,8 @@ export default function CommercialEditor({
         setInventoryState("ready");
         return;
       }
-      if (!response.ok) throw new Error(body.detail ?? body.title ?? "inventory save failed");
+      if (!response.ok)
+        throw new Error(body.detail ?? body.title ?? "inventory save failed");
 
       const next = valuesFromInventory(body);
       setInventoryVersion(body.version);
@@ -389,23 +437,32 @@ export default function CommercialEditor({
       setAdjustmentReason("");
       setInventoryState("saved");
     } catch {
-      setInventoryProblem("We couldn’t save inventory. Your entries are still here; retry safely.");
+      setInventoryProblem(
+        "We couldn’t save inventory. Your entries are still here; retry safely.",
+      );
       setInventoryState("error");
     }
   };
 
   if (!departureId) {
     return (
-      <section className="form-card commercial-locked-card" aria-labelledby="commercial-locked-title">
+      <section
+        className="form-card commercial-locked-card"
+        aria-labelledby="commercial-locked-title"
+      >
         <div className="form-card-heading">
           <span>06</span>
           <div>
             <h2 id="commercial-locked-title">Pricing & inventory</h2>
-            <p>Save the journey draft first. Commercial facts need a stable departure identity.</p>
+            <p>
+              Save the journey draft first. Commercial facts need a stable
+              departure identity.
+            </p>
           </div>
         </div>
         <div className="commercial-lock-note" role="note">
-          Pricing and inventory remain separate private configurations. Neither makes the journey public.
+          Pricing and inventory remain separate private configurations. Neither
+          makes the journey public.
         </div>
       </section>
     );
@@ -413,16 +470,35 @@ export default function CommercialEditor({
 
   if (loadState !== "ready") {
     const copy: Record<Exclude<LoadState, "ready">, [string, string]> = {
-      loading: ["Loading commercial configuration", "Checking saved pricing and inventory facts."],
-      unauthenticated: ["Sign in required", "Sign in to configure operator pricing and inventory."],
-      forbidden: ["Commercial access unavailable", "Your account cannot configure this operator departure."],
-      "not-found": ["Departure unavailable", "This departure is unavailable or belongs to another operator."],
-      error: ["Commercial configuration unavailable", "Check the connection and retry without changing the journey draft."],
+      loading: [
+        "Loading commercial configuration",
+        "Checking saved pricing and inventory facts.",
+      ],
+      unauthenticated: [
+        "Sign in required",
+        "Sign in to configure operator pricing and inventory.",
+      ],
+      forbidden: [
+        "Commercial access unavailable",
+        "Your account cannot configure this operator departure.",
+      ],
+      "not-found": [
+        "Departure unavailable",
+        "This departure is unavailable or belongs to another operator.",
+      ],
+      error: [
+        "Commercial configuration unavailable",
+        "Check the connection and retry without changing the journey draft.",
+      ],
     };
     const [title, detail] = copy[loadState as Exclude<LoadState, "ready">];
 
     return (
-      <section className="form-card commercial-state-card" role="status" aria-live="polite">
+      <section
+        className="form-card commercial-state-card"
+        role="status"
+        aria-live="polite"
+      >
         <div className="form-card-heading">
           <span>06</span>
           <div>
@@ -431,7 +507,11 @@ export default function CommercialEditor({
           </div>
         </div>
         {loadState === "error" && (
-          <button className="secondary-button" type="button" onClick={() => void load()}>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() => void load()}
+          >
             Retry commercial load
           </button>
         )}
@@ -443,17 +523,23 @@ export default function CommercialEditor({
     <section className="commercial-editor" aria-labelledby="commercial-title">
       <div className="commercial-heading">
         <div>
-          <span className="eyebrow">Pricing & inventory · Private configuration</span>
+          <span className="eyebrow">
+            Pricing & inventory · Private configuration
+          </span>
           <h2 id="commercial-title">Configure what can be sold later</h2>
           <p>
-            Double, Triple and Quad are the only supported VS-03 occupancies. Pricing and inventory save independently; publication comes later.
+            Double, Triple and Quad are the only supported VS-03 occupancies.
+            Pricing and inventory save independently; publication comes later.
           </p>
         </div>
         <span className="commercial-private-pill">Draft only</span>
       </div>
 
       <div className="commercial-grid">
-        <section className="form-card commercial-capability-card" aria-labelledby="pricing-title">
+        <section
+          className="form-card commercial-capability-card"
+          aria-labelledby="pricing-title"
+        >
           <div className="form-card-heading">
             <span>06</span>
             <div>
@@ -472,11 +558,17 @@ export default function CommercialEditor({
           {Object.keys(pricingErrors).length > 0 && (
             <div className="commercial-validation" role="alert">
               <strong>Review pricing</strong>
-              <ul>{Object.values(pricingErrors).map((error) => <li key={error}>{error}</li>)}</ul>
+              <ul>
+                {Object.values(pricingErrors).map((error) => (
+                  <li key={error}>{error}</li>
+                ))}
+              </ul>
             </div>
           )}
 
-          <fieldset disabled={pricingState === "saving" || pricingState === "conflict"}>
+          <fieldset
+            disabled={pricingState === "saving" || pricingState === "conflict"}
+          >
             <label className="commercial-currency-field">
               <span>Currency *</span>
               <input
@@ -493,10 +585,13 @@ export default function CommercialEditor({
                     delete next.currency;
                     return next;
                   });
-                  if (["saved", "error"].includes(pricingState)) setPricingState("ready");
+                  if (["saved", "error"].includes(pricingState))
+                    setPricingState("ready");
                 }}
               />
-              <small>Three-letter code; no currency is assumed by the server.</small>
+              <small>
+                Three-letter code; no currency is assumed by the server.
+              </small>
             </label>
 
             <div className="commercial-row-list">
@@ -527,20 +622,33 @@ export default function CommercialEditor({
             <button
               className="secondary-button commercial-save-button"
               type="button"
-              disabled={!pricingDirty || pricingState === "saving" || pricingState === "conflict"}
+              disabled={
+                !pricingDirty ||
+                pricingState === "saving" ||
+                pricingState === "conflict"
+              }
               onClick={() => void savePricing()}
             >
-              {pricingState === "saving" ? "Saving pricing…" : pricingDirty ? "Save pricing" : "Pricing saved"}
+              {pricingState === "saving"
+                ? "Saving pricing…"
+                : pricingDirty
+                  ? "Save pricing"
+                  : "Pricing saved"}
             </button>
           </div>
         </section>
 
-        <section className="form-card commercial-capability-card" aria-labelledby="inventory-title">
+        <section
+          className="form-card commercial-capability-card"
+          aria-labelledby="inventory-title"
+        >
           <div className="form-card-heading">
             <span>07</span>
             <div>
               <h2 id="inventory-title">Sellable capacity</h2>
-              <p>Capacity is authoritative here; available quantity is derived.</p>
+              <p>
+                Capacity is authoritative here; available quantity is derived.
+              </p>
             </div>
           </div>
 
@@ -554,11 +662,19 @@ export default function CommercialEditor({
           {Object.keys(inventoryErrors).length > 0 && (
             <div className="commercial-validation" role="alert">
               <strong>Review inventory</strong>
-              <ul>{Object.values(inventoryErrors).map((error) => <li key={error}>{error}</li>)}</ul>
+              <ul>
+                {Object.values(inventoryErrors).map((error) => (
+                  <li key={error}>{error}</li>
+                ))}
+              </ul>
             </div>
           )}
 
-          <fieldset disabled={inventoryState === "saving" || inventoryState === "conflict"}>
+          <fieldset
+            disabled={
+              inventoryState === "saving" || inventoryState === "conflict"
+            }
+          >
             <div className="commercial-row-list">
               {occupancies.map(({ key, label, detail }) => (
                 <label className="commercial-row" key={key}>
@@ -573,7 +689,9 @@ export default function CommercialEditor({
                       inputMode="numeric"
                       placeholder="Not configured"
                       value={capacities[key]}
-                      onChange={(event) => changeCapacity(key, event.target.value)}
+                      onChange={(event) =>
+                        changeCapacity(key, event.target.value)
+                      }
                     />
                     <span aria-hidden="true">places</span>
                   </span>
@@ -582,7 +700,10 @@ export default function CommercialEditor({
             </div>
 
             <label className="commercial-reason-field">
-              <span>Adjustment reason {inventoryDirty && <em aria-hidden="true">*</em>}</span>
+              <span>
+                Adjustment reason{" "}
+                {inventoryDirty && <em aria-hidden="true">*</em>}
+              </span>
               <textarea
                 aria-invalid={Boolean(inventoryErrors.reason)}
                 maxLength={240}
@@ -598,7 +719,10 @@ export default function CommercialEditor({
                   });
                 }}
               />
-              <small>Required on every capacity write and stored in the inventory audit trail.</small>
+              <small>
+                Required on every capacity write and stored in the inventory
+                audit trail.
+              </small>
             </label>
           </fieldset>
 
@@ -607,21 +731,35 @@ export default function CommercialEditor({
             <button
               className="secondary-button commercial-save-button"
               type="button"
-              disabled={!inventoryDirty || inventoryState === "saving" || inventoryState === "conflict"}
+              disabled={
+                !inventoryDirty ||
+                inventoryState === "saving" ||
+                inventoryState === "conflict"
+              }
               onClick={() => void saveInventory()}
             >
-              {inventoryState === "saving" ? "Saving inventory…" : inventoryDirty ? "Save inventory" : "Inventory saved"}
+              {inventoryState === "saving"
+                ? "Saving inventory…"
+                : inventoryDirty
+                  ? "Save inventory"
+                  : "Inventory saved"}
             </button>
           </div>
         </section>
       </div>
 
-      <section className="form-card commercial-readiness-card" aria-labelledby="readiness-title">
+      <section
+        className="form-card commercial-readiness-card"
+        aria-labelledby="readiness-title"
+      >
         <div className="form-card-heading">
           <span>08</span>
           <div>
             <h2 id="readiness-title">Commercial readiness</h2>
-            <p>Readiness means saved price plus positive saved capacity. It does not mean published or bookable.</p>
+            <p>
+              Readiness means saved price plus positive saved capacity. It does
+              not mean published or bookable.
+            </p>
           </div>
         </div>
         <div className="commercial-readiness-grid">
@@ -634,8 +772,16 @@ export default function CommercialEditor({
             return (
               <div className="commercial-readiness-row" key={key}>
                 <strong>{label}</strong>
-                <span className={rowDirty ? "unsaved" : ready ? "ready" : "incomplete"}>
-                  {rowDirty ? "Unsaved edits" : ready ? "Ready for later review" : "Incomplete"}
+                <span
+                  className={
+                    rowDirty ? "unsaved" : ready ? "ready" : "incomplete"
+                  }
+                >
+                  {rowDirty
+                    ? "Unsaved edits"
+                    : ready
+                      ? "Ready for later review"
+                      : "Incomplete"}
                 </span>
               </div>
             );
