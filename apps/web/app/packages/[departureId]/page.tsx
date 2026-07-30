@@ -8,7 +8,11 @@ import {
   type FactConfirmationState,
   type StayPreview,
 } from "../../public-package-preview";
-import { ConfirmationBadge, PublicFooter, PublicHeader } from "../../public-ui";
+import {
+  ConfirmationBadge,
+  PublicFooter,
+  PublicHeader,
+} from "../../public-ui";
 
 type PackagePageProps = {
   params: Promise<{ departureId: string }>;
@@ -73,7 +77,8 @@ function StayCard({
       <p className="public-stay-secondary">{stay.distanceDisclosure}</p>
       <p className="public-stay-classification">{stay.classification}</p>
       <p className="public-stay-context">
-        Hotel, nights, classification, and distance remain separate journey facts.
+        Hotel, nights, classification, and distance remain separate journey
+        facts.
       </p>
     </article>
   );
@@ -107,9 +112,7 @@ export default async function PackageDetailsPage({ params }: PackagePageProps) {
             />
           </div>
           <div className="public-detail-copy public-detail-copy-refined">
-            <span className="public-eyebrow">
-              {packagePreview.operatorName}
-            </span>
+            <span className="public-eyebrow">{packagePreview.operatorName}</span>
             <h1>{packagePreview.packageName}</h1>
             <p className="public-detail-route">
               {packagePreview.travel.routeSummary}
@@ -161,7 +164,9 @@ export default async function PackageDetailsPage({ params }: PackagePageProps) {
           <section className="public-detail-section public-detail-section-refined">
             <div className="public-travel-heading">
               <h2>Travel</h2>
-              <ConfirmationBadge state={packagePreview.travel.confirmationState} />
+              <ConfirmationBadge
+                state={packagePreview.travel.confirmationState}
+              />
             </div>
             <div className="public-travel-facts">
               <div>
