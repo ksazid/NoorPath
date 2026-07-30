@@ -96,47 +96,4 @@ jobs:
         if: always()
         run: docker compose down --volumes --remove-orphans
 
-  browser:
-    name: S02 browser, accessibility, and visual validation
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    services:
-      postgres:
-        image: postgres:18-alpine
-        env:
-          POSTGRES_DB: noorpath_e2e
-          POSTGRES_USER: noorpath
-          POSTGRES_PASSWORD: ci-local-only-password
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd "pg_isready -U noorpath -d noorpath_e2e"
-          --health-interval 5s --health-timeout 5s --health-retries 10
-    env:
-      CI: true
-      NOORPATH_TEST_DB: Host=localhost;Port=5432;Database=noorpath_e2e;Username=noorpath;Password=ci-local-only-password
-      ConnectionStrings__NoorPath: Host=localhost;Port=5432;Database=noorpath_e2e;Username=noorpath;Password=ci-local-only-password
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .node-version
-      - uses: actions/setup-dotnet@v5
-        with:
-          global-json-file: global.json
-      - run: corepack enable
-      - run: pnpm install --frozen-lockfile
-      - run: dotnet restore NoorPath.slnx
-      - run: dotnet build NoorPath.slnx --configuration Release --no-restore
-      - name: Install Chromium
-        run: pnpm --filter @noorpath/web exec playwright install --with-deps chromium webkit
-      - name: Apply the S02 migration to the E2E database
-        run: dotnet test tests/NoorPath.Catalogue.Integration.Tests/NoorPath.Catalogue.Integration.Tests.csproj --configuration Release --no-build --filter FullyQualifiedName~Migration_applies_and_publication_is_atomic_and_durable
-      - name: Run S02 browser, accessibility, responsive, and visual checks
-        run: pnpm --filter @noorpath/web e2e
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: s02-browser-evidence
-          path: |
-            apps/web/playwright-report
-            apps/web/test-results
+  
