@@ -65,7 +65,9 @@ test("loading resolves to truthful published results", async ({ page }) => {
   ).toBeVisible();
   await expect(page.getByText("From ₹90,000")).toBeVisible();
   await expect(page.getByText("Available")).toBeVisible();
-  await expect(page.getByText("Noor International Tours & Travels")).toBeVisible();
+  await expect(
+    page.getByText("Noor International Tours & Travels"),
+  ).toBeVisible();
   await expectNoA11yViolations(page);
 });
 
@@ -118,7 +120,9 @@ test("mobile, keyboard, targets and reduced motion remain usable", async ({
   await expect(
     page.getByRole("heading", { name: "Browser Verified Journey" }),
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: /View package/ })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /View package/ }),
+  ).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await expectMinimumTargets(page);
 
