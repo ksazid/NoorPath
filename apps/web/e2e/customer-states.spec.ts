@@ -110,7 +110,7 @@ test("keyboard focus, target size, reduced motion, and 200% text remain usable",
     await page
       .locator(".package-card")
       .evaluate((element) => getComputedStyle(element).transitionDuration),
-  ).toMatch(/^(0s|0\.00001s)$/);
+  ).toMatch(/^(0s|0\.00001s|1e-05s)$/);
   await page.evaluate(() => {
     document.documentElement.style.fontSize = "200%";
   });
