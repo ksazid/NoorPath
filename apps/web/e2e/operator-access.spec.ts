@@ -45,6 +45,11 @@ for (const state of states) {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       state.heading,
     );
+    if (state.name === "authorized") {
+      await expect(
+        page.getByRole("link", { name: "Create new draft" }),
+      ).toHaveAttribute("href", "/operator/departures/new");
+    }
     await expectNoA11yViolations(page);
     await expectMinimumTargets(page);
     await expectNoHorizontalOverflow(page);
