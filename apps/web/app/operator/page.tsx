@@ -73,16 +73,19 @@ export default function OperatorPage() {
           <section className="operator-state">
             <p className="operator-eyebrow">Approved operator</p>
             <h1>{state.access.operator.displayName}</h1>
-            <p>
-              Your secure administration workspace is ready. Approved
-              capabilities will appear here as they become available.
-            </p>
-            <div className="operator-empty" role="status">
-              <h2>No administration tasks yet</h2>
+            <p>Your secure administration workspace is ready.</p>
+            <div className="operator-empty">
+              <h2>Package and departure authoring</h2>
               <p>
-                There is nothing you need to complete in this foundation
-                release.
+                Create a private journey draft with accommodation, travel,
+                pricing, and capacity facts.
               </p>
+              <Link
+                className="operator-primary"
+                href="/operator/departures/new"
+              >
+                Create new draft
+              </Link>
             </div>
           </section>
         )}

@@ -148,17 +148,16 @@ export function validateDraft(form: DraftForm): FieldErrors {
 }
 
 function Brand({
+  href = "/",
+  label = "NoorPath home",
   onNavigate,
 }: {
+  href?: string;
+  label?: string;
   onNavigate?: (event: MouseEvent<HTMLAnchorElement>) => void;
 }) {
   return (
-    <Link
-      className="brand"
-      href="/"
-      aria-label="NoorPath home"
-      onClick={onNavigate}
-    >
+    <Link className="brand" href={href} aria-label={label} onClick={onNavigate}>
       <span className="brand-mark" aria-hidden="true">
         ◇
       </span>
@@ -727,7 +726,11 @@ export default function DepartureComposer({
         Skip to authoring form
       </a>
       <aside className="admin-sidebar composer-sidebar">
-        <Brand onNavigate={guardNavigation} />
+        <Brand
+          href="/operator"
+          label="Operator home"
+          onNavigate={guardNavigation}
+        />
         <nav aria-label="Operator navigation">
           <Link
             className="composer-nav-active"
