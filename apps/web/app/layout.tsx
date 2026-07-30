@@ -4,6 +4,7 @@ import "./styles.css";
 import "./composer.css";
 import "./commercial.css";
 import "./public.css";
+import "./refinement.css";
 
 export const metadata: Metadata = {
   title: "NoorPath",

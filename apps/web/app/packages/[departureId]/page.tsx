@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import {
   findPublicPackagePreview,
   publicPackagePreviews,
+  type FactConfirmationState,
   type StayPreview,
 } from "../../public-package-preview";
 import { ConfirmationBadge, PublicFooter, PublicHeader } from "../../public-ui";
@@ -33,6 +34,26 @@ export async function generateMetadata({
   };
 }
 
+function HeroFactPill({
+  label,
+  state,
+}: {
+  label: string;
+  state: FactConfirmationState;
+}) {
+  return (
+    <span
+      className={
+        state === "confirmed"
+          ? "public-hero-fact-state confirmed"
+          : "public-hero-fact-state pending"
+      }
+    >
+      {label} {state === "confirmed" ? "confirmed" : "pending"}
+    </span>
+  );
+}
+
 function StayCard({
   city,
   stay,
@@ -41,26 +62,20 @@ function StayCard({
   stay: StayPreview;
 }) {
   return (
-    <article className="public-stay-card">
-      <div>
-        <span className="public-eyebrow">{city} stay</span>
-        <h3>{stay.hotelName}</h3>
+    <article className="public-stay-card public-stay-card-refined">
+      <div className="public-stay-card-heading">
+        <h3>{city}</h3>
+        <ConfirmationBadge state={stay.confirmationState} />
       </div>
-      <ConfirmationBadge state={stay.confirmationState} />
-      <dl>
-        <div>
-          <dt>Classification</dt>
-          <dd>{stay.classification}</dd>
-        </div>
-        <div>
-          <dt>Distance disclosure</dt>
-          <dd>{stay.distanceDisclosure}</dd>
-        </div>
-        <div>
-          <dt>Nights</dt>
-          <dd>{stay.nights}</dd>
-        </div>
-      </dl>
+      <strong className="public-stay-primary">
+        {stay.hotelName} · {stay.nights} nights
+      </strong>
+      <p className="public-stay-secondary">{stay.distanceDisclosure}</p>
+      <p className="public-stay-classification">{stay.classification}</p>
+      <p className="public-stay-context">
+        Hotel, nights, classification, and distance remain separate journey
+        facts.
+      </p>
     </article>
   );
 }
@@ -72,120 +87,122 @@ export default async function PackageDetailsPage({ params }: PackagePageProps) {
   if (!packagePreview) notFound();
 
   return (
-    <div className="public-page">
+    <div className="public-page public-page-refined">
       <PublicHeader />
 
-      <main className="public-detail-main">
+      <main className="public-detail-main public-detail-main-refined">
         <nav className="public-breadcrumbs" aria-label="Breadcrumb">
           <Link href="/#packages">Packages</Link>
           <span aria-hidden="true">/</span>
           <span>{packagePreview.packageName}</span>
         </nav>
 
-        <section className="public-detail-hero">
-          <div className="public-detail-image">
+        <section className="public-detail-hero public-detail-hero-refined">
+          <div className="public-detail-image public-detail-image-refined">
             <Image
               src={packagePreview.image}
               alt="Masjid al-Haram in Makkah"
               fill
               priority
-              sizes="(max-width: 980px) 100vw, 55vw"
+              sizes="(max-width: 980px) 100vw, 50vw"
             />
           </div>
-          <div className="public-detail-copy">
+          <div className="public-detail-copy public-detail-copy-refined">
             <span className="public-eyebrow">
-              Journey preview · {packagePreview.operatorName}
+              {packagePreview.operatorName}
             </span>
             <h1>{packagePreview.packageName}</h1>
+            <p className="public-detail-route">
+              {packagePreview.travel.routeSummary}
+            </p>
+            <div
+              className="public-hero-fact-states"
+              aria-label="Journey confirmation states"
+            >
+              <HeroFactPill
+                label="Makkah"
+                state={packagePreview.makkah.confirmationState}
+              />
+              <HeroFactPill
+                label="Madinah"
+                state={packagePreview.madinah.confirmationState}
+              />
+              <HeroFactPill
+                label="Travel"
+                state={packagePreview.travel.confirmationState}
+              />
+            </div>
             <p className="public-detail-summary">{packagePreview.summary}</p>
-            <dl className="public-detail-meta">
-              <div>
-                <dt>Departure from</dt>
-                <dd>{packagePreview.origin}</dd>
-              </div>
-              <div>
-                <dt>Journey length</dt>
-                <dd>{packagePreview.durationNights} nights</dd>
-              </div>
-              <div>
-                <dt>Departure</dt>
-                <dd>{packagePreview.departureDate}</dd>
-              </div>
-              <div>
-                <dt>Return</dt>
-                <dd>{packagePreview.returnDate}</dd>
-              </div>
-            </dl>
+            <div className="public-detail-truth-note" role="note">
+              <strong>Truth before transaction</strong>
+              <span>
+                Commercial details stay absent until they are authoritative.
+              </span>
+            </div>
+            <a className="public-detail-hero-action" href="#journey-facts">
+              Review journey facts
+            </a>
           </div>
         </section>
 
-        <div className="public-detail-grid">
-          <div className="public-detail-content">
-            <section className="public-detail-section">
-              <span className="public-eyebrow">Accommodation</span>
-              <h2>Your stay in the Haramain</h2>
-              <div className="public-stay-grid">
-                <StayCard city="Makkah" stay={packagePreview.makkah} />
-                <StayCard city="Madinah" stay={packagePreview.madinah} />
-              </div>
-            </section>
+        <div
+          className="public-detail-content public-detail-content-refined"
+          id="journey-facts"
+        >
+          <section
+            className="public-detail-section public-detail-section-refined"
+            aria-label="Accommodation facts"
+          >
+            <div className="public-stay-grid">
+              <StayCard city="Makkah" stay={packagePreview.makkah} />
+              <StayCard city="Madinah" stay={packagePreview.madinah} />
+            </div>
+          </section>
 
-            <section className="public-detail-section">
-              <span className="public-eyebrow">Travel</span>
-              <h2>Journey route and travel facts</h2>
-              <div className="public-travel-facts">
-                <ConfirmationBadge
-                  state={packagePreview.travel.confirmationState}
-                />
-                <div>
-                  <strong>{packagePreview.travel.routeSummary}</strong>
-                  <p>{packagePreview.travel.details}</p>
-                </div>
+          <section className="public-detail-section public-detail-section-refined">
+            <div className="public-travel-heading">
+              <h2>Travel</h2>
+              <ConfirmationBadge
+                state={packagePreview.travel.confirmationState}
+              />
+            </div>
+            <div className="public-travel-facts">
+              <div>
+                <strong>{packagePreview.travel.routeSummary}</strong>
+                <p>{packagePreview.travel.details}</p>
               </div>
-            </section>
+            </div>
+          </section>
 
-            <section className="public-detail-section">
-              <span className="public-eyebrow">What is clear today</span>
-              <h2>Included and not included</h2>
-              <div className="public-list-grid">
-                <div className="public-list-panel">
-                  <h3>Included</h3>
-                  <ul>
-                    {packagePreview.inclusions.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="public-list-panel">
-                  <h3>Not included</h3>
-                  <ul>
-                    {packagePreview.exclusions.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
+          <section className="public-detail-section public-detail-section-refined">
+            <div className="public-list-grid">
+              <div className="public-list-panel public-list-panel-refined included">
+                <h3>Included</h3>
+                <ul>
+                  {packagePreview.inclusions.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
               </div>
-            </section>
+              <div className="public-list-panel public-list-panel-refined excluded">
+                <h3>Not included</h3>
+                <ul>
+                  {packagePreview.exclusions.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <div
+            className="public-detail-legend"
+            aria-label="How NoorPath presents package facts"
+          >
+            <span className="confirmed">What’s confirmed</span>
+            <span className="pending">What’s still pending</span>
+            <span>What is not yet commercial</span>
           </div>
-
-          <aside className="public-support-panel" aria-label="Package support">
-            <span className="public-eyebrow">Need clarity?</span>
-            <h2>Speak to a human before you decide.</h2>
-            <p>
-              This is a V2 customer-experience preview. No booking, payment,
-              price, seat, or availability claim is being made. Human support
-              can help you understand the journey facts shown here.
-            </p>
-            <a
-              className="public-support-primary"
-              href="mailto:support@noorpath.example"
-            >
-              Contact human support
-            </a>
-            <Link className="public-support-secondary" href="/#packages">
-              Back to packages
-            </Link>
-          </aside>
         </div>
       </main>
 
