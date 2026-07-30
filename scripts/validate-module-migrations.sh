@@ -2,13 +2,14 @@
 set -euo pipefail
 
 if [ "$#" -lt 2 ]; then
-  echo "usage: $0 <project-path> <dbcontext> [startup-project]" >&2
+  echo "usage: $0 <project-path> <dbcontext> [startup-project] [connection-env-var]" >&2
   exit 64
 fi
 
 project="$1"
 context="$2"
 startup="${3:-apps/api/NoorPath.Api.csproj}"
+connection_env="${4:-}"
 project_dir="$(dirname "$project")"
 migrations_dir="$project_dir/Migrations"
 
@@ -69,4 +70,21 @@ dotnet ef migrations has-pending-model-changes \
   --configuration Release \
   --no-build
 
-echo "Migration metadata and model parity are valid for $context. Database application/upgrade evidence remains PostgreSQL-backed integration-test responsibility."
+if [ -n "$connection_env" ]; then
+  connection="${!connection_env:-}"
+  if [ -z "$connection" ]; then
+    echo "$connection_env is required to apply migrations for $context" >&2
+    exit 65
+  fi
+
+  echo "Applying migrations for $context"
+  dotnet ef database update \
+    --project "$project" \
+    --startup-project "$startup" \
+    --context "$context" \
+    --configuration Release \
+    --no-build \
+    --connection "$connection"
+fi
+
+echo "Migration metadata, model parity, and database application are valid for $context."
