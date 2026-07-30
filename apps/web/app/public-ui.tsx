@@ -1,50 +1,103 @@
+import Image from "next/image";
 import Link from "next/link";
 
-function MarkIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      height="22"
-      viewBox="0 0 24 24"
-      width="22"
-    >
-      <path
-        d="M12 3 18.5 9.5 12 21 5.5 9.5 12 3Z"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="1.6"
-      />
-      <path d="M8.5 10h7" stroke="currentColor" strokeWidth="1.6" />
-    </svg>
-  );
-}
+type HeaderMode = "landing" | "detail";
 
-export function NoorPathBrand() {
+export function NoorPathBrand({ mode = "landing" }: { mode?: HeaderMode }) {
+  const packageBrand = mode === "detail";
+
   return (
-    <Link className="public-brand" href="/" aria-label="NoorPath home">
-      <span className="public-brand-mark">
-        <MarkIcon />
-      </span>
-      <span>NoorPath</span>
+    <Link
+      className={`public-brand public-brand-${mode}`}
+      href="/"
+      aria-label="NoorPath home"
+    >
+      <Image
+        src={
+          packageBrand
+            ? "/assets/noorpath-package-wordmark.webp"
+            : "/assets/noorpath-wordmark.svg"
+        }
+        alt="NoorPath"
+        width={packageBrand ? 278 : 252}
+        height={packageBrand ? 100 : 100}
+        priority
+      />
     </Link>
   );
 }
 
-export function PublicHeader() {
+export function PublicHeader({ mode = "detail" }: { mode?: HeaderMode }) {
   return (
-    <header className="public-topbar">
-      <NoorPathBrand />
+    <header className={`public-topbar public-topbar-${mode}`}>
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
+      <NoorPathBrand mode={mode} />
+
       <nav aria-label="Primary navigation" className="public-nav">
-        <Link href="/#packages">Packages</Link>
-        <Link href="/#trust">Why NoorPath</Link>
-        <a href="mailto:support@noorpath.example">Support</a>
+        <Link href="/#packages">
+          {mode === "landing" ? "Explore" : "Packages"}
+        </Link>
+        <Link href="/#packages">
+          {mode === "landing" ? "Journey" : "Destinations"}
+        </Link>
+        <Link href="/#trust">{mode === "landing" ? "Family" : "About Us"}</Link>
+        <a href="mailto:support@noorpath.example">
+          {mode === "landing" ? "Help" : "Support"}
+        </a>
       </nav>
+
+      {mode === "landing" ? (
+        <a
+          className="header-profile-button"
+          href="mailto:support@noorpath.example"
+          aria-label="Contact NoorPath support"
+        >
+          <Icon name="user-circle" />
+        </a>
+      ) : (
+        <div className="public-header-actions">
+          <a
+            className="header-action header-action-secondary"
+            href="tel:+0000000000"
+          >
+            <Icon name="phone" /> Request a callback
+          </a>
+          <a
+            className="header-action header-action-primary"
+            href="mailto:support@noorpath.example"
+          >
+            <Icon name="whatsapp-logo" /> WhatsApp support
+          </a>
+        </div>
+      )}
+
+      <details className="public-mobile-menu">
+        <summary aria-label="Open navigation">
+          <span />
+          <span />
+          <span />
+        </summary>
+        <nav aria-label="Mobile navigation">
+          <Link href="/#packages">Packages</Link>
+          <Link href="/#trust">Why NoorPath</Link>
+          <a href="mailto:support@noorpath.example">Support</a>
+        </nav>
+      </details>
+
       <a
-        className="public-support-button"
-        href="mailto:support@noorpath.example"
+        className="public-mobile-contact"
+        href={
+          mode === "landing"
+            ? "mailto:support@noorpath.example"
+            : "tel:+0000000000"
+        }
+        aria-label={
+          mode === "landing" ? "Contact NoorPath support" : "Request a callback"
+        }
       >
-        Human support
+        <Icon name={mode === "landing" ? "user-circle" : "phone"} />
       </a>
     </header>
   );
@@ -53,38 +106,34 @@ export function PublicHeader() {
 export function PublicFooter() {
   return (
     <footer className="public-footer">
-      <div>
-        <NoorPathBrand />
-        <p>
-          Calm, factual Umrah journey information with operator accountability
-          and human support.
-        </p>
-      </div>
-      <div className="public-footer-links" aria-label="Footer navigation">
+      <NoorPathBrand mode="landing" />
+      <p>
+        Calm, factual Umrah journey information with accountable operators and
+        human support.
+      </p>
+      <nav className="public-footer-links" aria-label="Footer navigation">
         <Link href="/#packages">Explore packages</Link>
-        <Link href="/#trust">Trust & clarity</Link>
-        <a href="mailto:support@noorpath.example">Contact human support</a>
-      </div>
+        <a href="mailto:support@noorpath.example">Contact support</a>
+      </nav>
     </footer>
   );
 }
 
-export function ConfirmationBadge({
-  state,
+export function Icon({
+  name,
+  className = "",
 }: {
-  state: "confirmed" | "pending";
+  name: string;
+  className?: string;
 }) {
-  const confirmed = state === "confirmed";
   return (
-    <span
-      className={
-        confirmed
-          ? "public-fact-state public-fact-state-confirmed"
-          : "public-fact-state public-fact-state-pending"
-      }
-    >
-      <span aria-hidden="true" className="public-fact-dot" />
-      {confirmed ? "Confirmed fact" : "Pending confirmation"}
-    </span>
+    <Image
+      className={`public-icon ${className}`}
+      src={`/assets/icons/${name}.svg`}
+      alt=""
+      aria-hidden="true"
+      width={24}
+      height={24}
+    />
   );
 }

@@ -37,7 +37,7 @@ export const publicPackagePreviews: readonly PublicPackagePreview[] = [
     operatorName: "Noor Tours",
     packageName: "Noor Harmony · 12 Nights",
     summary:
-      "A calm Umrah journey with clearly disclosed stays in Makkah and Madinah, guided transfers, and travel facts kept explicit.",
+      "A calm Umrah journey with clearly disclosed stays in Makkah and Madinah.",
     origin: "Delhi (DEL)",
     departureDate: "18 Sep 2026",
     returnDate: "30 Sep 2026",
@@ -59,7 +59,7 @@ export const publicPackagePreviews: readonly PublicPackagePreview[] = [
     travel: {
       routeSummary: "Delhi → Jeddah → Makkah → Madinah → Delhi",
       details:
-        "Return air travel and intercity ground transfers are included in this preview. Final flight numbers remain subject to operator confirmation.",
+        "Return air travel and intercity transfers are included. Final flight facts remain subject to operator confirmation.",
       confirmationState: "pending",
     },
     inclusions: [
@@ -69,15 +69,14 @@ export const publicPackagePreviews: readonly PublicPackagePreview[] = [
       "Visa support",
       "Human journey support",
     ],
-    exclusions: ["Personal expenses", "Optional excursions not listed above"],
-    image: "/assets/kaaba-morning.png",
+    exclusions: ["Personal expenses", "Optional excursions"],
+    image: "/assets/kaaba-reference.svg",
   },
   {
     departureId: "cf0c2d15-5fbb-45ee-b745-20bb3578f76a",
     operatorName: "Noor Tours",
     packageName: "Haramain Comfort · 10 Nights",
-    summary:
-      "A focused ten-night journey balancing time in both holy cities with simple, explicit accommodation and transfer information.",
+    summary: "A focused journey balancing time in both holy cities.",
     origin: "Mumbai (BOM)",
     departureDate: "09 Oct 2026",
     returnDate: "19 Oct 2026",
@@ -85,40 +84,36 @@ export const publicPackagePreviews: readonly PublicPackagePreview[] = [
     makkah: {
       hotelName: "Makkah stay",
       classification: "Comfort category",
-      distanceDisclosure:
-        "Exact hotel and walking distance pending operator confirmation",
+      distanceDisclosure: "Exact hotel pending operator confirmation",
       nights: 6,
       confirmationState: "pending",
     },
     madinah: {
       hotelName: "Madinah stay",
       classification: "Comfort category",
-      distanceDisclosure:
-        "Exact hotel and walking distance pending operator confirmation",
+      distanceDisclosure: "Exact hotel pending operator confirmation",
       nights: 4,
       confirmationState: "pending",
     },
     travel: {
       routeSummary: "Mumbai → Jeddah → Makkah → Madinah → Mumbai",
-      details:
-        "The journey route is prepared; carrier and flight-number facts will be shown only after operator confirmation.",
+      details: "Carrier and flight facts will follow operator confirmation.",
       confirmationState: "pending",
     },
     inclusions: [
       "Return air travel",
       "Accommodation for 10 nights",
-      "Ground transfers between journey stages",
+      "Ground transfers",
       "Visa support",
     ],
-    exclusions: ["Meals unless explicitly confirmed", "Personal expenses"],
-    image: "/assets/kaaba-morning.png",
+    exclusions: ["Meals unless confirmed", "Personal expenses"],
+    image: "/assets/madinah-reference.svg",
   },
   {
     departureId: "d823cb8a-3afe-41f4-83b7-40ca793012b5",
     operatorName: "Noor Tours",
     packageName: "Serene Umrah · 14 Nights",
-    summary:
-      "A longer fourteen-night itinerary for travellers who value more time in Makkah and Madinah without hiding unconfirmed journey facts.",
+    summary: "A longer journey with more time in Makkah and Madinah.",
     origin: "Lucknow (LKO)",
     departureDate: "06 Nov 2026",
     returnDate: "20 Nov 2026",
@@ -126,21 +121,20 @@ export const publicPackagePreviews: readonly PublicPackagePreview[] = [
     makkah: {
       hotelName: "Makkah stay",
       classification: "To be confirmed",
-      distanceDisclosure: "Distance disclosure pending operator confirmation",
+      distanceDisclosure: "Distance pending operator confirmation",
       nights: 8,
       confirmationState: "pending",
     },
     madinah: {
       hotelName: "Madinah stay",
       classification: "To be confirmed",
-      distanceDisclosure: "Distance disclosure pending operator confirmation",
+      distanceDisclosure: "Distance pending operator confirmation",
       nights: 6,
       confirmationState: "pending",
     },
     travel: {
       routeSummary: "Lucknow → Jeddah → Makkah → Madinah → Lucknow",
-      details:
-        "Travel routing is shown as a planning preview. Carrier, flight number, and final transfer timings are not yet confirmed.",
+      details: "Carrier and final transfer timings are not yet confirmed.",
       confirmationState: "pending",
     },
     inclusions: [
@@ -149,11 +143,8 @@ export const publicPackagePreviews: readonly PublicPackagePreview[] = [
       "Intercity transfers",
       "Visa support",
     ],
-    exclusions: [
-      "Personal expenses",
-      "Items not explicitly listed as included",
-    ],
-    image: "/assets/kaaba-morning.png",
+    exclusions: ["Personal expenses", "Items not explicitly included"],
+    image: "/assets/kaaba-reference.svg",
   },
 ] as const;
 

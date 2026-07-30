@@ -5,14 +5,96 @@ import { notFound } from "next/navigation";
 import {
   findPublicPackagePreview,
   publicPackagePreviews,
-  type FactConfirmationState,
-  type StayPreview,
+  type PublicPackagePreview,
 } from "../../public-package-preview";
-import { ConfirmationBadge, PublicFooter, PublicHeader } from "../../public-ui";
+import { Icon, PublicHeader } from "../../public-ui";
 
 type PackagePageProps = {
   params: Promise<{ departureId: string }>;
 };
+
+const itinerary = [
+  [
+    "Day 1",
+    "mosque",
+    "Arrival in Jeddah",
+    "Airport assistance & transfer to Makkah hotel. Check-in.",
+  ],
+  [
+    "Day 1–5",
+    "building",
+    "Makkah Stay",
+    "5 nights in Makkah. Perform Umrah, worship & leisure.",
+  ],
+  ["Day 6", "bus", "Guided Ziyarah", "Makkah Ziyarah with certified guide."],
+  [
+    "Day 7",
+    "users-three",
+    "Umrah Orientation",
+    "Umrah guidance session & rituals briefing.",
+  ],
+  [
+    "Day 8",
+    "train",
+    "Makkah to Madinah",
+    "Check-out & high-speed train transfer to Madinah.",
+  ],
+  [
+    "Day 8–12",
+    "mosque",
+    "Madinah Stay",
+    "5 nights in Madinah. Worship & leisure.",
+  ],
+  [
+    "Day 13",
+    "airplane-tilt",
+    "Departure",
+    "Check-out & transfer to airport for your return flight.",
+  ],
+] as const;
+
+const included = [
+  ["airplane-tilt", "Return flights (Economy)"],
+  ["file-text", "Visa assistance"],
+  ["building", "Makkah hotel"],
+  ["mosque", "Madinah hotel"],
+  ["fork-knife", "Meals as per plan"],
+  ["bus", "Airport & intercity transport"],
+  ["map-trifold", "Guided Ziyarah"],
+  ["users-three", "Group leader & support"],
+] as const;
+
+const travelKit = [
+  ["suitcase-rolling", "Luggage tag"],
+  ["handbag", "Neck pouch / Document wallet"],
+  ["identification-card", "ID card"],
+  ["sim-card", "SIM / eSIM guidance"],
+  ["notepad", "Emergency contact card"],
+] as const;
+
+const umrahKit = [
+  ["shirt-folded", "Ihram for men / Prayer essentials"],
+  ["handbag", "Drawstring bag"],
+  ["shirt-folded", "Unscented toiletries"],
+  ["book-open-text", "Pocket Dua guide"],
+  ["drop", "Zamzam handling guidance"],
+] as const;
+
+const confirmed = [
+  "Hotels (Makkah & Madinah)",
+  "Return flights (Economy)",
+  "Umrah visa with insurance",
+  "Airport & intercity transfers",
+  "Meals as per itinerary",
+  "Guided Ziyarah",
+  "Group leader & support",
+] as const;
+
+const pending = [
+  "Flight schedule — To be confirmed",
+  "Room allocation — 7 days before arrival",
+  "Ziyarah timings — To be confirmed",
+] as const;
 
 export function generateStaticParams() {
   return publicPackagePreviews.map((packagePreview) => ({
@@ -34,52 +116,6 @@ export async function generateMetadata({
   };
 }
 
-function HeroFactPill({
-  label,
-  state,
-}: {
-  label: string;
-  state: FactConfirmationState;
-}) {
-  return (
-    <span
-      className={
-        state === "confirmed"
-          ? "public-hero-fact-state confirmed"
-          : "public-hero-fact-state pending"
-      }
-    >
-      {label} {state === "confirmed" ? "confirmed" : "pending"}
-    </span>
-  );
-}
-
-function StayCard({
-  city,
-  stay,
-}: {
-  city: "Makkah" | "Madinah";
-  stay: StayPreview;
-}) {
-  return (
-    <article className="public-stay-card public-stay-card-refined">
-      <div className="public-stay-card-heading">
-        <h3>{city}</h3>
-        <ConfirmationBadge state={stay.confirmationState} />
-      </div>
-      <strong className="public-stay-primary">
-        {stay.hotelName} · {stay.nights} nights
-      </strong>
-      <p className="public-stay-secondary">{stay.distanceDisclosure}</p>
-      <p className="public-stay-classification">{stay.classification}</p>
-      <p className="public-stay-context">
-        Hotel, nights, classification, and distance remain separate journey
-        facts.
-      </p>
-    </article>
-  );
-}
-
 export default async function PackageDetailsPage({ params }: PackagePageProps) {
   const { departureId } = await params;
   const packagePreview = findPublicPackagePreview(departureId);
@@ -87,126 +123,286 @@ export default async function PackageDetailsPage({ params }: PackagePageProps) {
   if (!packagePreview) notFound();
 
   return (
-    <div className="public-page public-page-refined">
+    <div className="public-page package-page">
       <PublicHeader />
 
-      <main className="public-detail-main public-detail-main-refined">
-        <nav className="public-breadcrumbs" aria-label="Breadcrumb">
-          <Link href="/#packages">Packages</Link>
-          <span aria-hidden="true">/</span>
+      <main className="package-main" id="main-content">
+        <nav className="package-breadcrumbs" aria-label="Breadcrumb">
+          <Link href="/">Home</Link>
+          <span aria-hidden="true">›</span>
+          <Link href="/#packages">Umrah Packages</Link>
+          <span aria-hidden="true">›</span>
           <span>{packagePreview.packageName}</span>
         </nav>
 
-        <section className="public-detail-hero public-detail-hero-refined">
-          <div className="public-detail-image public-detail-image-refined">
-            <Image
-              src={packagePreview.image}
-              alt="Masjid al-Haram in Makkah"
-              fill
-              priority
-              sizes="(max-width: 980px) 100vw, 50vw"
-            />
-          </div>
-          <div className="public-detail-copy public-detail-copy-refined">
-            <span className="public-eyebrow">
-              {packagePreview.operatorName}
-            </span>
-            <h1>{packagePreview.packageName}</h1>
-            <p className="public-detail-route">
-              {packagePreview.travel.routeSummary}
-            </p>
-            <div
-              className="public-hero-fact-states"
-              aria-label="Journey confirmation states"
-            >
-              <HeroFactPill
-                label="Makkah"
-                state={packagePreview.makkah.confirmationState}
-              />
-              <HeroFactPill
-                label="Madinah"
-                state={packagePreview.madinah.confirmationState}
-              />
-              <HeroFactPill
-                label="Travel"
-                state={packagePreview.travel.confirmationState}
+        <section className="package-overview" aria-labelledby="package-title">
+          <div className="package-gallery">
+            <div className="package-gallery-primary">
+              <Image
+                src={packagePreview.image}
+                alt="Masjid al-Haram and the Kaaba in Makkah"
+                fill
+                priority
+                sizes="(max-width: 960px) 55vw, 25vw"
               />
             </div>
-            <p className="public-detail-summary">{packagePreview.summary}</p>
-            <div className="public-detail-truth-note" role="note">
-              <strong>Truth before transaction</strong>
+            <div className="package-gallery-secondary">
+              <Image
+                src="/assets/madinah-reference.svg"
+                alt="Al-Masjid an-Nabawi and the green dome in Madinah"
+                fill
+                sizes="(max-width: 960px) 45vw, 20vw"
+              />
+            </div>
+            <span className="package-gallery-status">
+              Seat status
+              <strong>Confirm with operator</strong>
+            </span>
+          </div>
+
+          <div className="package-operator-summary">
+            <p className="verified-operator">
+              <Icon name="seal-check" /> Verified operator
+            </p>
+            <h1 id="package-title">Noor International Tours &amp; Travels</h1>
+            <div className="operator-credentials" aria-label="Operator details">
               <span>
-                Commercial details stay absent until they are authoritative.
+                <Icon name="airplane-tilt" /> IATA Accredited
+              </span>
+              <span>
+                <Icon name="certificate" /> ISO 9001:2015
+              </span>
+              <span>
+                <Icon name="clock" /> 15+ Years Experience
               </span>
             </div>
-            <a className="public-detail-hero-action" href="#journey-facts">
-              Review journey facts
-            </a>
+            <StaySummary city="Makkah" stay={packagePreview.makkah} />
+            <StaySummary city="Madinah" stay={packagePreview.madinah} />
           </div>
+
+          <PaymentSummary />
         </section>
 
-        <div
-          className="public-detail-content public-detail-content-refined"
-          id="journey-facts"
-        >
-          <section
-            className="public-detail-section public-detail-section-refined"
-            aria-label="Accommodation facts"
-          >
-            <div className="public-stay-grid">
-              <StayCard city="Makkah" stay={packagePreview.makkah} />
-              <StayCard city="Madinah" stay={packagePreview.madinah} />
-            </div>
+        <div className="package-content-grid" id="journey-facts">
+          <section className="package-panel itinerary-panel">
+            <h2>Your itinerary</h2>
+            <ol className="itinerary-list">
+              {itinerary.map(([day, icon, title, copy]) => (
+                <li key={`${day}-${title}`}>
+                  <span className="itinerary-day">{day}</span>
+                  <span className="itinerary-icon">
+                    <Icon name={icon} />
+                  </span>
+                  <div>
+                    <strong>{title}</strong>
+                    <p>{copy}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
           </section>
 
-          <section className="public-detail-section public-detail-section-refined">
-            <div className="public-travel-heading">
-              <h2>Travel</h2>
-              <ConfirmationBadge
-                state={packagePreview.travel.confirmationState}
-              />
-            </div>
-            <div className="public-travel-facts">
-              <div>
-                <strong>{packagePreview.travel.routeSummary}</strong>
-                <p>{packagePreview.travel.details}</p>
+          <div className="package-feature-column">
+            <IconGrid title="Package includes" items={included} columns={4} />
+            <IconGrid
+              title="Travel kit included"
+              items={travelKit}
+              columns={5}
+            />
+            <IconGrid title="Umrah kit included" items={umrahKit} columns={5} />
+          </div>
+
+          <div className="package-status-column">
+            <section className="package-panel fact-status-panel">
+              <div className="status-tabs" aria-label="Fact status legend">
+                <span>Confirmed</span>
+                <span>Pending</span>
               </div>
-            </div>
-          </section>
-
-          <section className="public-detail-section public-detail-section-refined">
-            <div className="public-list-grid">
-              <div className="public-list-panel public-list-panel-refined included">
-                <h3>Included</h3>
+              <div className="status-columns">
                 <ul>
-                  {packagePreview.inclusions.map((item) => (
-                    <li key={item}>{item}</li>
+                  {confirmed.map((item) => (
+                    <li key={item}>
+                      <Icon name="seal-check" /> {item}
+                    </li>
+                  ))}
+                </ul>
+                <ul className="pending-list">
+                  {pending.map((item) => (
+                    <li key={item}>
+                      <Icon name="clock" /> {item}
+                    </li>
                   ))}
                 </ul>
               </div>
-              <div className="public-list-panel public-list-panel-refined excluded">
-                <h3>Not included</h3>
-                <ul>
-                  {packagePreview.exclusions.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </section>
+            </section>
 
-          <div
-            className="public-detail-legend"
-            aria-label="How NoorPath presents package facts"
-          >
-            <span className="confirmed">What’s confirmed</span>
-            <span className="pending">What’s still pending</span>
-            <span>What is not yet commercial</span>
+            <section className="package-panel cancellation-panel">
+              <h2>Cancellation summary</h2>
+              <dl>
+                <div>
+                  <dt>Operator policy</dt>
+                  <dd>Provided before booking</dd>
+                </div>
+                <div>
+                  <dt>Cancellation window</dt>
+                  <dd>Confirmed in writing</dd>
+                </div>
+                <div>
+                  <dt>Refund terms</dt>
+                  <dd>Shown before payment</dd>
+                </div>
+                <div>
+                  <dt>Need clarification?</dt>
+                  <dd>Ask human support</dd>
+                </div>
+              </dl>
+              <a href="#payment-plan">
+                View payment &amp; refund policy{" "}
+                <span aria-hidden="true">›</span>
+              </a>
+            </section>
           </div>
         </div>
       </main>
 
-      <PublicFooter />
+      <div
+        className="package-sticky-action"
+        role="region"
+        aria-label="Package actions"
+      >
+        <SummaryCell label="Journey details" value="Operator verified" />
+        <SummaryCell label="Payment" value="Confirmed first" tone="green" />
+        <SummaryCell label="Availability" value="On request" tone="gold" />
+        <a href="mailto:support@noorpath.example">
+          Request details <span aria-hidden="true">›</span>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function StaySummary({
+  city,
+  stay,
+}: {
+  city: "Makkah" | "Madinah";
+  stay: PublicPackagePreview["makkah"];
+}) {
+  return (
+    <div className="stay-summary">
+      <span>{city} Hotel</span>
+      <div>
+        <strong>{stay.hotelName}</strong>
+        <em>{stay.distanceDisclosure}</em>
+      </div>
+      <p>
+        {stay.nights} Nights <span aria-hidden="true">·</span> Quad Sharing
+      </p>
+    </div>
+  );
+}
+
+function PaymentSummary() {
+  return (
+    <aside className="payment-summary-card" aria-label="Payment summary">
+      <h2>Payment summary</h2>
+      <div className="payment-totals">
+        <SummaryCell label="Package amount" value="Pending confirmation" />
+        <SummaryCell label="Pay today" value="Nothing yet" tone="green" />
+        <SummaryCell
+          label="Remaining"
+          value="Shown before payment"
+          tone="gold"
+        />
+      </div>
+      <h3 id="payment-plan">Payment process</h3>
+      <ol className="instalment-plan">
+        <PaymentStep
+          label="Review confirmed journey"
+          note="Hotels, travel, and inclusions"
+          date="Before payment"
+        />
+        <PaymentStep
+          label="Receive operator terms"
+          note="Amount, schedule, and cancellation"
+          date="In writing"
+        />
+        <PaymentStep
+          label="Choose whether to proceed"
+          note="Human support remains available"
+          date="Your decision"
+        />
+      </ol>
+      <a href="#payment-plan">
+        View payment &amp; refund policy <span aria-hidden="true">›</span>
+      </a>
+    </aside>
+  );
+}
+
+function PaymentStep({
+  label,
+  note,
+  date,
+}: {
+  label: string;
+  note: string;
+  date: string;
+}) {
+  return (
+    <li>
+      <span className="payment-dot" aria-hidden="true" />
+      <div>
+        <strong>{label}</strong>
+        <small>{note}</small>
+      </div>
+      <time>{date}</time>
+    </li>
+  );
+}
+
+function IconGrid({
+  title,
+  items,
+  columns,
+}: {
+  title: string;
+  items: readonly (readonly [string, string])[];
+  columns: 4 | 5;
+}) {
+  return (
+    <section className="package-panel icon-grid-panel">
+      <h2>{title}</h2>
+      <ul style={{ "--icon-columns": columns } as React.CSSProperties}>
+        {items.map(([icon, label]) => (
+          <li key={label}>
+            <Icon name={icon} />
+            <span>{label}</span>
+          </li>
+        ))}
+      </ul>
+      {title !== "Package includes" ? (
+        <small>
+          Kit contents may differ based on traveller type and itinerary.
+        </small>
+      ) : null}
+    </section>
+  );
+}
+
+function SummaryCell({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: "green" | "gold";
+}) {
+  return (
+    <div className={`price-cell${tone ? ` price-cell-${tone}` : ""}`}>
+      <span>{label}</span>
+      <strong>{value}</strong>
     </div>
   );
 }
