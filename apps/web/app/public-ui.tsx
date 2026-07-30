@@ -88,9 +88,7 @@ export function PublicHeader({ mode = "detail" }: { mode?: HeaderMode }) {
 
       <a
         className="public-mobile-contact"
-        href={
-          mode === "landing" ? "/operator" : "tel:+0000000000"
-        }
+        href={mode === "landing" ? "/operator" : "tel:+0000000000"}
         aria-label={
           mode === "landing" ? "Open operator portal" : "Request a callback"
         }
