@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 type ConfirmationState = "pending" | "confirmed";
@@ -141,12 +142,12 @@ export function validateDraft(form: DraftForm): FieldErrors {
 
 function Brand() {
   return (
-    <a className="brand" href="/" aria-label="NoorPath home">
+    <Link className="brand" href="/" aria-label="NoorPath home">
       <span className="brand-mark" aria-hidden="true">
         ◇
       </span>
       <span>NoorPath</span>
-    </a>
+    </Link>
   );
 }
 
@@ -649,9 +650,9 @@ export default function DepartureComposer({
           <h1>{title}</h1>
           <p>{detail}</p>
           {state === "not-found" && (
-            <a className="primary-button" href="/operator/departures/new">
+            <Link className="primary-button" href="/operator/departures/new">
               Start a new draft
-            </a>
+            </Link>
           )}
           {state === "load-error" && (
             <button
@@ -672,10 +673,13 @@ export default function DepartureComposer({
       <aside className="admin-sidebar composer-sidebar">
         <Brand />
         <nav aria-label="Operator navigation">
-          <a className="composer-nav-active" href="/operator/departures/new">
+          <Link
+            className="composer-nav-active"
+            href="/operator/departures/new"
+          >
             <Icon>◈</Icon>
             Package drafts
-          </a>
+          </Link>
         </nav>
         <div className="composer-access-card">
           <span className="composer-access-badge">Verified scope</span>
@@ -931,9 +935,9 @@ export default function DepartureComposer({
         </span>
         <div>
           {departureId && (
-            <a className="secondary-button" href="/operator/departures/new">
+            <Link className="secondary-button" href="/operator/departures/new">
               New draft
-            </a>
+            </Link>
           )}
           <button
             className="primary-button"
