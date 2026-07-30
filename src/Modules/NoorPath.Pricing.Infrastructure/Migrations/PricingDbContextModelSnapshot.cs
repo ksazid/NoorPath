@@ -130,6 +130,76 @@ namespace NoorPath.Pricing.Infrastructure.Migrations
                     b.ToTable("pricing_audits", "pricing");
                 });
 
+            modelBuilder.Entity("NoorPath.Pricing.Infrastructure.PriceVersionRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<Guid>("DepartureId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("OperatorId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<Guid>("PricePlanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("PublishedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PublishedByAccountId")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<int>("SourcePlanVersion")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DepartureId")
+                        .IsUnique();
+
+                    b.HasIndex("PricePlanId", "SourcePlanVersion")
+                        .IsUnique();
+
+                    b.ToTable("price_versions", "pricing");
+                });
+
+            modelBuilder.Entity("NoorPath.Pricing.Infrastructure.PublishedOccupancyPriceRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("Occupancy")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<Guid>("PriceVersionId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PriceVersionId", "Occupancy")
+                        .IsUnique();
+
+                    b.ToTable("published_occupancy_prices", "pricing");
+                });
+
             modelBuilder.Entity("NoorPath.Pricing.Infrastructure.OccupancyPriceRecord", b =>
                 {
                     b.HasOne("NoorPath.Pricing.Infrastructure.PricePlanRecord", null)
@@ -145,6 +215,24 @@ namespace NoorPath.Pricing.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("PricePlanId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NoorPath.Pricing.Infrastructure.PriceVersionRecord", b =>
+                {
+                    b.HasOne("NoorPath.Pricing.Infrastructure.PricePlanRecord", null)
+                        .WithMany()
+                        .HasForeignKey("PricePlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NoorPath.Pricing.Infrastructure.PublishedOccupancyPriceRecord", b =>
+                {
+                    b.HasOne("NoorPath.Pricing.Infrastructure.PriceVersionRecord", null)
+                        .WithMany()
+                        .HasForeignKey("PriceVersionId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 #pragma warning restore 612, 618
