@@ -437,7 +437,8 @@ export default function DepartureComposer({
   const [form, setForm] = useState<DraftForm>(createEmptyDraft);
   const [departureId, setDepartureId] = useState(initialDepartureId ?? "");
   const [version, setVersion] = useState<number | null>(null);
-  const [draftStatus, setDraftStatus] = useState<DraftResponse["status"]>("draft");
+  const [draftStatus, setDraftStatus] =
+    useState<DraftResponse["status"]>("draft");
   const [operator, setOperator] = useState<OperatorAccess | null>(null);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [problem, setProblem] = useState("");
