@@ -30,7 +30,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   vs02_product_gate_patch:
-    name: VS-02 product gate correction
+    name: VS-02 save state correction
     if: github.event_name == 'pull_request' && github.head_ref == 'vs02/package-departure-authoring'
     runs-on: ubuntu-latest
     permissions:
@@ -44,34 +44,41 @@ jobs:
           node-version-file: .node-version
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
-      - name: Correct authoring state controls
+      - name: Apply asserted correction
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
           path = Path('apps/web/app/operator/departures/DepartureComposer.tsx')
           text = path.read_text()
 
-          fieldset_old = '''            disabled={
-              state === "saving" ||
-              state === "conflict" ||
-              Boolean(departureId && !isDirty)
-            }'''
-          fieldset_new = '            disabled={state === "saving" || state === "conflict"}'
-          if fieldset_old in text:
-              text = text.replace(fieldset_old, fieldset_new, 1)
+          fieldset_pattern = re.compile(
+              r'(className="composer-form-fieldset"\s+)disabled=\{\s*state === "saving" \|\|\s*state === "conflict" \|\|\s*Boolean\(departureId && !isDirty\)\s*\}'
+          )
+          text, fieldset_count = fieldset_pattern.subn(
+              r'\1disabled={state === "saving" || state === "conflict"}',
+              text,
+              count=1,
+          )
 
-          button_old = '''            disabled={state === "saving" || state === "conflict"}
-            onClick={() => void save()}'''
-          button_new = '''            disabled={
-              state === "saving" ||
-              state === "conflict" ||
-              Boolean(departureId && !isDirty)
-            }
-            onClick={() => void save()}'''
-          if button_old in text:
-              text = text.replace(button_old, button_new, 1)
+          button_pattern = re.compile(
+              r'(className="primary-button"\s+type="button"\s+)disabled=\{state === "saving" \|\| state === "conflict"\}(\s+onClick=\{\(\) => void save\(\)\})'
+          )
+          button_replacement = (
+              r'\1disabled={\n'
+              r'              state === "saving" ||\n'
+              r'              state === "conflict" ||\n'
+              r'              Boolean(departureId && !isDirty)\n'
+              r'            }\2'
+          )
+          text, button_count = button_pattern.subn(button_replacement, text, count=1)
+
+          if fieldset_count != 1 or button_count != 1:
+              raise SystemExit(
+                  f'Expected exactly one fieldset and one save-button correction; got fieldset={fieldset_count}, button={button_count}'
+              )
 
           path.write_text(text)
           PY
@@ -81,12 +88,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet -- apps/web/app/operator/departures/DepartureComposer.tsx; then
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add apps/web/app/operator/departures/DepartureComposer.tsx
+          git diff --cached --quiet && { echo "Correction produced no diff"; exit 1; }
           git commit -m "fix: correct VS-02 save state controls"
           git push origin HEAD:${{ github.head_ref }}
 
