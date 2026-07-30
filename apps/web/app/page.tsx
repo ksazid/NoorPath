@@ -125,7 +125,10 @@ export default function HomePage() {
                 </button>
               </form>
 
-              <div className="landing-trust-row" aria-label="Why choose NoorPath">
+              <div
+                className="landing-trust-row"
+                aria-label="Why choose NoorPath"
+              >
                 {trustPoints.map((item) => (
                   <div key={item.title}>
                     <span className="trust-symbol" aria-hidden="true">

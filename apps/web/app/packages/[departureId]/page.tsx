@@ -14,13 +14,43 @@ type PackagePageProps = {
 };
 
 const itinerary = [
-  ["Day 1", "mosque", "Arrival in Jeddah", "Airport assistance & transfer to Makkah hotel. Check-in."],
-  ["Day 1–5", "building", "Makkah Stay", "5 nights in Makkah. Perform Umrah, worship & leisure."],
+  [
+    "Day 1",
+    "mosque",
+    "Arrival in Jeddah",
+    "Airport assistance & transfer to Makkah hotel. Check-in.",
+  ],
+  [
+    "Day 1–5",
+    "building",
+    "Makkah Stay",
+    "5 nights in Makkah. Perform Umrah, worship & leisure.",
+  ],
   ["Day 6", "bus", "Guided Ziyarah", "Makkah Ziyarah with certified guide."],
-  ["Day 7", "users-three", "Umrah Orientation", "Umrah guidance session & rituals briefing."],
-  ["Day 8", "train", "Makkah to Madinah", "Check-out & high-speed train transfer to Madinah."],
-  ["Day 8–12", "mosque", "Madinah Stay", "5 nights in Madinah. Worship & leisure."],
-  ["Day 13", "airplane-tilt", "Departure", "Check-out & transfer to airport for your return flight."],
+  [
+    "Day 7",
+    "users-three",
+    "Umrah Orientation",
+    "Umrah guidance session & rituals briefing.",
+  ],
+  [
+    "Day 8",
+    "train",
+    "Makkah to Madinah",
+    "Check-out & high-speed train transfer to Madinah.",
+  ],
+  [
+    "Day 8–12",
+    "mosque",
+    "Madinah Stay",
+    "5 nights in Madinah. Worship & leisure.",
+  ],
+  [
+    "Day 13",
+    "airplane-tilt",
+    "Departure",
+    "Check-out & transfer to airport for your return flight.",
+  ],
 ] as const;
 
 const included = [
@@ -193,7 +223,11 @@ export default async function PackageDetailsPage({ params }: PackagePageProps) {
 
           <div className="package-feature-column">
             <IconGrid title="Package includes" items={included} columns={4} />
-            <IconGrid title="Travel kit included" items={travelKit} columns={5} />
+            <IconGrid
+              title="Travel kit included"
+              items={travelKit}
+              columns={5}
+            />
             <IconGrid title="Umrah kit included" items={umrahKit} columns={5} />
           </div>
 
@@ -309,7 +343,11 @@ function PaymentSummary({
       <h2>Payment summary</h2>
       <div className="payment-totals">
         <PriceCell label="Total package" value={price} />
-        <PriceCell label={`Pay ${formatPrice(dueToday)} today`} value={dueToday} tone="green" />
+        <PriceCell
+          label={`Pay ${formatPrice(dueToday)} today`}
+          value={dueToday}
+          tone="green"
+        />
         <PriceCell label="Remaining" value={remaining} tone="gold" />
       </div>
       <h3 id="payment-plan">Instalment plan</h3>
@@ -386,7 +424,9 @@ function IconGrid({
         ))}
       </ul>
       {title !== "Package includes" ? (
-        <small>Kit contents may differ based on traveller type and itinerary.</small>
+        <small>
+          Kit contents may differ based on traveller type and itinerary.
+        </small>
       ) : null}
     </section>
   );

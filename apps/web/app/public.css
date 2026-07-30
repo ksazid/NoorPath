@@ -583,7 +583,11 @@
   padding: 30px 56px 45px;
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(255, 252, 246, 0.82), rgba(255, 252, 246, 0.12)),
+    linear-gradient(
+      180deg,
+      rgba(255, 252, 246, 0.82),
+      rgba(255, 252, 246, 0.12)
+    ),
     url("/assets/noorpath-desert-strip.webp") center 72% / cover no-repeat;
 }
 
