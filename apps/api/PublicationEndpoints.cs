@@ -127,7 +127,7 @@ public static class PublicationEndpoints
         packageVersion.UpdatedAtUtc = now;
         catalogue.DraftAudits.Add(CreateAudit(
             departure.Id,
-            authorization.Principal.AccountId.Value,
+            authorization.Principal!.AccountId.Value,
             http.TraceIdentifier,
             "submitted_for_review",
             departure.Version,
@@ -145,8 +145,8 @@ public static class PublicationEndpoints
         log.LogInformation(
             "Publication review outcome={Outcome} actorAccountId={ActorAccountId} operatorId={OperatorId} departureId={DepartureId} departureVersion={DepartureVersion} pricingVersion={PricingVersion} inventoryVersion={InventoryVersion} correlationId={CorrelationId}",
             "submitted",
-            authorization.Principal.AccountId,
-            authorization.Access.OperatorId,
+            authorization.Principal!.AccountId,
+            authorization.Access!.OperatorId,
             departure.Id,
             departure.Version,
             review.PricingVersion,
@@ -343,7 +343,7 @@ public static class PublicationEndpoints
 
         catalogue.DraftAudits.Add(CreateAudit(
             departure.Id,
-            authorization.Principal.AccountId.Value,
+            authorization.Principal!.AccountId.Value,
             http.TraceIdentifier,
             "published",
             departure.Version,
@@ -376,7 +376,7 @@ public static class PublicationEndpoints
         log.LogInformation(
             "Publication review outcome={Outcome} actorAccountId={ActorAccountId} operatorId={OperatorId} departureId={DepartureId} departureVersion={DepartureVersion} pricingVersion={PricingVersion} inventoryVersion={InventoryVersion} correlationId={CorrelationId}",
             "published",
-            authorization.Principal.AccountId,
+            authorization.Principal!.AccountId,
             departure.OperatorId,
             departure.Id,
             departure.Version,
