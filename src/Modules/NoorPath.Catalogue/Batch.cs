@@ -8,7 +8,9 @@ public enum FactConfirmationState
 
 public enum CatalogueDraftStatus
 {
-    Draft
+    Draft,
+    ReadyForReview,
+    Published
 }
 
 public enum PackageContentKind
