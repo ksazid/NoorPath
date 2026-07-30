@@ -3,98 +3,171 @@ import Link from "next/link";
 import { publicPackagePreviews } from "./public-package-preview";
 import { PublicFooter, PublicHeader } from "./public-ui";
 
+const trustPoints = [
+  {
+    title: "Verified operators",
+    copy: "Operator accountability stays visible.",
+  },
+  {
+    title: "24/7 support",
+    copy: "Human help before, during, and after.",
+  },
+  {
+    title: "Transparent details",
+    copy: "Pending facts are clearly identified.",
+  },
+] as const;
+
+const servicePoints = [
+  {
+    title: "Verified operators",
+    copy: "Journey facts remain tied to accountable operators.",
+  },
+  {
+    title: "Quality stays",
+    copy: "Makkah and Madinah details remain separate and clear.",
+  },
+  {
+    title: "Smooth journey",
+    copy: "Travel, transfers, and inclusions are easy to review.",
+  },
+  {
+    title: "Dedicated support",
+    copy: "A real person is available when you need clarity.",
+  },
+] as const;
+
 export default function HomePage() {
   return (
-    <div className="public-page">
-      <PublicHeader />
+    <div className="public-page landing-page">
+      <PublicHeader mode="landing" />
 
-      <main>
-        <section className="public-hero">
+      <main id="main-content">
+        <section className="landing-hero" aria-labelledby="landing-title">
           <Image
-            className="public-hero-art"
-            src="/assets/kaaba-morning.png"
-            alt="Masjid al-Haram in Makkah in the morning light"
+            className="landing-hero-art"
+            src="/assets/kaaba-reference.svg"
+            alt="Masjid al-Haram and the Kaaba in Makkah"
             fill
             priority
             sizes="100vw"
           />
-          <div className="public-hero-content">
-            <span className="public-eyebrow">Journeys you can understand</span>
-            <h1>Your Umrah, thoughtfully planned.</h1>
-            <p className="public-hero-copy">
-              Explore calm, factual journey previews with Makkah, Madinah,
-              travel, and inclusion details kept explicit instead of hidden
-              behind sales language.
-            </p>
-            <div className="public-preview-note" role="note">
-              <strong>Preview catalogue</strong>
-              <span>
-                These example journeys let you review the NoorPath customer
-                experience while the V2 public catalogue API is built. No
-                booking, price, seat, or availability claim is being made here.
-              </span>
+          <div className="landing-hero-wash" aria-hidden="true" />
+          <div className="landing-hero-inner">
+            <div className="landing-hero-copy">
+              <h1 id="landing-title">
+                Your Umrah,
+                <br />
+                Our Responsibility
+              </h1>
+              <p>
+                Trusted journeys, accountable operators, and peaceful support
+                from departure to return.
+              </p>
             </div>
-            <div
-              className="public-trust-strip"
-              aria-label="NoorPath trust principles"
-            >
-              <div className="public-trust-item">
-                <strong>Operator accountability</strong>
-                <span>Journey facts stay tied to the operator.</span>
-              </div>
-              <div className="public-trust-item">
-                <strong>Facts stay explicit</strong>
-                <span>Pending details are shown as pending.</span>
-              </div>
-              <div className="public-trust-item">
-                <strong>Human support</strong>
-                <span>Help remains available around the journey.</span>
-              </div>
+
+            <form className="journey-search" action="#packages">
+              <label>
+                <span>Departure city</span>
+                <strong>Lucknow, India</strong>
+                <select aria-label="Departure city" defaultValue="lucknow">
+                  <option value="lucknow">Lucknow, India</option>
+                  <option value="delhi">Delhi, India</option>
+                  <option value="mumbai">Mumbai, India</option>
+                </select>
+              </label>
+              <label>
+                <span>Departure</span>
+                <strong>September 2026</strong>
+                <select aria-label="Departure month" defaultValue="september">
+                  <option value="september">September 2026</option>
+                  <option value="october">October 2026</option>
+                  <option value="november">November 2026</option>
+                </select>
+              </label>
+              <label>
+                <span>Travellers</span>
+                <strong>2 adults</strong>
+                <select aria-label="Number of travellers" defaultValue="2">
+                  <option value="1">1 adult</option>
+                  <option value="2">2 adults</option>
+                  <option value="3">3 adults</option>
+                  <option value="4">4 adults</option>
+                </select>
+              </label>
+              <button type="submit" aria-label="Find Umrah packages">
+                <SearchIcon />
+                <span>Find packages</span>
+              </button>
+            </form>
+
+            <div className="landing-trust-row" aria-label="Why choose NoorPath">
+              {trustPoints.map((item) => (
+                <div key={item.title}>
+                  <span className="trust-symbol" aria-hidden="true">
+                    <CheckIcon />
+                  </span>
+                  <span>
+                    <strong>{item.title}</strong>
+                    <small>{item.copy}</small>
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        <section className="public-catalogue" id="packages">
-          <div className="public-section-heading">
+        <section className="landing-packages" id="packages">
+          <div className="landing-section-heading">
             <div>
-              <span className="public-eyebrow">Package previews</span>
-              <h2>Find a journey that feels clear</h2>
-              <p>
-                Open any package to review the stay, route, inclusions,
-                exclusions, and confirmation state of important journey facts.
-              </p>
+              <h2>Handpicked Umrah Packages</h2>
+              <p>Carefully selected for a clear and meaningful journey.</p>
             </div>
-            <p className="public-catalogue-note">
-              Commercial details remain intentionally absent until their V2
-              slices own them.
-            </p>
+            <a href="#packages">
+              View all packages <span aria-hidden="true">→</span>
+            </a>
           </div>
 
-          <div className="public-package-grid">
-            {publicPackagePreviews.map((packagePreview) => (
+          <div className="landing-package-grid">
+            {publicPackagePreviews.map((packagePreview, index) => (
               <article
-                className="public-package-card"
+                className="landing-package-card"
                 key={packagePreview.departureId}
               >
-                <div className="public-package-image">
+                <div className="landing-package-image">
                   <Image
                     src={packagePreview.image}
                     alt="Masjid al-Haram in Makkah"
                     fill
                     sizes="(max-width: 760px) 100vw, (max-width: 980px) 50vw, 33vw"
                   />
-                  <span className="public-card-state">Journey preview</span>
+                  <span className="package-tier">
+                    {index === 0
+                      ? "Most popular"
+                      : index === 1
+                        ? "Best value"
+                        : "Premium"}
+                  </span>
                 </div>
-                <div className="public-package-body">
-                  <p className="public-operator-label">
-                    Operator · {packagePreview.operatorName}
+                <div className="landing-package-body">
+                  <p className="verified-operator">
+                    <CheckIcon /> Verified operator
                   </p>
                   <h3>{packagePreview.packageName}</h3>
-                  <p className="public-card-route">
-                    {packagePreview.durationNights} nights ·{" "}
-                    {packagePreview.travel.routeSummary}
+                  <p className="package-stay">
+                    Makkah {packagePreview.makkah.nights} nights
+                    <span aria-hidden="true">·</span>
+                    Madinah {packagePreview.madinah.nights} nights
                   </p>
-                  <dl className="public-card-facts">
+                  <div
+                    className="package-inclusions"
+                    aria-label="Inclusion highlights"
+                  >
+                    {packagePreview.inclusions.slice(0, 3).map((inclusion) => (
+                      <span key={inclusion}>{inclusion}</span>
+                    ))}
+                  </div>
+                  <dl className="package-departure">
                     <div>
                       <dt>Departure</dt>
                       <dd>{packagePreview.departureDate}</dd>
@@ -104,67 +177,57 @@ export default function HomePage() {
                       <dd>{packagePreview.origin}</dd>
                     </div>
                   </dl>
-                  <div
-                    className="public-card-inclusions"
-                    aria-label="Inclusion highlights"
-                  >
-                    {packagePreview.inclusions.slice(0, 3).map((inclusion) => (
-                      <span key={inclusion}>{inclusion}</span>
-                    ))}
+                  <div className="package-card-footer">
+                    <span>
+                      <strong>{packagePreview.durationNights} nights</strong>
+                      <small>journey preview</small>
+                    </span>
+                    <Link href={`/packages/${packagePreview.departureId}`}>
+                      View package <span aria-hidden="true">→</span>
+                    </Link>
                   </div>
-                  <Link
-                    className="public-card-action"
-                    href={`/packages/${packagePreview.departureId}`}
-                  >
-                    View package details
-                  </Link>
                 </div>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="public-trust-section" id="trust">
-          <div className="public-trust-inner">
-            <div>
-              <span className="public-eyebrow">Trust through clarity</span>
-              <h2>NoorPath should make uncertainty visible.</h2>
-              <p>
-                A pending hotel, route, or travel fact should look pending.
-                Confirmed information should be easy to find. The customer
-                experience should never manufacture urgency or imply certainty
-                that the operator has not supplied.
-              </p>
+        <section
+          className="landing-service-strip"
+          aria-label="NoorPath services"
+        >
+          {servicePoints.map((item) => (
+            <div key={item.title}>
+              <span className="service-symbol" aria-hidden="true">
+                <CheckIcon />
+              </span>
+              <span>
+                <strong>{item.title}</strong>
+                <small>{item.copy}</small>
+              </span>
             </div>
-            <div className="public-trust-list">
-              <article>
-                <h3>Makkah and Madinah stay facts stay independent</h3>
-                <p>
-                  Hotel, classification, distance disclosure, nights, and
-                  confirmation state are shown separately for each city.
-                </p>
-              </article>
-              <article>
-                <h3>Travel facts have their own confirmation state</h3>
-                <p>
-                  Route information can be useful before every flight fact is
-                  final, without presenting planning information as confirmed
-                  travel.
-                </p>
-              </article>
-              <article>
-                <h3>Commercial pressure is deliberately absent</h3>
-                <p>
-                  Pricing, inventory, scarcity, booking, and payment belong to
-                  later slices and are not simulated in this public preview.
-                </p>
-              </article>
-            </div>
-          </div>
+          ))}
         </section>
       </main>
 
       <PublicFooter />
     </div>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m16 16 4 4" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24">
+      <path d="m6.5 12 3.2 3.2 7.8-7.8" />
+    </svg>
   );
 }
