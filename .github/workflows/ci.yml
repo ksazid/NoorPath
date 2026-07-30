@@ -62,6 +62,9 @@ jobs:
       NOORPATH_TEST_DB: Host=localhost;Port=5432;Database=noorpath_test;Username=noorpath;Password=ci-local-only-password
       NOORPATH_CATALOGUE_TEST_DB: Host=localhost;Port=5432;Database=noorpath_catalogue_test;Username=noorpath;Password=ci-local-only-password
       NOORPATH_OPERATORS_TEST_DB: Host=localhost;Port=5432;Database=noorpath_operators_test;Username=noorpath;Password=ci-local-only-password
+      NOORPATH_PRICING_TEST_DB: Host=localhost;Port=5432;Database=noorpath_pricing_test;Username=noorpath;Password=ci-local-only-password
+      NOORPATH_INVENTORY_TEST_DB: Host=localhost;Port=5432;Database=noorpath_inventory_test;Username=noorpath;Password=ci-local-only-password
+      NOORPATH_COMMERCIAL_TEST_DB: Host=localhost;Port=5432;Database=noorpath_commercial_test;Username=noorpath;Password=ci-local-only-password
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v5
@@ -83,11 +86,18 @@ jobs:
           test -n "$postgres_container"
           docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_catalogue_test;'
           docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_operators_test;'
+          docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_pricing_test;'
+          docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_inventory_test;'
+          docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_commercial_test;'
 
       - name: Validate Catalogue migration state
         run: ./scripts/validate-catalogue-migrations.sh
       - name: Validate Operators migration state
         run: ./scripts/validate-operators-migrations.sh
+      - name: Validate Pricing migration state
+        run: bash ./scripts/validate-pricing-migrations.sh
+      - name: Validate Inventory migration state
+        run: bash ./scripts/validate-inventory-migrations.sh
 
       - run: dotnet test NoorPath.slnx --configuration Release --no-build
 
