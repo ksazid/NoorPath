@@ -23,16 +23,16 @@ public sealed class PricingDraftTests
     }
 
     [Theory]
-    [InlineData("IN", 100m)]
-    [InlineData("1NR", 100m)]
+    [InlineData("IN", 100)]
+    [InlineData("1NR", 100)]
     [InlineData("INR", 0)]
     [InlineData("INR", -1)]
     [InlineData("INR", 10.001)]
-    public void Rejects_invalid_currency_or_amount(string currency, decimal amount)
+    public void Rejects_invalid_currency_or_amount(string currency, double amount)
     {
         Assert.Throws<PricingDraftValidationException>(() => new PricingDraft(new(
             currency,
-            [new(PricingOccupancy.Double, amount)])));
+            [new(PricingOccupancy.Double, (decimal)amount)])));
     }
 
     [Fact]
