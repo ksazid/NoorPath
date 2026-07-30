@@ -1,4 +1,5 @@
 # Temporary VS-03 lint repair job; restore verify-only CI after its bot commit.
+# Triggered after the preceding validation run completed.
 name: CI
 
 on:
