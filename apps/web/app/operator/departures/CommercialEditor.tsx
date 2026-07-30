@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 type OccupancyKey = "double" | "triple" | "quad";
-type CapabilityState =
-  "loading" | "ready" | "saving" | "saved" | "conflict" | "error";
+type CapabilityState = "ready" | "saving" | "saved" | "conflict" | "error";
 type LoadState =
-  "loading" | "ready" | "unauthenticated" | "forbidden" | "not-found" | "error";
+  | "loading"
+  | "ready"
+  | "unauthenticated"
+  | "forbidden"
+  | "not-found"
+  | "error";
 type OccupancyValues = Record<OccupancyKey, string>;
 type FieldErrors = Record<string, string>;
 
@@ -37,6 +41,10 @@ type ProblemDetails = {
   errors?: Record<string, string[]>;
 };
 
+type CommercialLoadResult =
+  | { state: "ready"; body: CommercialResponse }
+  | { state: Exclude<LoadState, "loading" | "ready"> };
+
 const occupancies: ReadonlyArray<{
   key: OccupancyKey;
   label: string;
@@ -62,18 +70,21 @@ export function validatePricing(
   values: OccupancyValues,
 ): FieldErrors {
   const errors: FieldErrors = {};
-  if (!/^[A-Za-z]{3}$/.test(currency.trim()))
+  if (!/^[A-Za-z]{3}$/.test(currency.trim())) {
     errors.currency = "Use a three-letter currency code such as INR.";
+  }
 
   const configured = occupancies.filter(({ key }) => values[key].trim() !== "");
-  if (configured.length === 0)
+  if (configured.length === 0) {
     errors.pricing = "Add a price for at least one supported occupancy.";
+  }
 
   configured.forEach(({ key, label }) => {
     const raw = values[key].trim();
-    if (!/^\d+(?:\.\d{1,2})?$/.test(raw) || Number(raw) <= 0)
+    if (!/^\d+(?:\.\d{1,2})?$/.test(raw) || Number(raw) <= 0) {
       errors[`price.${key}`] =
         `${label} price must be greater than zero with at most two decimal places.`;
+    }
   });
 
   return errors;
@@ -86,21 +97,24 @@ export function validateInventory(
   const errors: FieldErrors = {};
   const configured = occupancies.filter(({ key }) => values[key].trim() !== "");
 
-  if (configured.length === 0)
+  if (configured.length === 0) {
     errors.inventory = "Add capacity for at least one supported occupancy.";
+  }
 
   configured.forEach(({ key, label }) => {
     const raw = values[key].trim();
-    if (!/^\d+$/.test(raw))
+    if (!/^\d+$/.test(raw)) {
       errors[`capacity.${key}`] =
         `${label} capacity must be a whole number of zero or more.`;
+    }
   });
 
   const cleanReason = reason.trim();
-  if (!cleanReason)
+  if (!cleanReason) {
     errors.reason = "Explain why this capacity is being set or changed.";
-  else if (cleanReason.length > 240)
+  } else if (cleanReason.length > 240) {
     errors.reason = "Adjustment reason must be 240 characters or fewer.";
+  }
 
   return errors;
 }
@@ -138,6 +152,42 @@ function apiErrors(problem: ProblemDetails): FieldErrors {
       values[0] ?? "Review this field.",
     ]),
   );
+}
+
+async function fetchCommercial(departureId: string): Promise<CommercialLoadResult> {
+  try {
+    const response = await fetch(
+      `/api/v1/operator/departures/${departureId}/commercial`,
+      {
+        cache: "no-store",
+        credentials: "include",
+        headers: requestHeaders(),
+      },
+    );
+
+    if (response.status === 401) return { state: "unauthenticated" };
+    if (response.status === 403) return { state: "forbidden" };
+    if (response.status === 404) return { state: "not-found" };
+    if (!response.ok) return { state: "error" };
+
+    return {
+      state: "ready",
+      body: (await response.json()) as CommercialResponse,
+    };
+  } catch {
+    return { state: "error" };
+  }
+}
+
+function capabilityButtonLabel(
+  state: CapabilityState,
+  dirty: boolean,
+  version: number,
+  capability: "Pricing" | "Inventory",
+) {
+  if (state === "saving") return `Saving ${capability.toLowerCase()}…`;
+  if (dirty) return `Save ${capability.toLowerCase()}`;
+  return version > 0 ? `${capability} saved` : `${capability} not configured`;
 }
 
 function CapabilityNotice({
@@ -219,16 +269,42 @@ export default function CommercialEditor({
   );
   useEffect(() => onBusyChange(busy), [busy, onBusyChange]);
 
-  const savedReadiness = useMemo(
-    () =>
-      Object.fromEntries(
-        occupancies.map(({ key }) => [
-          key,
-          savedPrices[key] !== "" && Number(savedCapacities[key]) > 0,
-        ]),
-      ) as Record<OccupancyKey, boolean>,
-    [savedCapacities, savedPrices],
-  );
+  useEffect(() => {
+    if (!departureId) return;
+
+    let active = true;
+    void fetchCommercial(departureId).then((result) => {
+      if (!active) return;
+
+      if (result.state !== "ready") {
+        setLoadState(result.state);
+        return;
+      }
+
+      const pricingValues = valuesFromPricing(result.body.pricing);
+      const inventoryValues = valuesFromInventory(result.body.inventory);
+      setPricingVersion(result.body.pricing?.version ?? 0);
+      setCurrency(result.body.pricing?.currency ?? "");
+      setSavedCurrency(result.body.pricing?.currency ?? "");
+      setPrices(pricingValues);
+      setSavedPrices(pricingValues);
+      setInventoryVersion(result.body.inventory?.version ?? 0);
+      setCapacities(inventoryValues);
+      setSavedCapacities(inventoryValues);
+      setAdjustmentReason("");
+      setPricingErrors({});
+      setInventoryErrors({});
+      setPricingProblem("");
+      setInventoryProblem("");
+      setPricingState("ready");
+      setInventoryState("ready");
+      setLoadState("ready");
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [departureId]);
 
   const applyPricing = (pricing: PricingResponse | null) => {
     const next = valuesFromPricing(pricing);
@@ -253,30 +329,12 @@ export default function CommercialEditor({
     setInventoryState("ready");
   };
 
-  const load = async (scope: "all" | "pricing" | "inventory" = "all") => {
+  const reload = async (scope: "all" | "pricing" | "inventory") => {
     if (!departureId) return;
     if (scope === "all") setLoadState("loading");
 
-    try {
-      const response = await fetch(
-        `/api/v1/operator/departures/${departureId}/commercial`,
-        {
-          cache: "no-store",
-          credentials: "include",
-          headers: requestHeaders(),
-        },
-      );
-      if (response.status === 401) return setLoadState("unauthenticated");
-      if (response.status === 403) return setLoadState("forbidden");
-      if (response.status === 404) return setLoadState("not-found");
-      if (!response.ok) throw new Error("commercial configuration unavailable");
-
-      const body = (await response.json()) as CommercialResponse;
-      if (scope === "all" || scope === "pricing") applyPricing(body.pricing);
-      if (scope === "all" || scope === "inventory")
-        applyInventory(body.inventory);
-      setLoadState("ready");
-    } catch {
+    const result = await fetchCommercial(departureId);
+    if (result.state !== "ready") {
       if (scope === "pricing") {
         setPricingProblem(
           "We couldn’t reload pricing. Your inventory edits are untouched.",
@@ -288,23 +346,17 @@ export default function CommercialEditor({
         );
         setInventoryState("error");
       } else {
-        setLoadState("error");
+        setLoadState(result.state);
       }
-    }
-  };
-
-  useEffect(() => {
-    if (!departureId) {
-      setLoadState("ready");
-      onDirtyChange(false);
-      onBusyChange(false);
       return;
     }
 
-    void load();
-    // load is intentionally tied to the saved departure identity only.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [departureId]);
+    if (scope === "all" || scope === "pricing") applyPricing(result.body.pricing);
+    if (scope === "all" || scope === "inventory") {
+      applyInventory(result.body.inventory);
+    }
+    setLoadState("ready");
+  };
 
   const changePrice = (key: OccupancyKey, value: string) => {
     setPrices((current) => ({ ...current, [key]: value }));
@@ -357,6 +409,23 @@ export default function CommercialEditor({
           }),
         },
       );
+
+      if (response.status === 401) {
+        setPricingState("ready");
+        setLoadState("unauthenticated");
+        return;
+      }
+      if (response.status === 403) {
+        setPricingState("ready");
+        setLoadState("forbidden");
+        return;
+      }
+      if (response.status === 404) {
+        setPricingState("ready");
+        setLoadState("not-found");
+        return;
+      }
+
       const body = (await response.json()) as PricingResponse & ProblemDetails;
       if (response.status === 409) {
         setPricingProblem(body.detail ?? "Pricing changed in another session.");
@@ -368,8 +437,9 @@ export default function CommercialEditor({
         setPricingState("ready");
         return;
       }
-      if (!response.ok)
+      if (!response.ok) {
         throw new Error(body.detail ?? body.title ?? "pricing save failed");
+      }
 
       const next = valuesFromPricing(body);
       setPricingVersion(body.version);
@@ -413,12 +483,26 @@ export default function CommercialEditor({
           }),
         },
       );
-      const body = (await response.json()) as InventoryResponse &
-        ProblemDetails;
+
+      if (response.status === 401) {
+        setInventoryState("ready");
+        setLoadState("unauthenticated");
+        return;
+      }
+      if (response.status === 403) {
+        setInventoryState("ready");
+        setLoadState("forbidden");
+        return;
+      }
+      if (response.status === 404) {
+        setInventoryState("ready");
+        setLoadState("not-found");
+        return;
+      }
+
+      const body = (await response.json()) as InventoryResponse & ProblemDetails;
       if (response.status === 409) {
-        setInventoryProblem(
-          body.detail ?? "Inventory changed in another session.",
-        );
+        setInventoryProblem(body.detail ?? "Inventory changed in another session.");
         setInventoryState("conflict");
         return;
       }
@@ -427,8 +511,9 @@ export default function CommercialEditor({
         setInventoryState("ready");
         return;
       }
-      if (!response.ok)
+      if (!response.ok) {
         throw new Error(body.detail ?? body.title ?? "inventory save failed");
+      }
 
       const next = valuesFromInventory(body);
       setInventoryVersion(body.version);
@@ -443,6 +528,9 @@ export default function CommercialEditor({
       setInventoryState("error");
     }
   };
+
+  const savedReady = (key: OccupancyKey) =>
+    savedPrices[key] !== "" && Number(savedCapacities[key]) > 0;
 
   if (!departureId) {
     return (
@@ -491,7 +579,7 @@ export default function CommercialEditor({
         "Check the connection and retry without changing the journey draft.",
       ],
     };
-    const [title, detail] = copy[loadState as Exclude<LoadState, "ready">];
+    const [title, detail] = copy[loadState];
 
     return (
       <section
@@ -510,7 +598,7 @@ export default function CommercialEditor({
           <button
             className="secondary-button"
             type="button"
-            onClick={() => void load()}
+            onClick={() => void reload("all")}
           >
             Retry commercial load
           </button>
@@ -552,7 +640,7 @@ export default function CommercialEditor({
             state={pricingState}
             problem={pricingProblem}
             savedCopy={`Pricing version ${pricingVersion} saved`}
-            onReload={() => void load("pricing")}
+            onReload={() => void reload("pricing")}
           />
 
           {Object.keys(pricingErrors).length > 0 && (
@@ -585,8 +673,9 @@ export default function CommercialEditor({
                     delete next.currency;
                     return next;
                   });
-                  if (["saved", "error"].includes(pricingState))
+                  if (["saved", "error"].includes(pricingState)) {
                     setPricingState("ready");
+                  }
                 }}
               />
               <small>
@@ -629,11 +718,12 @@ export default function CommercialEditor({
               }
               onClick={() => void savePricing()}
             >
-              {pricingState === "saving"
-                ? "Saving pricing…"
-                : pricingDirty
-                  ? "Save pricing"
-                  : "Pricing saved"}
+              {capabilityButtonLabel(
+                pricingState,
+                pricingDirty,
+                pricingVersion,
+                "Pricing",
+              )}
             </button>
           </div>
         </section>
@@ -656,7 +746,7 @@ export default function CommercialEditor({
             state={inventoryState}
             problem={inventoryProblem}
             savedCopy={`Inventory version ${inventoryVersion} saved`}
-            onReload={() => void load("inventory")}
+            onReload={() => void reload("inventory")}
           />
 
           {Object.keys(inventoryErrors).length > 0 && (
@@ -738,11 +828,12 @@ export default function CommercialEditor({
               }
               onClick={() => void saveInventory()}
             >
-              {inventoryState === "saving"
-                ? "Saving inventory…"
-                : inventoryDirty
-                  ? "Save inventory"
-                  : "Inventory saved"}
+              {capabilityButtonLabel(
+                inventoryState,
+                inventoryDirty,
+                inventoryVersion,
+                "Inventory",
+              )}
             </button>
           </div>
         </section>
@@ -768,21 +859,21 @@ export default function CommercialEditor({
               currency !== savedCurrency ||
               prices[key] !== savedPrices[key] ||
               capacities[key] !== savedCapacities[key];
-            const ready = savedReadiness[key];
+            const ready = savedReady(key);
+            let status = "Incomplete";
+            let statusClass = "incomplete";
+            if (rowDirty) {
+              status = "Unsaved edits";
+              statusClass = "unsaved";
+            } else if (ready) {
+              status = "Ready for later review";
+              statusClass = "ready";
+            }
+
             return (
               <div className="commercial-readiness-row" key={key}>
                 <strong>{label}</strong>
-                <span
-                  className={
-                    rowDirty ? "unsaved" : ready ? "ready" : "incomplete"
-                  }
-                >
-                  {rowDirty
-                    ? "Unsaved edits"
-                    : ready
-                      ? "Ready for later review"
-                      : "Incomplete"}
-                </span>
+                <span className={statusClass}>{status}</span>
               </div>
             );
           })}
