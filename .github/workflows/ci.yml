@@ -29,6 +29,162 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  vs02_product_gate_patch:
+    name: VS-02 product gate patch
+    if: github.event_name == 'pull_request' && github.head_ref == 'vs02/package-departure-authoring'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Apply product gate fixes
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('apps/web/app/operator/departures/DepartureComposer.tsx')
+          text = path.read_text()
+
+          replacements = [
+              (
+                  '  const [state, setState] = useState<ComposerState>("loading");',
+                  '  const [state, setState] = useState<ComposerState>("loading");\n  const [isDirty, setIsDirty] = useState(false);',
+              ),
+              (
+                  '  }, [form.departureDate, form.returnDate]);\n\n  useEffect(() => {',
+                  '  }, [form.departureDate, form.returnDate]);\n\n  useEffect(() => {\n    if (!isDirty) return;\n\n    const handleBeforeUnload = (event: BeforeUnloadEvent) => {\n      event.preventDefault();\n      event.returnValue = "";\n    };\n\n    window.addEventListener("beforeunload", handleBeforeUnload);\n    return () => window.removeEventListener("beforeunload", handleBeforeUnload);\n  }, [isDirty]);\n\n  useEffect(() => {',
+              ),
+              (
+                  '        setVersion(draft.version);\n        setState("ready");',
+                  '        setVersion(draft.version);\n        setIsDirty(false);\n        setState("ready");',
+              ),
+              (
+                  '  const markDirty = () => {\n    if (["saved", "conflict", "error"].includes(state)) setState("ready");\n    setProblem("");\n  };',
+                  '  const markDirty = () => {\n    if (["saved", "error"].includes(state)) setState("ready");\n    if (state !== "conflict") setProblem("");\n    setIsDirty(true);\n  };',
+              ),
+              (
+                  '        setProblem(body.detail ?? "This draft changed in another session.");',
+                  '        setProblem(\n          body.detail ??\n            "This draft changed in another session. Reload the latest version before continuing.",\n        );',
+              ),
+              (
+                  '      setVersion(body.version);\n      setState("saved");',
+                  '      setVersion(body.version);\n      setIsDirty(false);\n      setState("saved");',
+              ),
+              (
+                  '    <main className="admin-shell composer-shell">\n      <aside className="admin-sidebar composer-sidebar">',
+                  '    <main className="admin-shell composer-shell">\n      <a className="skip-link" href="#composer-main">\n        Skip to authoring form\n      </a>\n      <aside className="admin-sidebar composer-sidebar">',
+              ),
+              (
+                  '          <Link className="composer-nav-active" href="/operator/departures/new">',
+                  '          <Link\n            className="composer-nav-active"\n            href="/operator/departures/new"\n            aria-current="page"\n          >',
+              ),
+              (
+                  '      <section className="admin-content composer-content">',
+                  '      <section\n        id="composer-main"\n        className="admin-content composer-content"\n        aria-busy={state === "saving"}\n        tabIndex={-1}\n      >',
+              ),
+              (
+                  '            Draft · {version ? `Version ${version}` : "Not saved"}',
+                  '            Draft · {\n              isDirty ? "Unsaved changes" : version ? `Version ${version}` : "Not saved"\n            }',
+              ),
+              (
+                  '                {problem ||\n                  "Your valid entries have been preserved. Correct the highlighted facts and save again."}\n              </span>',
+                  '                {problem ||\n                  "Your valid entries have been preserved. Correct the highlighted facts and save again."}\n              </span>\n              {Object.keys(errors).length > 0 && (\n                <ul className="composer-error-list">\n                  {Object.entries(errors).map(([key, message]) => (\n                    <li key={key}>{message}</li>\n                  ))}\n                </ul>\n              )}',
+              ),
+              (
+                  '        <form onSubmit={(event) => event.preventDefault()}>\n          <section className="form-card">',
+                  '        <form onSubmit={(event) => event.preventDefault()}>\n          <fieldset\n            className="composer-form-fieldset"\n            disabled={state === "saving" || state === "conflict"}\n          >\n            <section className="form-card">',
+              ),
+              (
+                  '          </section>\n        </form>\n      </section>\n\n      <footer className="admin-sticky-footer composer-savebar">',
+                  '            </section>\n          </fieldset>\n        </form>\n      </section>\n\n      <footer className="admin-sticky-footer composer-savebar">',
+              ),
+              (
+                  '        <Field label="Nights" error={errors[`${key}.nights`]}>',
+                  '        <Field label="Nights" error={errors[`${key}.nights`]} required={false}>',
+              ),
+              (
+                  '          <input\n            maxLength={160}\n            value={value.hotelName}',
+                  '          <input\n            required\n            maxLength={160}\n            value={value.hotelName}',
+              ),
+              (
+                  '                <input\n                  maxLength={120}\n                  placeholder="e.g. Noor Harmony 12 Nights"',
+                  '                <input\n                  required\n                  maxLength={120}\n                  placeholder="e.g. Noor Harmony 12 Nights"',
+              ),
+              (
+                  '                <textarea\n                  maxLength={600}\n                  rows={4}',
+                  '                <textarea\n                  required\n                  maxLength={600}\n                  rows={4}',
+              ),
+              (
+                  '                <input\n                  maxLength={120}\n                  placeholder="e.g. Delhi (DEL)"',
+                  '                <input\n                  required\n                  maxLength={120}\n                  placeholder="e.g. Delhi (DEL)"',
+              ),
+              (
+                  '                <input\n                  maxLength={200}\n                  placeholder="e.g. Delhi → Jeddah → Makkah → Madinah"',
+                  '                <input\n                  required\n                  maxLength={200}\n                  placeholder="e.g. Delhi → Jeddah → Makkah → Madinah"',
+              ),
+              (
+                  '                <input\n                  type="date"\n                  value={form.departureDate}',
+                  '                <input\n                  required\n                  type="date"\n                  value={form.departureDate}',
+              ),
+              (
+                  '                <input\n                  type="date"\n                  value={form.returnDate}',
+                  '                <input\n                  required\n                  type="date"\n                  value={form.returnDate}',
+              ),
+              (
+                  '            disabled={state === "saving" || state === "conflict"}',
+                  '            disabled={\n              state === "saving" ||\n              state === "conflict" ||\n              Boolean(departureId && !isDirty)\n            }',
+              ),
+              (
+                  '            {state === "saving"\n              ? "Saving…"\n              : departureId\n                ? "Save changes"\n                : "Save draft"}',
+                  '            {state === "saving"\n              ? "Saving…"\n              : departureId && !isDirty\n                ? "No changes"\n                : departureId\n                  ? "Save changes"\n                  : "Save draft"}',
+              ),
+          ]
+
+          for old, new in replacements:
+              if old in text:
+                  text = text.replace(old, new, 1)
+
+          path.write_text(text)
+
+          css_path = Path('apps/web/app/composer.css')
+          css = css_path.read_text()
+          css = css.replace(
+              '.composer-inline-action {\n  margin-top: 8px;',
+              '.composer-inline-action {\n  display: inline-flex;\n  min-height: 44px;\n  align-items: center;\n  margin-top: 8px;',
+              1,
+          )
+          marker = '.composer-savebar .primary-button:disabled {'
+          if '.composer-form-fieldset {' not in css and marker in css:
+              css = css.replace(
+                  marker,
+                  '.composer-form-fieldset {\n  min-width: 0;\n  margin: 0;\n  padding: 0;\n  border: 0;\n}\n\n.composer-form-fieldset:disabled input,\n.composer-form-fieldset:disabled textarea,\n.composer-form-fieldset:disabled button {\n  cursor: not-allowed;\n}\n\n.composer-error-list {\n  margin: 10px 0 0;\n  padding-left: 20px;\n  font-size: 12px;\n  line-height: 1.5;\n}\n\n' + marker,
+                  1,
+              )
+          css_path.write_text(css)
+          PY
+      - name: Format patched UI
+        run: pnpm --filter @noorpath/web exec prettier --write app/composer.css app/operator/departures/DepartureComposer.tsx
+      - name: Commit product gate fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- apps/web/app/composer.css apps/web/app/operator/departures/DepartureComposer.tsx; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web/app/composer.css apps/web/app/operator/departures/DepartureComposer.tsx
+          git commit -m "fix: harden VS-02 authoring UX state"
+          git push origin HEAD:${{ github.head_ref }}
+
   node:
     name: Node validation
     runs-on: ubuntu-latest
