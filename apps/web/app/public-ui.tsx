@@ -49,13 +49,13 @@ export function PublicHeader({ mode = "detail" }: { mode?: HeaderMode }) {
       </nav>
 
       {mode === "landing" ? (
-        <a
+        <Link
           className="header-profile-button"
-          href="mailto:support@noorpath.example"
-          aria-label="Contact NoorPath support"
+          href="/operator"
+          aria-label="Open operator portal"
         >
           <Icon name="user-circle" />
-        </a>
+        </Link>
       ) : (
         <div className="public-header-actions">
           <a
@@ -89,12 +89,10 @@ export function PublicHeader({ mode = "detail" }: { mode?: HeaderMode }) {
       <a
         className="public-mobile-contact"
         href={
-          mode === "landing"
-            ? "mailto:support@noorpath.example"
-            : "tel:+0000000000"
+          mode === "landing" ? "/operator" : "tel:+0000000000"
         }
         aria-label={
-          mode === "landing" ? "Contact NoorPath support" : "Request a callback"
+          mode === "landing" ? "Open operator portal" : "Request a callback"
         }
       >
         <Icon name={mode === "landing" ? "user-circle" : "phone"} />
