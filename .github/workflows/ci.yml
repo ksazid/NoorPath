@@ -11,73 +11,10 @@ permissions:
   checks: write
 
 jobs:
-  fix-vs03-lint:
-    name: Fix VS-03 lint
-    if: github.event_name == 'pull_request' && github.head_ref == 'vs03/pricing-inventory' && github.actor != 'github-actions[bot]'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .node-version
-      - run: corepack enable
-      - run: pnpm install --frozen-lockfile
-      - name: Remove redundant effect state writes
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path("apps/web/app/operator/departures/CommercialEditor.tsx")
-          text = path.read_text()
-          old = '''    if (!departureId) {
-      setLoadState("ready");
-      onDirtyChange(false);
-      onBusyChange(false);
-      return;
-    }
-'''
-          new = '''    if (!departureId) return;
-'''
-          if text.count(old) != 1:
-              raise SystemExit(f"Expected one redundant effect block, found {text.count(old)}")
-          path.write_text(text.replace(old, new, 1))
-          PY
-      - name: Improve empty capability labels
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path("apps/web/app/operator/departures/CommercialEditor.tsx")
-          text = path.read_text()
-          replacements = {
-            '''                  : "Pricing saved"}''': '''                  : pricingVersion
-                    ? "Pricing saved"
-                    : "Pricing not configured"}''',
-            '''                  : "Inventory saved"}''': '''                  : inventoryVersion
-                    ? "Inventory saved"
-                    : "Inventory not configured"}''',
-          }
-          for old, new in replacements.items():
-              if text.count(old) != 1:
-                  raise SystemExit(f"Expected one label match, found {text.count(old)}")
-              text = text.replace(old, new, 1)
-          path.write_text(text)
-          PY
-      - name: Format commercial editor
-        run: pnpm --dir apps/web exec prettier --write app/operator/departures/CommercialEditor.tsx
-      - name: Commit lint fix
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/web/app/operator/departures/CommercialEditor.tsx
-          git commit -m "Fix VS-03 commercial editor state"
-          git push origin HEAD:${{ github.head_ref }}
-
   secrets:
     name: Secret scanning
     runs-on: ubuntu-latest
+    # Only run on push or on PRs from the same repository (skip fork PRs)
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
         contents: read
@@ -133,11 +70,14 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
+
       - name: Install EF Core CLI
         run: dotnet tool install --global dotnet-ef --version 10.0.10
+
       - run: dotnet restore NoorPath.slnx
       - run: dotnet format NoorPath.slnx --verify-no-changes --no-restore
       - run: dotnet build NoorPath.slnx --configuration Release --no-restore
+
       - name: Create module test databases
         shell: bash
         run: |
@@ -149,6 +89,7 @@ jobs:
           docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_pricing_test;'
           docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_inventory_test;'
           docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_commercial_test;'
+
       - name: Validate Catalogue migration state
         run: ./scripts/validate-catalogue-migrations.sh
       - name: Validate Operators migration state
@@ -157,6 +98,7 @@ jobs:
         run: bash ./scripts/validate-pricing-migrations.sh
       - name: Validate Inventory migration state
         run: bash ./scripts/validate-inventory-migrations.sh
+
       - run: dotnet test NoorPath.slnx --configuration Release --no-build
 
   postgres:
