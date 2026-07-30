@@ -34,6 +34,7 @@ app.MapCatalogueAuthoring();
 app.MapCommercialAuthoring();
 app.MapPublicationReview();
 app.MapPublicDiscovery();
+app.MapPublicPackageDetails();
 app.Run();
 
 public partial class Program;
