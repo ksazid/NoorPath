@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using NoorPath.Inventory.Infrastructure;
 using NoorPath.Operators;
 using NoorPath.Operators.Infrastructure;
 using Xunit;
@@ -25,8 +26,13 @@ public sealed class CustomerDiscoveryApiTests
             TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        using var body = JsonDocument.Parse(
-            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        var raw = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.DoesNotContain("priceVersionId", raw, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("packageVersionId", raw, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("actorAccountId", raw, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("adjustmentReason", raw, StringComparison.OrdinalIgnoreCase);
+
+        using var body = JsonDocument.Parse(raw);
         var item = Assert.Single(body.RootElement.GetProperty("items").EnumerateArray());
         Assert.Equal(departureId, item.GetProperty("departureId").GetGuid());
         Assert.Equal(
@@ -105,13 +111,74 @@ public sealed class CustomerDiscoveryApiTests
         await AssertNoPublicItemsAsync(anonymous, TestContext.Current.CancellationToken);
     }
 
+    [Fact]
+    public async Task Published_departure_is_hidden_when_current_inventory_has_no_saleable_occupancy()
+    {
+        using var app = await CommercialApi.CreateAsync(TestContext.Current.CancellationToken);
+        var departureId = await PublishDepartureAsync(app, TestContext.Current.CancellationToken);
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var inventory = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
+            var configuration = await inventory.Configurations.SingleAsync(
+                x => x.DepartureId == departureId,
+                TestContext.Current.CancellationToken);
+            var pools = await inventory.Pools
+                .Where(x => x.InventoryConfigurationId == configuration.Id)
+                .ToListAsync(TestContext.Current.CancellationToken);
+
+            foreach (var pool in pools)
+                pool.Capacity = 0;
+
+            await inventory.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
+        using var anonymous = app.CreateClient();
+        await AssertNoPublicItemsAsync(anonymous, TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Published_departures_are_ordered_by_departure_date_then_id()
+    {
+        using var app = await CommercialApi.CreateAsync(TestContext.Current.CancellationToken);
+        var laterId = await PublishDepartureAsync(
+            app,
+            TestContext.Current.CancellationToken,
+            "Later Journey",
+            new DateOnly(2026, 11, 10));
+        var earlierId = await PublishDepartureAsync(
+            app,
+            TestContext.Current.CancellationToken,
+            "Earlier Journey",
+            new DateOnly(2026, 9, 10));
+        using var anonymous = app.CreateClient();
+
+        var response = await anonymous.GetAsync(
+            "/api/v1/departures",
+            TestContext.Current.CancellationToken);
+        response.EnsureSuccessStatusCode();
+        using var body = JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        var items = body.RootElement.GetProperty("items").EnumerateArray().ToArray();
+
+        Assert.Equal(2, items.Length);
+        Assert.Equal(earlierId, items[0].GetProperty("departureId").GetGuid());
+        Assert.Equal(laterId, items[1].GetProperty("departureId").GetGuid());
+    }
+
     private static async Task<Guid> PublishDepartureAsync(
         CommercialApi app,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string packageName = "Noor Discovery 12 Nights",
+        DateOnly? departureDate = null)
     {
         using var author = app.CreateOperatorClient(CommercialApi.AuthorIdentity);
         using var approver = app.CreateOperatorClient(CommercialApi.PlatformApproverIdentity);
-        var departureId = await CreateDraftAsync(author, cancellationToken);
+        var departureId = await CreateDraftAsync(
+            author,
+            cancellationToken,
+            packageName,
+            departureDate);
 
         (await author.PutAsJsonAsync(
             $"/api/v1/operator/departures/{departureId}/pricing",
@@ -153,19 +220,22 @@ public sealed class CustomerDiscoveryApiTests
 
     private static async Task<Guid> CreateDraftAsync(
         HttpClient client,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string packageName = "Noor Discovery 12 Nights",
+        DateOnly? departureDate = null)
     {
+        var departure = departureDate ?? new DateOnly(2026, 10, 10);
         var response = await client.PostAsJsonAsync(
             "/api/v1/operator/departures",
             new SaveCatalogueDraftRequest(
-                "Noor Discovery 12 Nights",
+                packageName,
                 "A published journey prepared for customer discovery.",
                 new("Makkah Hotel", "4 star", "850 m from Masjid al-Haram", 6, "confirmed"),
                 new("Madinah Hotel", "4 star", "450 m from Al-Masjid an-Nabawi", 5, "confirmed"),
                 new("Delhi → Jeddah → Makkah → Madinah", "Final flight facts remain pending.", "pending"),
                 "Delhi (DEL)",
-                new(2026, 10, 10),
-                new(2026, 10, 22),
+                departure,
+                departure.AddDays(12),
                 ["Return flights", "Breakfast"],
                 ["Personal expenses"]),
             cancellationToken);
