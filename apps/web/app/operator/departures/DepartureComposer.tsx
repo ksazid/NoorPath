@@ -817,11 +817,7 @@ export default function DepartureComposer({
         <form onSubmit={(event) => event.preventDefault()}>
           <fieldset
             className="composer-form-fieldset"
-            disabled={
-              state === "saving" ||
-              state === "conflict" ||
-              Boolean(departureId && !isDirty)
-            }
+            disabled={state === "saving" || state === "conflict"}
           >
             <section className="form-card">
               <div className="form-card-heading">
@@ -1000,7 +996,11 @@ export default function DepartureComposer({
           <button
             className="primary-button"
             type="button"
-            disabled={state === "saving" || state === "conflict"}
+            disabled={
+              state === "saving" ||
+              state === "conflict" ||
+              Boolean(departureId && !isDirty)
+            }
             onClick={() => void save()}
           >
             {state === "saving"
