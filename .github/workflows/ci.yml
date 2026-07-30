@@ -32,12 +32,8 @@ jobs:
           from pathlib import Path
           path = Path("apps/web/app/operator/departures/DepartureComposer.tsx")
           text = path.read_text()
-          old = '''            {isDirty
-              ? "Unsaved changes"
-              : version'''
-          new = '''            {hasUnsavedChanges
-              ? "Unsaved changes"
-              : version'''
+          old = "{isDirty"
+          new = "{hasUnsavedChanges"
           if text.count(old) != 1:
               raise SystemExit(f"Expected one draft badge match, found {text.count(old)}")
           path.write_text(text.replace(old, new, 1))
