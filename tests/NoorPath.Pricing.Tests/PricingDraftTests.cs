@@ -1,4 +1,5 @@
 using NoorPath.Pricing;
+using Xunit;
 
 namespace NoorPath.Pricing.Tests;
 
