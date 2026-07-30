@@ -19,6 +19,7 @@
   --green-deep: #0e563e;
   --gold: #b98a36;
   --gold-soft: #ead9b8;
+  --gold-text: #7a551a;
   --sand: #cba77b;
   --line: #e6ded0;
   --danger: #a63c38;
@@ -206,7 +207,7 @@ select:focus-visible,
 
 .eyebrow {
   display: block;
-  color: var(--gold);
+  color: var(--gold-text);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -789,7 +790,7 @@ select:focus-visible,
   place-items: center;
   border-radius: 50%;
   background: var(--ivory);
-  color: var(--gold);
+   color: var(--gold-text);
   font-size: 11px;
   font-weight: 700;
 }
