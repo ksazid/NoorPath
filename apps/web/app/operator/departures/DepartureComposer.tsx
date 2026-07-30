@@ -259,6 +259,7 @@ function AccommodationSection({
       <div className="form-grid">
         <Field label="Hotel or stay name" error={errors[`${key}.hotelName`]}>
           <input
+            required
             maxLength={160}
             value={value.hotelName}
             onChange={(event) => onChange({ hotelName: event.target.value })}
@@ -288,7 +289,7 @@ function AccommodationSection({
             }
           />
         </Field>
-        <Field label="Nights" error={errors[`${key}.nights`]}>
+        <Field label="Nights" error={errors[`${key}.nights`]} required={false}>
           <input
             min="0"
             type="number"
@@ -425,6 +426,7 @@ export default function DepartureComposer({
   const [errors, setErrors] = useState<FieldErrors>({});
   const [problem, setProblem] = useState("");
   const [state, setState] = useState<ComposerState>("loading");
+  const [isDirty, setIsDirty] = useState(false);
 
   const duration = useMemo(() => {
     if (!form.departureDate || !form.returnDate) return 0;
@@ -432,6 +434,18 @@ export default function DepartureComposer({
     const end = new Date(`${form.returnDate}T00:00:00Z`).getTime();
     return Math.max(0, Math.round((end - start) / 86400000));
   }, [form.departureDate, form.returnDate]);
+
+  useEffect(() => {
+    if (!isDirty) return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
 
   useEffect(() => {
     let cancelled = false;
@@ -472,6 +486,7 @@ export default function DepartureComposer({
         setForm(toDraftForm(draft));
         setDepartureId(draft.departureId);
         setVersion(draft.version);
+        setIsDirty(false);
         setState("ready");
       } catch {
         if (!cancelled) {
@@ -490,8 +505,9 @@ export default function DepartureComposer({
   }, [initialDepartureId]);
 
   const markDirty = () => {
-    if (["saved", "conflict", "error"].includes(state)) setState("ready");
-    setProblem("");
+    if (["saved", "error"].includes(state)) setState("ready");
+    if (state !== "conflict") setProblem("");
+    setIsDirty(true);
   };
 
   const change = <K extends keyof DraftForm>(key: K, value: DraftForm[K]) => {
@@ -568,7 +584,10 @@ export default function DepartureComposer({
       if (response.status === 401) return setState("unauthenticated");
       if (response.status === 403) return setState("forbidden");
       if (response.status === 409) {
-        setProblem(body.detail ?? "This draft changed in another session.");
+        setProblem(
+          body.detail ??
+            "This draft changed in another session. Reload the latest version before continuing.",
+        );
         setState("conflict");
         return;
       }
@@ -592,6 +611,7 @@ export default function DepartureComposer({
 
       setDepartureId(body.departureId);
       setVersion(body.version);
+      setIsDirty(false);
       setState("saved");
       if (!initialDepartureId)
         window.history.replaceState(
@@ -670,10 +690,17 @@ export default function DepartureComposer({
 
   return (
     <main className="admin-shell composer-shell">
+      <a className="skip-link" href="#composer-main">
+        Skip to authoring form
+      </a>
       <aside className="admin-sidebar composer-sidebar">
         <Brand />
         <nav aria-label="Operator navigation">
-          <Link className="composer-nav-active" href="/operator/departures/new">
+          <Link
+            className="composer-nav-active"
+            href="/operator/departures/new"
+            aria-current="page"
+          >
             <Icon>◈</Icon>
             Package drafts
           </Link>
@@ -688,7 +715,12 @@ export default function DepartureComposer({
         </div>
       </aside>
 
-      <section className="admin-content composer-content">
+      <section
+        id="composer-main"
+        className="admin-content composer-content"
+        aria-busy={state === "saving"}
+        tabIndex={-1}
+      >
         <div className="admin-titlebar">
           <div>
             <span className="eyebrow">
@@ -703,7 +735,12 @@ export default function DepartureComposer({
             </p>
           </div>
           <span className="draft-pill">
-            Draft · {version ? `Version ${version}` : "Not saved"}
+            Draft ·{" "}
+            {isDirty
+              ? "Unsaved changes"
+              : version
+                ? `Version ${version}`
+                : "Not saved"}
           </span>
         </div>
 
@@ -732,6 +769,13 @@ export default function DepartureComposer({
                 {problem ||
                   "Your valid entries have been preserved. Correct the highlighted facts and save again."}
               </span>
+              {Object.keys(errors).length > 0 && (
+                <ul className="composer-error-list">
+                  {Object.entries(errors).map(([key, message]) => (
+                    <li key={key}>{message}</li>
+                  ))}
+                </ul>
+              )}
               {state === "conflict" && (
                 <button
                   className="composer-inline-action"
@@ -771,157 +815,174 @@ export default function DepartureComposer({
         )}
 
         <form onSubmit={(event) => event.preventDefault()}>
-          <section className="form-card">
-            <div className="form-card-heading">
-              <span>01</span>
-              <div>
-                <h2>Package basics</h2>
-                <p>Internal draft identity and factual journey summary.</p>
+          <fieldset
+            className="composer-form-fieldset"
+            disabled={
+              state === "saving" ||
+              state === "conflict" ||
+              Boolean(departureId && !isDirty)
+            }
+          >
+            <section className="form-card">
+              <div className="form-card-heading">
+                <span>01</span>
+                <div>
+                  <h2>Package basics</h2>
+                  <p>Internal draft identity and factual journey summary.</p>
+                </div>
               </div>
-            </div>
-            <div className="composer-stack">
-              <Field label="Package name" error={errors.packageName}>
-                <input
-                  maxLength={120}
-                  placeholder="e.g. Noor Harmony 12 Nights"
-                  value={form.packageName}
-                  onChange={(event) =>
-                    change("packageName", event.target.value)
-                  }
-                />
-              </Field>
-              <Field label="Journey summary" error={errors.summary}>
-                <textarea
-                  maxLength={600}
-                  rows={4}
-                  placeholder="Describe the journey using only facts you can support."
-                  value={form.summary}
-                  onChange={(event) => change("summary", event.target.value)}
-                />
-              </Field>
-            </div>
-          </section>
-
-          <AccommodationSection
-            number="02"
-            city="Makkah"
-            value={form.makkah}
-            errors={errors}
-            onChange={(patch) => changeAccommodation("makkah", patch)}
-          />
-
-          <AccommodationSection
-            number="03"
-            city="Madinah"
-            value={form.madinah}
-            errors={errors}
-            onChange={(patch) => changeAccommodation("madinah", patch)}
-          />
-          {errors.stays && (
-            <p className="composer-section-error">{errors.stays}</p>
-          )}
-
-          <section className="form-card">
-            <div className="form-card-heading">
-              <span>04</span>
-              <div>
-                <h2>Travel & departure</h2>
-                <p>
-                  Dates, origin and route facts for this specific departure.
-                </p>
+              <div className="composer-stack">
+                <Field label="Package name" error={errors.packageName}>
+                  <input
+                    required
+                    maxLength={120}
+                    placeholder="e.g. Noor Harmony 12 Nights"
+                    value={form.packageName}
+                    onChange={(event) =>
+                      change("packageName", event.target.value)
+                    }
+                  />
+                </Field>
+                <Field label="Journey summary" error={errors.summary}>
+                  <textarea
+                    required
+                    maxLength={600}
+                    rows={4}
+                    placeholder="Describe the journey using only facts you can support."
+                    value={form.summary}
+                    onChange={(event) => change("summary", event.target.value)}
+                  />
+                </Field>
               </div>
-            </div>
-            <div className="form-grid">
-              <Field label="Departure origin" error={errors.origin}>
-                <input
-                  maxLength={120}
-                  placeholder="e.g. Delhi (DEL)"
-                  value={form.origin}
-                  onChange={(event) => change("origin", event.target.value)}
-                />
-              </Field>
-              <Field
-                label="Route summary"
-                error={errors["travel.routeSummary"]}
-              >
-                <input
-                  maxLength={200}
-                  placeholder="e.g. Delhi → Jeddah → Makkah → Madinah"
-                  value={form.travel.routeSummary}
-                  onChange={(event) =>
-                    changeTravel({ routeSummary: event.target.value })
-                  }
-                />
-              </Field>
-              <Field label="Departure date" error={errors.departureDate}>
-                <input
-                  type="date"
-                  value={form.departureDate}
-                  onChange={(event) =>
-                    change("departureDate", event.target.value)
-                  }
-                />
-              </Field>
-              <Field
-                label="Return date"
-                error={errors.returnDate}
-                hint={duration ? `${duration} day journey` : undefined}
-              >
-                <input
-                  type="date"
-                  value={form.returnDate}
-                  onChange={(event) => change("returnDate", event.target.value)}
-                />
-              </Field>
-            </div>
-            <div className="composer-stack composer-travel-detail">
-              <Field label="Travel detail" required={false}>
-                <textarea
-                  maxLength={600}
-                  rows={3}
-                  placeholder="Add flight or transfer detail only when it is known."
-                  value={form.travel.details}
-                  onChange={(event) =>
-                    changeTravel({ details: event.target.value })
-                  }
-                />
-              </Field>
-              <ConfirmationField
-                name="travel-confirmation-state"
-                label="Travel fact status"
-                value={form.travel.confirmationState}
-                onChange={(confirmationState) =>
-                  changeTravel({ confirmationState })
-                }
-              />
-            </div>
-          </section>
+            </section>
 
-          <section className="form-card">
-            <div className="form-card-heading">
-              <span>05</span>
-              <div>
-                <h2>Included & excluded</h2>
-                <p>
-                  Keep the commercial boundary clear without adding pricing.
-                </p>
+            <AccommodationSection
+              number="02"
+              city="Makkah"
+              value={form.makkah}
+              errors={errors}
+              onChange={(patch) => changeAccommodation("makkah", patch)}
+            />
+
+            <AccommodationSection
+              number="03"
+              city="Madinah"
+              value={form.madinah}
+              errors={errors}
+              onChange={(patch) => changeAccommodation("madinah", patch)}
+            />
+            {errors.stays && (
+              <p className="composer-section-error">{errors.stays}</p>
+            )}
+
+            <section className="form-card">
+              <div className="form-card-heading">
+                <span>04</span>
+                <div>
+                  <h2>Travel & departure</h2>
+                  <p>
+                    Dates, origin and route facts for this specific departure.
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="composer-content-grid">
-              <TagEditor
-                label="Included"
-                values={form.inclusions}
-                placeholder="e.g. Return flights"
-                onChange={(values) => change("inclusions", values)}
-              />
-              <TagEditor
-                label="Not included"
-                values={form.exclusions}
-                placeholder="e.g. Personal expenses"
-                onChange={(values) => change("exclusions", values)}
-              />
-            </div>
-          </section>
+              <div className="form-grid">
+                <Field label="Departure origin" error={errors.origin}>
+                  <input
+                    required
+                    maxLength={120}
+                    placeholder="e.g. Delhi (DEL)"
+                    value={form.origin}
+                    onChange={(event) => change("origin", event.target.value)}
+                  />
+                </Field>
+                <Field
+                  label="Route summary"
+                  error={errors["travel.routeSummary"]}
+                >
+                  <input
+                    required
+                    maxLength={200}
+                    placeholder="e.g. Delhi → Jeddah → Makkah → Madinah"
+                    value={form.travel.routeSummary}
+                    onChange={(event) =>
+                      changeTravel({ routeSummary: event.target.value })
+                    }
+                  />
+                </Field>
+                <Field label="Departure date" error={errors.departureDate}>
+                  <input
+                    required
+                    type="date"
+                    value={form.departureDate}
+                    onChange={(event) =>
+                      change("departureDate", event.target.value)
+                    }
+                  />
+                </Field>
+                <Field
+                  label="Return date"
+                  error={errors.returnDate}
+                  hint={duration ? `${duration} day journey` : undefined}
+                >
+                  <input
+                    required
+                    type="date"
+                    value={form.returnDate}
+                    onChange={(event) =>
+                      change("returnDate", event.target.value)
+                    }
+                  />
+                </Field>
+              </div>
+              <div className="composer-stack composer-travel-detail">
+                <Field label="Travel detail" required={false}>
+                  <textarea
+                    maxLength={600}
+                    rows={3}
+                    placeholder="Add flight or transfer detail only when it is known."
+                    value={form.travel.details}
+                    onChange={(event) =>
+                      changeTravel({ details: event.target.value })
+                    }
+                  />
+                </Field>
+                <ConfirmationField
+                  name="travel-confirmation-state"
+                  label="Travel fact status"
+                  value={form.travel.confirmationState}
+                  onChange={(confirmationState) =>
+                    changeTravel({ confirmationState })
+                  }
+                />
+              </div>
+            </section>
+
+            <section className="form-card">
+              <div className="form-card-heading">
+                <span>05</span>
+                <div>
+                  <h2>Included & excluded</h2>
+                  <p>
+                    Keep the commercial boundary clear without adding pricing.
+                  </p>
+                </div>
+              </div>
+              <div className="composer-content-grid">
+                <TagEditor
+                  label="Included"
+                  values={form.inclusions}
+                  placeholder="e.g. Return flights"
+                  onChange={(values) => change("inclusions", values)}
+                />
+                <TagEditor
+                  label="Not included"
+                  values={form.exclusions}
+                  placeholder="e.g. Personal expenses"
+                  onChange={(values) => change("exclusions", values)}
+                />
+              </div>
+            </section>
+          </fieldset>
         </form>
       </section>
 
@@ -944,9 +1005,11 @@ export default function DepartureComposer({
           >
             {state === "saving"
               ? "Saving…"
-              : departureId
-                ? "Save changes"
-                : "Save draft"}
+              : departureId && !isDirty
+                ? "No changes"
+                : departureId
+                  ? "Save changes"
+                  : "Save draft"}
           </button>
         </div>
       </footer>
