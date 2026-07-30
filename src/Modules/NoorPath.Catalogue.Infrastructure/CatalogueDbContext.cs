@@ -10,6 +10,7 @@ public sealed class CatalogueDbContext(DbContextOptions<CatalogueDbContext> opti
     public DbSet<DepartureBatchRecord> DepartureBatches => Set<DepartureBatchRecord>();
     public DbSet<PackageContentItemRecord> PackageContentItems => Set<PackageContentItemRecord>();
     public DbSet<CatalogueDraftAuditRecord> DraftAudits => Set<CatalogueDraftAuditRecord>();
+    public DbSet<CatalogueOutboxRecord> OutboxMessages => Set<CatalogueOutboxRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) => Configure(modelBuilder);
 
@@ -55,6 +56,8 @@ public sealed class CatalogueDbContext(DbContextOptions<CatalogueDbContext> opti
             entity.Property(x => x.OperatorId).HasMaxLength(80);
             entity.Property(x => x.Origin).HasMaxLength(120);
             entity.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+            entity.Property(x => x.SubmittedByAccountId).HasMaxLength(120);
+            entity.Property(x => x.PublishedByAccountId).HasMaxLength(120);
             entity.Property(x => x.Version).IsConcurrencyToken();
             entity.HasIndex(x => x.OperatorId);
             entity.HasIndex(x => x.PackageVersionId);
@@ -80,6 +83,20 @@ public sealed class CatalogueDbContext(DbContextOptions<CatalogueDbContext> opti
             entity.Property(x => x.Action).HasMaxLength(20);
             entity.HasIndex(x => new { x.DepartureBatchId, x.Version });
             entity.HasOne<DepartureBatchRecord>().WithMany().HasForeignKey(x => x.DepartureBatchId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<CatalogueOutboxRecord>(entity =>
+        {
+            entity.ToTable("outbox_messages");
+            entity.HasKey(x => x.EventId);
+            entity.Property(x => x.EventType).HasMaxLength(80);
+            entity.Property(x => x.ProducerModule).HasMaxLength(40);
+            entity.Property(x => x.AggregateType).HasMaxLength(40);
+            entity.Property(x => x.CorrelationId).HasMaxLength(100);
+            entity.Property(x => x.OperatorId).HasMaxLength(80);
+            entity.Property(x => x.Payload).HasColumnType("jsonb");
+            entity.Property(x => x.State).HasMaxLength(20);
+            entity.HasIndex(x => new { x.State, x.NextAttemptAtUtc });
         });
     }
 }
@@ -128,6 +145,13 @@ public sealed class DepartureBatchRecord
     public DateOnly ReturnDate { get; set; }
     public CatalogueDraftStatus Status { get; set; } = CatalogueDraftStatus.Draft;
     public int Version { get; set; } = 1;
+    public DateTimeOffset? SubmittedAtUtc { get; set; }
+    public string? SubmittedByAccountId { get; set; }
+    public DateTimeOffset? PublishedAtUtc { get; set; }
+    public string? PublishedByAccountId { get; set; }
+    public Guid? PublishedPriceVersionId { get; set; }
+    public int? PublishedPricingVersion { get; set; }
+    public int? PublishedInventoryVersion { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
 }
@@ -150,4 +174,24 @@ public sealed class CatalogueDraftAuditRecord
     public required string Action { get; set; }
     public int Version { get; set; }
     public DateTimeOffset Timestamp { get; set; }
+}
+
+public sealed class CatalogueOutboxRecord
+{
+    public Guid EventId { get; set; }
+    public required string EventType { get; set; }
+    public int EventVersion { get; set; }
+    public DateTimeOffset OccurredAtUtc { get; set; }
+    public required string ProducerModule { get; set; }
+    public required string AggregateType { get; set; }
+    public Guid AggregateId { get; set; }
+    public int AggregateVersion { get; set; }
+    public required string CorrelationId { get; set; }
+    public required string OperatorId { get; set; }
+    public required string Payload { get; set; }
+    public required string State { get; set; }
+    public DateTimeOffset CreatedAtUtc { get; set; }
+    public int AttemptCount { get; set; }
+    public DateTimeOffset? NextAttemptAtUtc { get; set; }
+    public DateTimeOffset? ProcessedAtUtc { get; set; }
 }
