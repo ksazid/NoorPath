@@ -71,7 +71,7 @@ test("admin validation retains values, blocks review, allows correction, and ret
   await page.getByLabel("Total capacity").fill("0");
   await page.getByLabel("Total starting price per person").fill("0");
   await page.getByRole("button", { name: "Review and publish" }).click();
-  const errors = page.getByRole("alert");
+  const errors = page.locator(".error-summary");
   await expect(errors).toContainText("Review 4 highlighted field(s)");
   await expect(errors).toBeFocused();
   await expect(page.getByRole("dialog")).toHaveCount(0);
