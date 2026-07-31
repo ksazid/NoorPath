@@ -12,6 +12,7 @@ import "./refinement.css";
 import "./plan-early.css";
 import "./vs07-entry.css";
 import "./plan.css";
+import "./plan-hardening.css";
 
 export const metadata: Metadata = {
   title: "NoorPath",
