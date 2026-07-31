@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import "./styles.css";
 import "./composer.css";
 import "./commercial.css";
+import "./payment-plan.css";
 import "./publication.css";
 import "./public.css";
 import "./discovery.css";
