@@ -13,6 +13,7 @@ using NoorPath.Operators;
 using NoorPath.Operators.Infrastructure;
 using NoorPath.Pricing.Infrastructure;
 using NoorPath.Testing;
+using NoorPath.Traveller.Infrastructure;
 using Xunit;
 
 namespace NoorPath.Commercial.Integration.Tests;
@@ -389,11 +390,13 @@ public sealed class CommercialApi : WebApplicationFactory<Program>
         var operators = scope.ServiceProvider.GetRequiredService<OperatorsDbContext>();
         var pricing = scope.ServiceProvider.GetRequiredService<PricingDbContext>();
         var inventory = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
+        var traveller = scope.ServiceProvider.GetRequiredService<TravellerDbContext>();
         await catalogue.Database.EnsureDeletedAsync(cancellationToken);
         await operators.Database.MigrateAsync(cancellationToken);
         await catalogue.Database.MigrateAsync(cancellationToken);
         await pricing.Database.MigrateAsync(cancellationToken);
         await inventory.Database.MigrateAsync(cancellationToken);
+        await traveller.Database.MigrateAsync(cancellationToken);
         await SeedOperatorsAsync(operators, cancellationToken);
         return app;
     }
@@ -418,6 +421,8 @@ public sealed class CommercialApi : WebApplicationFactory<Program>
             services.RemoveAll<PricingDbContext>();
             services.RemoveAll<DbContextOptions<InventoryDbContext>>();
             services.RemoveAll<InventoryDbContext>();
+            services.RemoveAll<DbContextOptions<TravellerDbContext>>();
+            services.RemoveAll<TravellerDbContext>();
 
             services.AddDbContext<CatalogueDbContext>(options =>
                 options.UseNpgsql(
@@ -435,6 +440,10 @@ public sealed class CommercialApi : WebApplicationFactory<Program>
                 options.UseNpgsql(
                     connection,
                     postgres => postgres.MigrationsAssembly(typeof(InventoryDbContext).Assembly.FullName)));
+            services.AddDbContext<TravellerDbContext>(options =>
+                options.UseNpgsql(
+                    connection,
+                    postgres => postgres.MigrationsAssembly(typeof(TravellerDbContext).Assembly.FullName)));
         });
     }
 
