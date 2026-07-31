@@ -41,13 +41,48 @@ export async function expectMinimumTargets(page: Page) {
 }
 
 export async function expectNoHorizontalOverflow(page: Page) {
-  expect(
-    await page.evaluate(
-      () =>
-        document.documentElement.scrollWidth <=
-        document.documentElement.clientWidth,
-    ),
-  ).toBe(true);
+  const report = await page.evaluate(() => {
+    const viewportWidth = document.documentElement.clientWidth;
+    const documentWidth = document.documentElement.scrollWidth;
+
+    const elements = Array.from(document.querySelectorAll<HTMLElement>("body *"))
+      .filter((element) => {
+        const style = getComputedStyle(element);
+        if (style.display === "none" || style.visibility === "hidden") {
+          return false;
+        }
+
+        const box = element.getBoundingClientRect();
+        return box.right > viewportWidth + 1 || box.left < -1;
+      })
+      .slice(0, 20)
+      .map((element) => {
+        const box = element.getBoundingClientRect();
+        const identity = [
+          element.tagName.toLowerCase(),
+          element.id ? `#${element.id}` : "",
+          ...Array.from(element.classList).map((name) => `.${name}`),
+        ].join("");
+
+        return {
+          element: identity,
+          text: element.textContent?.trim().replace(/\s+/g, " ").slice(0, 120),
+          left: Math.round(box.left * 100) / 100,
+          right: Math.round(box.right * 100) / 100,
+          width: Math.round(box.width * 100) / 100,
+          clientWidth: element.clientWidth,
+          scrollWidth: element.scrollWidth,
+        };
+      });
+
+    return { viewportWidth, documentWidth, elements };
+  });
+
+  if (report.documentWidth > report.viewportWidth) {
+    throw new Error(
+      `Horizontal overflow detected:\n${JSON.stringify(report, null, 2)}`,
+    );
+  }
 }
 
 declare global {
