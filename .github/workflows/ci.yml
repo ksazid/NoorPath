@@ -72,6 +72,11 @@ jobs:
       NOORPATH_COMMERCIAL_TEST_DB: Host=localhost;Port=5432;Database=noorpath_commercial_test;Username=noorpath;Password=ci-local-only-password
     steps:
       - uses: actions/checkout@v4
+
+      - name: Configure self-hosted .NET install directory
+        if: github.event.pull_request.number == 41
+        run: echo "DOTNET_INSTALL_DIR=$RUNNER_TEMP/.dotnet" >> "$GITHUB_ENV"
+
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
