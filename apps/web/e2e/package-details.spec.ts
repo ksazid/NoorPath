@@ -73,156 +73,152 @@ async function captureEvidence(page: Page, testInfo: TestInfo, name: string) {
   });
 }
 
-test(
-  "published package detail renders authoritative facts",
-  async ({ page }, testInfo) => {
-    await page.route(`**/api/v1/departures/${departureId}`, (route) =>
-      route.fulfill({ json: publishedDetail }),
-    );
+test("published package detail renders authoritative facts", async ({
+  page,
+}, testInfo) => {
+  await page.route(`**/api/v1/departures/${departureId}`, (route) =>
+    route.fulfill({ json: publishedDetail }),
+  );
 
-    await page.goto(`/packages/${departureId}`);
+  await page.goto(`/packages/${departureId}`);
 
-    await expect(
-      page.getByRole("heading", {
-        name: "Noor International Tours & Travels",
-      }),
-    ).toBeVisible();
-    await expect(page.locator(".package-detail-name")).toHaveText(
-      "Browser Verified Journey",
-    );
+  await expect(
+    page.getByRole("heading", {
+      name: "Noor International Tours & Travels",
+    }),
+  ).toBeVisible();
+  await expect(page.locator(".package-detail-name")).toHaveText(
+    "Browser Verified Journey",
+  );
 
-    const staySummaries = page.locator(".stay-summary");
-    await expect(staySummaries.nth(0).locator("strong")).toHaveText(
-      "Makkah Hotel",
-    );
-    await expect(staySummaries.nth(1).locator("strong")).toHaveText(
-      "Madinah Hotel",
-    );
-    await expect(staySummaries.nth(1)).toContainText("Pending confirmation");
+  const staySummaries = page.locator(".stay-summary");
+  await expect(staySummaries.nth(0).locator("strong")).toHaveText(
+    "Makkah Hotel",
+  );
+  await expect(staySummaries.nth(1).locator("strong")).toHaveText(
+    "Madinah Hotel",
+  );
+  await expect(staySummaries.nth(1)).toContainText("Pending confirmation");
 
-    await expect(
-      page.getByText("Delhi → Jeddah → Makkah → Madinah", { exact: true }),
-    ).toBeVisible();
-    await expect(page.getByText("Return flights", { exact: true })).toBeVisible();
-    await expect(
-      page.getByText("Personal expenses", { exact: true }),
-    ).toBeVisible();
+  await expect(
+    page.getByText("Delhi → Jeddah → Makkah → Madinah", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Return flights", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Personal expenses", { exact: true }),
+  ).toBeVisible();
 
-    const pricing = page.locator(".occupancy-price-list");
-    await expect(pricing.getByText("₹1,10,000", { exact: true })).toBeVisible();
-    await expect(pricing.getByText("₹1,00,000", { exact: true })).toBeVisible();
-    await expect(
-      pricing.getByText("Currently unavailable", { exact: true }),
-    ).toBeVisible();
-    await expect(pricing.getByText("₹90,000", { exact: true })).toBeVisible();
+  const pricing = page.locator(".occupancy-price-list");
+  await expect(pricing.getByText("₹1,10,000", { exact: true })).toBeVisible();
+  await expect(pricing.getByText("₹1,00,000", { exact: true })).toBeVisible();
+  await expect(
+    pricing.getByText("Currently unavailable", { exact: true }),
+  ).toBeVisible();
+  await expect(pricing.getByText("₹90,000", { exact: true })).toBeVisible();
 
-    await expect(page.getByText("IATA Accredited")).toHaveCount(0);
-    await expect(page.getByText("ISO 9001:2015")).toHaveCount(0);
-    await expect(page.getByText("15+ Years Experience")).toHaveCount(0);
-    await expect(page.getByText("Pay today")).toHaveCount(0);
-    await expectNoA11yViolations(page);
-    await captureEvidence(page, testInfo, "populated.png");
-  },
-);
+  await expect(page.getByText("IATA Accredited")).toHaveCount(0);
+  await expect(page.getByText("ISO 9001:2015")).toHaveCount(0);
+  await expect(page.getByText("15+ Years Experience")).toHaveCount(0);
+  await expect(page.getByText("Pay today")).toHaveCount(0);
+  await expectNoA11yViolations(page);
+  await captureEvidence(page, testInfo, "populated.png");
+});
 
-test(
-  "package detail exposes a calm unavailable state",
-  async ({ page }, testInfo) => {
-    await page.route(`**/api/v1/departures/${departureId}`, (route) =>
-      route.fulfill({
-        status: 404,
-        json: { title: "Published package not found" },
-      }),
-    );
+test("package detail exposes a calm unavailable state", async ({
+  page,
+}, testInfo) => {
+  await page.route(`**/api/v1/departures/${departureId}`, (route) =>
+    route.fulfill({
+      status: 404,
+      json: { title: "Published package not found" },
+    }),
+  );
 
-    await page.goto(`/packages/${departureId}`);
-    await expect(page.getByRole("status")).toContainText(
-      "This package is not currently available.",
-    );
-    await expect(
-      page.getByRole("link", { name: "Browse available packages" }),
-    ).toBeVisible();
-    await expectNoHorizontalOverflow(page);
-    await expectNoA11yViolations(page);
-    await captureEvidence(page, testInfo, "unavailable.png");
-  },
-);
+  await page.goto(`/packages/${departureId}`);
+  await expect(page.getByRole("status")).toContainText(
+    "This package is not currently available.",
+  );
+  await expect(
+    page.getByRole("link", { name: "Browse available packages" }),
+  ).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  await expectNoA11yViolations(page);
+  await captureEvidence(page, testInfo, "unavailable.png");
+});
 
-test(
-  "package detail retry recovers after a public API error",
-  async ({ page }, testInfo) => {
-    let attempts = 0;
-    await page.route(`**/api/v1/departures/${departureId}`, (route) =>
-      ++attempts === 1
-        ? route.fulfill({
-            status: 503,
-            headers: { "X-Correlation-ID": "detail-test-503" },
-            json: {},
-          })
-        : route.fulfill({ json: publishedDetail }),
-    );
+test("package detail retry recovers after a public API error", async ({
+  page,
+}, testInfo) => {
+  let attempts = 0;
+  await page.route(`**/api/v1/departures/${departureId}`, (route) =>
+    ++attempts === 1
+      ? route.fulfill({
+          status: 503,
+          headers: { "X-Correlation-ID": "detail-test-503" },
+          json: {},
+        })
+      : route.fulfill({ json: publishedDetail }),
+  );
 
-    await page.goto(`/packages/${departureId}`);
-    const errorState = page.locator('.package-detail-state[role="alert"]');
-    await expect(errorState).toContainText(
-      "We could not load this package right now.",
-    );
-    await expect(errorState).toContainText("detail-test-503");
-    await captureEvidence(page, testInfo, "error-before-retry.png");
+  await page.goto(`/packages/${departureId}`);
+  const errorState = page.locator('.package-detail-state[role="alert"]');
+  await expect(errorState).toContainText(
+    "We could not load this package right now.",
+  );
+  await expect(errorState).toContainText("detail-test-503");
+  await captureEvidence(page, testInfo, "error-before-retry.png");
 
-    await page.getByRole("button", { name: "Try again" }).click();
-    await expect(page.locator(".package-detail-name")).toHaveText(
-      "Browser Verified Journey",
-    );
-    await captureEvidence(page, testInfo, "retry-recovered.png");
-  },
-);
+  await page.getByRole("button", { name: "Try again" }).click();
+  await expect(page.locator(".package-detail-name")).toHaveText(
+    "Browser Verified Journey",
+  );
+  await captureEvidence(page, testInfo, "retry-recovered.png");
+});
 
-test(
-  "package detail remains usable at mobile widths, zoom and reduced motion",
-  async ({ page }, testInfo) => {
-    await page.route(`**/api/v1/departures/${departureId}`, (route) =>
-      route.fulfill({ json: publishedDetail }),
-    );
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto(`/packages/${departureId}`);
+test("package detail remains usable at mobile widths, zoom and reduced motion", async ({
+  page,
+}, testInfo) => {
+  await page.route(`**/api/v1/departures/${departureId}`, (route) =>
+    route.fulfill({ json: publishedDetail }),
+  );
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`/packages/${departureId}`);
 
-    await expect(page.locator(".package-detail-name")).toHaveText(
-      "Browser Verified Journey",
-    );
-    const pricing = page.locator(".occupancy-price-list");
-    await expect(pricing.getByText("₹90,000", { exact: true })).toBeVisible();
-    await expect(
-      pricing.getByText("Currently unavailable", { exact: true }),
-    ).toBeVisible();
-    await expectNoHorizontalOverflow(page);
-    await expectMinimumTargets(page);
-    await expectNoA11yViolations(page);
-    await captureEvidence(page, testInfo, "mobile-390.png");
+  await expect(page.locator(".package-detail-name")).toHaveText(
+    "Browser Verified Journey",
+  );
+  const pricing = page.locator(".occupancy-price-list");
+  await expect(pricing.getByText("₹90,000", { exact: true })).toBeVisible();
+  await expect(
+    pricing.getByText("Currently unavailable", { exact: true }),
+  ).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  await expectMinimumTargets(page);
+  await expectNoA11yViolations(page);
+  await captureEvidence(page, testInfo, "mobile-390.png");
 
-    await page.getByRole("link", { name: /Review options/ }).focus();
-    const focused = page.locator(":focus");
-    await expect(focused).toBeVisible();
-    expect(
-      await focused.evaluate((element) => getComputedStyle(element).outlineStyle),
-    ).not.toBe("none");
+  await page.getByRole("link", { name: /Review options/ }).focus();
+  const focused = page.locator(":focus");
+  await expect(focused).toBeVisible();
+  expect(
+    await focused.evaluate((element) => getComputedStyle(element).outlineStyle),
+  ).not.toBe("none");
 
-    await page.evaluate(() => {
-      document.documentElement.style.fontSize = "200%";
-    });
-    await expectNoHorizontalOverflow(page);
-    await captureEvidence(page, testInfo, "mobile-390-text-200.png");
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = "200%";
+  });
+  await expectNoHorizontalOverflow(page);
+  await captureEvidence(page, testInfo, "mobile-390-text-200.png");
 
-    await page.evaluate(() => {
-      document.documentElement.style.fontSize = "100%";
-    });
-    await page.setViewportSize({ width: 360, height: 800 });
-    await expect(page.locator(".package-detail-name")).toHaveText(
-      "Browser Verified Journey",
-    );
-    await expectNoHorizontalOverflow(page);
-    await expectMinimumTargets(page);
-    await captureEvidence(page, testInfo, "mobile-360.png");
-  },
-);
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = "100%";
+  });
+  await page.setViewportSize({ width: 360, height: 800 });
+  await expect(page.locator(".package-detail-name")).toHaveText(
+    "Browser Verified Journey",
+  );
+  await expectNoHorizontalOverflow(page);
+  await expectMinimumTargets(page);
+  await captureEvidence(page, testInfo, "mobile-360.png");
+});
