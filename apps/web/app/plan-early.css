@@ -219,6 +219,163 @@
   line-height: 1.55;
 }
 
+.package-milestones {
+  margin-top: 18px;
+  padding: clamp(22px, 3vw, 34px);
+  border: 1px solid var(--public-line);
+  border-radius: 12px;
+  background: linear-gradient(
+    135deg,
+    var(--public-paper) 0%,
+    var(--public-ivory) 100%
+  );
+}
+
+.package-milestones-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 28px;
+}
+
+.package-milestones-heading > div {
+  max-width: 48rem;
+}
+
+.package-milestones-heading h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.65rem, 2.7vw, 2.5rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.package-milestones-heading > div > p:last-child {
+  max-width: 62ch;
+  margin: 10px 0 0;
+  color: var(--public-muted);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.package-departure-chip {
+  display: inline-flex;
+  min-width: 190px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--public-line);
+  border-radius: 9px;
+  background: var(--public-paper);
+}
+
+.package-departure-chip .public-icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.package-departure-chip > span {
+  display: grid;
+  gap: 2px;
+}
+
+.package-departure-chip small {
+  color: var(--public-muted);
+  font-size: 0.5625rem;
+}
+
+.package-departure-chip strong {
+  color: var(--public-green-deep);
+  font-size: 0.75rem;
+}
+
+.package-milestone-list {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(12px, 2vw, 28px);
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.package-milestone-list::before {
+  position: absolute;
+  top: 22px;
+  right: 9%;
+  left: 9%;
+  height: 1px;
+  background: var(--public-line);
+  content: "";
+}
+
+.package-milestone-list li {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.package-milestone-marker {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--public-gold);
+  border-radius: 50%;
+  background: var(--public-paper);
+}
+
+.package-milestone-marker .public-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.package-milestone-number {
+  display: block;
+  margin-top: 14px;
+  color: var(--public-gold-deep);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.6875rem;
+}
+
+.package-milestone-list h3 {
+  margin: 5px 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.package-milestone-list p {
+  margin: 7px 0 0;
+  color: var(--public-muted);
+  font-size: 0.625rem;
+  line-height: 1.55;
+}
+
+.package-milestone-note {
+  display: inline-flex;
+  max-width: 60rem;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 24px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--public-line);
+  border-radius: 8px;
+  background: var(--public-paper);
+  color: var(--public-muted);
+  font-size: 0.625rem;
+  line-height: 1.55;
+}
+
+.package-milestone-note .public-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
 @media (max-width: 980px) {
   .plan-ahead-story,
   .umrah-plan-preview {
@@ -230,6 +387,49 @@
   .plan-ahead-intro,
   .umrah-plan-preview-copy {
     max-width: 44rem;
+  }
+
+  .package-milestones-heading {
+    align-items: start;
+  }
+
+  .package-milestone-list {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .package-milestone-list::before {
+    top: 22px;
+    right: auto;
+    bottom: 24px;
+    left: 21px;
+    width: 1px;
+    height: auto;
+  }
+
+  .package-milestone-list li {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    column-gap: 14px;
+    padding-bottom: 20px;
+  }
+
+  .package-milestone-marker {
+    grid-row: 1 / 4;
+  }
+
+  .package-milestone-number,
+  .package-milestone-list h3,
+  .package-milestone-list p {
+    grid-column: 2;
+  }
+
+  .package-milestone-number {
+    margin-top: 0;
+  }
+
+  .package-milestone-list h3 {
+    margin-top: 3px;
   }
 }
 
@@ -272,6 +472,20 @@
   .umrah-plan-card-items > div:last-child {
     border-bottom: 0;
   }
+
+  .package-milestones {
+    padding: 20px 18px;
+  }
+
+  .package-milestones-heading {
+    display: grid;
+    gap: 16px;
+  }
+
+  .package-departure-chip {
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 @media (max-width: 420px) {
@@ -281,5 +495,9 @@
 
   .package-plan-ahead {
     align-items: flex-start;
+  }
+
+  .package-milestones {
+    padding: 18px 14px;
   }
 }
