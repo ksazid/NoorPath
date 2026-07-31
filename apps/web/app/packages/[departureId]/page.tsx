@@ -292,8 +292,8 @@ function PackageContent({ details }: { details: PackageDetails }) {
         <p>{details.summary}</p>
         <p>
           Published prices and current availability are shown above. A
-          traveller-specific quote and any applicable payment schedule are
-          shown before commitment.
+          traveller-specific quote and any applicable payment schedule are shown
+          before commitment.
         </p>
       </section>
     </>
@@ -319,7 +319,9 @@ function PricingSummary({ details }: { details: PackageDetails }) {
                   : "Currently unavailable"}
               </small>
             </span>
-            <strong>{formatMoney(item.amount, details.pricing.currency)}</strong>
+            <strong>
+              {formatMoney(item.amount, details.pricing.currency)}
+            </strong>
           </div>
         ))}
       </div>
