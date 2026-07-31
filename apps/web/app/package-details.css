@@ -6,6 +6,12 @@
   line-height: 1.35;
 }
 
+.package-breadcrumbs a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+}
+
 .occupancy-price-list {
   display: grid;
   margin-top: 10px;
