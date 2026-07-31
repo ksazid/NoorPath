@@ -314,28 +314,28 @@ public static class TravellerQuoteEndpoints
         QuoteRecord quote,
         IReadOnlyList<QuoteInstalment> instalments,
         bool expired) => new
-    {
-        quoteId = quote.Id,
-        departureId = quote.DepartureId,
-        priceVersionId = quote.PriceVersionId,
-        occupancy = OccupancyKey(quote.Occupancy),
-        travellerCount = quote.TravellerCount,
-        currency = quote.Currency,
-        unitPrice = quote.UnitPrice,
-        total = quote.Total,
-        dueNow = quote.DueNow,
-        remaining = quote.Remaining,
-        instalments = instalments.Select(item => new
         {
-            item.Sequence,
-            item.DueDate,
-            item.Amount
-        }),
-        quote.CreatedAtUtc,
-        quote.ExpiresAtUtc,
-        expired,
-        availabilityReserved = false
-    };
+            quoteId = quote.Id,
+            departureId = quote.DepartureId,
+            priceVersionId = quote.PriceVersionId,
+            occupancy = OccupancyKey(quote.Occupancy),
+            travellerCount = quote.TravellerCount,
+            currency = quote.Currency,
+            unitPrice = quote.UnitPrice,
+            total = quote.Total,
+            dueNow = quote.DueNow,
+            remaining = quote.Remaining,
+            instalments = instalments.Select(item => new
+            {
+                item.Sequence,
+                item.DueDate,
+                item.Amount
+            }),
+            quote.CreatedAtUtc,
+            quote.ExpiresAtUtc,
+            expired,
+            availabilityReserved = false
+        };
 
     private static int TravellerCountFor(PricingOccupancy occupancy) => occupancy switch
     {
