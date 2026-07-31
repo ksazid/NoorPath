@@ -4,13 +4,17 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
   rendered-review:
     name: Plan journey rendered review
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.pull_request.number == 41 && 'self-hosted' || 'ubuntu-latest' }}
     timeout-minutes: 20
     env:
       ASPNETCORE_ENVIRONMENT: Test
