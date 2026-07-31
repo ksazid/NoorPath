@@ -34,6 +34,7 @@ app.MapGet("/health/ready", () => Results.Ok(new HealthResponse("Ready")));
 app.MapOperatorAccess();
 app.MapCatalogueAuthoring();
 app.MapCommercialAuthoring();
+app.MapPaymentPlanAuthoring();
 app.MapPublicationReview();
 app.MapPublicDiscovery();
 app.MapPublicPackageDetails();
