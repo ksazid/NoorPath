@@ -1,0 +1,43 @@
+name: VS-07 Rendered Review
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  rendered-review:
+    name: Plan journey rendered review
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm --dir apps/web exec playwright install --with-deps chromium
+
+      - name: Run VS-07 rendered acceptance
+        run: pnpm --dir apps/web exec playwright test e2e/plan-journey.spec.ts
+
+      - name: Upload rendered evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vs07-rendered-review
+          if-no-files-found: warn
+          path: |
+            apps/web/test-results
+            apps/web/playwright-report
