@@ -1,283 +1,337 @@
-import type { Metadata } from "next";
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import {
-  findPublicPackagePreview,
-  publicPackagePreviews,
-  type PublicPackagePreview,
-} from "../../public-package-preview";
+import { useParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { Icon, PublicHeader } from "../../public-ui";
 
-type PackagePageProps = {
-  params: Promise<{ departureId: string }>;
+type ConfirmationState = "confirmed" | "pending";
+type Occupancy = "double" | "triple" | "quad";
+
+type StayDetails = {
+  hotelName: string;
+  classification: string;
+  distanceDisclosure: string;
+  nights: number;
+  confirmationState: ConfirmationState;
 };
 
-const itinerary = [
-  [
-    "Day 1",
-    "mosque",
-    "Arrival in Jeddah",
-    "Airport assistance & transfer to Makkah hotel. Check-in.",
-  ],
-  [
-    "Day 1–5",
-    "building",
-    "Makkah Stay",
-    "5 nights in Makkah. Perform Umrah, worship & leisure.",
-  ],
-  ["Day 6", "bus", "Guided Ziyarah", "Makkah Ziyarah with certified guide."],
-  [
-    "Day 7",
-    "users-three",
-    "Umrah Orientation",
-    "Umrah guidance session & rituals briefing.",
-  ],
-  [
-    "Day 8",
-    "train",
-    "Makkah to Madinah",
-    "Check-out & high-speed train transfer to Madinah.",
-  ],
-  [
-    "Day 8–12",
-    "mosque",
-    "Madinah Stay",
-    "5 nights in Madinah. Worship & leisure.",
-  ],
-  [
-    "Day 13",
-    "airplane-tilt",
-    "Departure",
-    "Check-out & transfer to airport for your return flight.",
-  ],
-] as const;
+type OccupancyDetail = {
+  occupancy: Occupancy;
+  amount: number;
+  availableQuantity: number;
+  status: "available" | "unavailable";
+};
 
-const included = [
-  ["airplane-tilt", "Return flights (Economy)"],
-  ["file-text", "Visa assistance"],
-  ["building", "Makkah hotel"],
-  ["mosque", "Madinah hotel"],
-  ["fork-knife", "Meals as per plan"],
-  ["bus", "Airport & intercity transport"],
-  ["map-trifold", "Guided Ziyarah"],
-  ["users-three", "Group leader & support"],
-] as const;
-
-const travelKit = [
-  ["suitcase-rolling", "Luggage tag"],
-  ["handbag", "Neck pouch / Document wallet"],
-  ["identification-card", "ID card"],
-  ["sim-card", "SIM / eSIM guidance"],
-  ["notepad", "Emergency contact card"],
-] as const;
-
-const umrahKit = [
-  ["shirt-folded", "Ihram for men / Prayer essentials"],
-  ["handbag", "Drawstring bag"],
-  ["shirt-folded", "Unscented toiletries"],
-  ["book-open-text", "Pocket Dua guide"],
-  ["drop", "Zamzam handling guidance"],
-] as const;
-
-const confirmed = [
-  "Hotels (Makkah & Madinah)",
-  "Return flights (Economy)",
-  "Umrah visa with insurance",
-  "Airport & intercity transfers",
-  "Meals as per itinerary",
-  "Guided Ziyarah",
-  "Group leader & support",
-] as const;
-
-const pending = [
-  "Flight schedule — To be confirmed",
-  "Room allocation — 7 days before arrival",
-  "Ziyarah timings — To be confirmed",
-] as const;
-
-export function generateStaticParams() {
-  return publicPackagePreviews.map((packagePreview) => ({
-    departureId: packagePreview.departureId,
-  }));
-}
-
-export async function generateMetadata({
-  params,
-}: PackagePageProps): Promise<Metadata> {
-  const { departureId } = await params;
-  const packagePreview = findPublicPackagePreview(departureId);
-
-  if (!packagePreview) return { title: "Package not found · NoorPath" };
-
-  return {
-    title: `${packagePreview.packageName} · NoorPath`,
-    description: packagePreview.summary,
+type PackageDetails = {
+  departureId: string;
+  operator: {
+    id: string;
+    displayName: string;
   };
-}
+  packageName: string;
+  summary: string;
+  origin: string;
+  departureDate: string;
+  returnDate: string;
+  durationNights: number;
+  makkah: StayDetails;
+  madinah: StayDetails;
+  travel: {
+    routeSummary: string;
+    details: string;
+    confirmationState: ConfirmationState;
+  };
+  inclusions: string[];
+  exclusions: string[];
+  pricing: {
+    currency: string;
+    occupancies: OccupancyDetail[];
+  };
+};
 
-export default async function PackageDetailsPage({ params }: PackagePageProps) {
-  const { departureId } = await params;
-  const packagePreview = findPublicPackagePreview(departureId);
+type DetailState =
+  | { kind: "loading" }
+  | { kind: "loaded"; details: PackageDetails }
+  | { kind: "not-found" }
+  | { kind: "error"; correlationId?: string };
 
-  if (!packagePreview) notFound();
+export default function PackageDetailsPage() {
+  const params = useParams<{ departureId: string }>();
+  const departureId = params.departureId;
+  const [state, setState] = useState<DetailState>({ kind: "loading" });
+
+  const load = useCallback(async () => {
+    setState({ kind: "loading" });
+
+    try {
+      const response = await fetch(
+        `/api/v1/departures/${encodeURIComponent(departureId)}`,
+        { cache: "no-store", credentials: "same-origin" },
+      );
+      const correlationId =
+        response.headers.get("X-Correlation-ID") ?? undefined;
+
+      if (response.status === 404) {
+        setState({ kind: "not-found" });
+        return;
+      }
+
+      if (!response.ok) {
+        setState({ kind: "error", correlationId });
+        return;
+      }
+
+      setState({
+        kind: "loaded",
+        details: (await response.json()) as PackageDetails,
+      });
+    } catch {
+      setState({ kind: "error" });
+    }
+  }, [departureId]);
+
+  useEffect(() => {
+    const pending = window.setTimeout(load, 0);
+    return () => window.clearTimeout(pending);
+  }, [load]);
 
   return (
     <div className="public-page package-page">
       <PublicHeader />
 
       <main className="package-main" id="main-content">
-        <nav className="package-breadcrumbs" aria-label="Breadcrumb">
-          <Link href="/">Home</Link>
-          <span aria-hidden="true">›</span>
-          <Link href="/#packages">Umrah Packages</Link>
-          <span aria-hidden="true">›</span>
-          <span>{packagePreview.packageName}</span>
-        </nav>
+        {state.kind === "loading" ? <PackageLoading /> : null}
+        {state.kind === "not-found" ? <PackageUnavailable /> : null}
+        {state.kind === "error" ? (
+          <PackageError correlationId={state.correlationId} onRetry={load} />
+        ) : null}
+        {state.kind === "loaded" ? (
+          <PackageContent details={state.details} />
+        ) : null}
+      </main>
 
-        <section className="package-overview" aria-labelledby="package-title">
-          <div className="package-gallery">
-            <div className="package-gallery-primary">
-              <Image
-                src={packagePreview.image}
-                alt="Masjid al-Haram and the Kaaba in Makkah"
-                fill
-                priority
-                sizes="(max-width: 960px) 55vw, 25vw"
-              />
-            </div>
-            <div className="package-gallery-secondary">
-              <Image
-                src="/assets/madinah-reference.svg"
-                alt="Al-Masjid an-Nabawi and the green dome in Madinah"
-                fill
-                sizes="(max-width: 960px) 45vw, 20vw"
-              />
-            </div>
-            <span className="package-gallery-status">
-              Seat status
-              <strong>Confirm with operator</strong>
+      {state.kind === "loaded" ? (
+        <StickySummary details={state.details} />
+      ) : null}
+    </div>
+  );
+}
+
+function PackageContent({ details }: { details: PackageDetails }) {
+  const confirmedFacts = factLabels(details, "confirmed");
+  const pendingFacts = factLabels(details, "pending");
+
+  return (
+    <>
+      <nav className="package-breadcrumbs" aria-label="Breadcrumb">
+        <Link href="/">Home</Link>
+        <span aria-hidden="true">›</span>
+        <Link href="/#packages">Umrah Packages</Link>
+        <span aria-hidden="true">›</span>
+        <span>{details.packageName}</span>
+      </nav>
+
+      <section className="package-overview" aria-labelledby="package-title">
+        <div className="package-gallery">
+          <div className="package-gallery-primary">
+            <Image
+              src="/assets/kaaba-reference.svg"
+              alt="Masjid al-Haram and the Kaaba in Makkah"
+              fill
+              priority
+              sizes="(max-width: 960px) 55vw, 25vw"
+            />
+          </div>
+          <div className="package-gallery-secondary">
+            <Image
+              src="/assets/madinah-reference.svg"
+              alt="Al-Masjid an-Nabawi and the green dome in Madinah"
+              fill
+              sizes="(max-width: 960px) 45vw, 20vw"
+            />
+          </div>
+          <span className="package-gallery-status">
+            Availability
+            <strong>Available now</strong>
+          </span>
+        </div>
+
+        <div className="package-operator-summary">
+          <p className="verified-operator">
+            <Icon name="seal-check" /> Verified operator
+          </p>
+          <h1 id="package-title">{details.operator.displayName}</h1>
+          <p className="package-detail-name">{details.packageName}</p>
+          <div className="operator-credentials" aria-label="Journey details">
+            <span>
+              <Icon name="airplane-tilt" /> {details.origin}
+            </span>
+            <span>
+              <Icon name="clock" /> {details.durationNights} nights
+            </span>
+            <span>
+              <Icon name="map-trifold" /> {formatDate(details.departureDate)}
             </span>
           </div>
+          <StaySummary city="Makkah" stay={details.makkah} />
+          <StaySummary city="Madinah" stay={details.madinah} />
+        </div>
 
-          <div className="package-operator-summary">
-            <p className="verified-operator">
-              <Icon name="seal-check" /> Verified operator
-            </p>
-            <h1 id="package-title">Noor International Tours &amp; Travels</h1>
-            <div className="operator-credentials" aria-label="Operator details">
-              <span>
-                <Icon name="airplane-tilt" /> IATA Accredited
-              </span>
-              <span>
-                <Icon name="certificate" /> ISO 9001:2015
-              </span>
-              <span>
-                <Icon name="clock" /> 15+ Years Experience
-              </span>
-            </div>
-            <StaySummary city="Makkah" stay={packagePreview.makkah} />
-            <StaySummary city="Madinah" stay={packagePreview.madinah} />
-          </div>
+        <PricingSummary details={details} />
+      </section>
 
-          <PaymentSummary />
+      <div className="package-content-grid" id="journey-facts">
+        <section className="package-panel itinerary-panel">
+          <h2>Journey &amp; travel</h2>
+          <ol className="itinerary-list">
+            <JourneyFact
+              label="Depart"
+              icon="airplane-tilt"
+              title={`${formatDate(details.departureDate)} · ${details.origin}`}
+              copy="Published departure date and origin"
+            />
+            <JourneyFact
+              label="Route"
+              icon="map-trifold"
+              title={details.travel.routeSummary}
+              copy={confirmationCopy(details.travel.confirmationState)}
+            />
+            <JourneyFact
+              label="Travel"
+              icon="bus"
+              title="Operator travel details"
+              copy={details.travel.details}
+            />
+            <JourneyFact
+              label="Return"
+              icon="airplane-tilt"
+              title={formatDate(details.returnDate)}
+              copy={`${details.durationNights}-night published journey`}
+            />
+          </ol>
         </section>
 
-        <div className="package-content-grid" id="journey-facts">
-          <section className="package-panel itinerary-panel">
-            <h2>Your itinerary</h2>
-            <ol className="itinerary-list">
-              {itinerary.map(([day, icon, title, copy]) => (
-                <li key={`${day}-${title}`}>
-                  <span className="itinerary-day">{day}</span>
-                  <span className="itinerary-icon">
-                    <Icon name={icon} />
-                  </span>
-                  <div>
-                    <strong>{title}</strong>
-                    <p>{copy}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </section>
+        <div className="package-feature-column">
+          <FactGrid
+            title="Package includes"
+            items={details.inclusions}
+            icon="seal-check"
+            empty="No inclusions have been published for this package."
+          />
+          <FactGrid
+            title="Not included"
+            items={details.exclusions}
+            icon="file-text"
+            empty="No exclusions have been published for this package."
+          />
+        </div>
 
-          <div className="package-feature-column">
-            <IconGrid title="Package includes" items={included} columns={4} />
-            <IconGrid
-              title="Travel kit included"
-              items={travelKit}
-              columns={5}
-            />
-            <IconGrid title="Umrah kit included" items={umrahKit} columns={5} />
-          </div>
-
-          <div className="package-status-column">
-            <section className="package-panel fact-status-panel">
-              <div className="status-tabs" aria-label="Fact status legend">
-                <span>Confirmed</span>
-                <span>Pending</span>
-              </div>
-              <div className="status-columns">
-                <ul>
-                  {confirmed.map((item) => (
+        <div className="package-status-column">
+          <section className="package-panel fact-status-panel">
+            <div className="status-tabs" aria-label="Fact status legend">
+              <span>Confirmed</span>
+              <span>Pending</span>
+            </div>
+            <div className="status-columns">
+              <ul>
+                {confirmedFacts.length > 0 ? (
+                  confirmedFacts.map((item) => (
                     <li key={item}>
                       <Icon name="seal-check" /> {item}
                     </li>
-                  ))}
-                </ul>
-                <ul className="pending-list">
-                  {pending.map((item) => (
+                  ))
+                ) : (
+                  <li>No material journey facts are confirmed yet.</li>
+                )}
+              </ul>
+              <ul className="pending-list">
+                {pendingFacts.length > 0 ? (
+                  pendingFacts.map((item) => (
                     <li key={item}>
                       <Icon name="clock" /> {item}
                     </li>
-                  ))}
-                </ul>
+                  ))
+                ) : (
+                  <li>No material journey facts are pending.</li>
+                )}
+              </ul>
+            </div>
+          </section>
+
+          <section className="package-panel cancellation-panel">
+            <h2>Booking terms</h2>
+            <dl>
+              <div>
+                <dt>Cancellation entitlement</dt>
+                <dd>Shown before booking commitment</dd>
               </div>
-            </section>
-
-            <section className="package-panel cancellation-panel">
-              <h2>Cancellation summary</h2>
-              <dl>
-                <div>
-                  <dt>Operator policy</dt>
-                  <dd>Provided before booking</dd>
-                </div>
-                <div>
-                  <dt>Cancellation window</dt>
-                  <dd>Confirmed in writing</dd>
-                </div>
-                <div>
-                  <dt>Refund terms</dt>
-                  <dd>Shown before payment</dd>
-                </div>
-                <div>
-                  <dt>Need clarification?</dt>
-                  <dd>Ask human support</dd>
-                </div>
-              </dl>
-              <a href="#payment-plan">
-                View payment &amp; refund policy{" "}
-                <span aria-hidden="true">›</span>
-              </a>
-            </section>
-          </div>
+              <div>
+                <dt>Refund terms</dt>
+                <dd>Shown before payment</dd>
+              </div>
+              <div>
+                <dt>Payment schedule</dt>
+                <dd>Not quoted on this page</dd>
+              </div>
+              <div>
+                <dt>Need clarification?</dt>
+                <dd>Human support is available</dd>
+              </div>
+            </dl>
+            <a href="mailto:support@noorpath.example">
+              Ask about booking terms <span aria-hidden="true">›</span>
+            </a>
+          </section>
         </div>
-      </main>
-
-      <div
-        className="package-sticky-action"
-        role="region"
-        aria-label="Package actions"
-      >
-        <SummaryCell label="Journey details" value="Operator verified" />
-        <SummaryCell label="Payment" value="Confirmed first" tone="green" />
-        <SummaryCell label="Availability" value="On request" tone="gold" />
-        <a href="mailto:support@noorpath.example">
-          Request details <span aria-hidden="true">›</span>
-        </a>
       </div>
-    </div>
+
+      <section className="package-detail-summary" aria-label="Package summary">
+        <h2>About this package</h2>
+        <p>{details.summary}</p>
+        <p>
+          Published prices and current availability are shown above. A
+          traveller-specific quote and any applicable payment schedule are shown
+          before commitment.
+        </p>
+      </section>
+    </>
+  );
+}
+
+function PricingSummary({ details }: { details: PackageDetails }) {
+  return (
+    <aside
+      className="payment-summary-card"
+      id="pricing-and-availability"
+      aria-label="Published pricing and availability"
+    >
+      <h2>Pricing &amp; availability</h2>
+      <div className="occupancy-price-list">
+        {details.pricing.occupancies.map((item) => (
+          <div className="occupancy-price-row" key={item.occupancy}>
+            <span>
+              <strong>{occupancyLabel(item.occupancy)}</strong>
+              <small>
+                {item.status === "available"
+                  ? `${item.availableQuantity} available`
+                  : "Currently unavailable"}
+              </small>
+            </span>
+            <strong>
+              {formatMoney(item.amount, details.pricing.currency)}
+            </strong>
+          </div>
+        ))}
+      </div>
+      <p className="package-pricing-note">
+        Published occupancy pricing. No payment is taken on this page.
+      </p>
+      <a href="mailto:support@noorpath.example">
+        Ask about this package <span aria-hidden="true">›</span>
+      </a>
+    </aside>
   );
 }
 
@@ -286,7 +340,7 @@ function StaySummary({
   stay,
 }: {
   city: "Makkah" | "Madinah";
-  stay: PublicPackagePreview["makkah"];
+  stay: StayDetails;
 }) {
   return (
     <div className="stay-summary">
@@ -296,97 +350,98 @@ function StaySummary({
         <em>{stay.distanceDisclosure}</em>
       </div>
       <p>
-        {stay.nights} Nights <span aria-hidden="true">·</span> Quad Sharing
+        {stay.nights} Nights <span aria-hidden="true">·</span>{" "}
+        {stay.classification} <span aria-hidden="true">·</span>{" "}
+        {confirmationCopy(stay.confirmationState)}
       </p>
     </div>
   );
 }
 
-function PaymentSummary() {
-  return (
-    <aside className="payment-summary-card" aria-label="Payment summary">
-      <h2>Payment summary</h2>
-      <div className="payment-totals">
-        <SummaryCell label="Package amount" value="Pending confirmation" />
-        <SummaryCell label="Pay today" value="Nothing yet" tone="green" />
-        <SummaryCell
-          label="Remaining"
-          value="Shown before payment"
-          tone="gold"
-        />
-      </div>
-      <h3 id="payment-plan">Payment process</h3>
-      <ol className="instalment-plan">
-        <PaymentStep
-          label="Review confirmed journey"
-          note="Hotels, travel, and inclusions"
-          date="Before payment"
-        />
-        <PaymentStep
-          label="Receive operator terms"
-          note="Amount, schedule, and cancellation"
-          date="In writing"
-        />
-        <PaymentStep
-          label="Choose whether to proceed"
-          note="Human support remains available"
-          date="Your decision"
-        />
-      </ol>
-      <a href="#payment-plan">
-        View payment &amp; refund policy <span aria-hidden="true">›</span>
-      </a>
-    </aside>
-  );
-}
-
-function PaymentStep({
+function JourneyFact({
   label,
-  note,
-  date,
+  icon,
+  title,
+  copy,
 }: {
   label: string;
-  note: string;
-  date: string;
+  icon: string;
+  title: string;
+  copy: string;
 }) {
   return (
     <li>
-      <span className="payment-dot" aria-hidden="true" />
+      <span className="itinerary-day">{label}</span>
+      <span className="itinerary-icon">
+        <Icon name={icon} />
+      </span>
       <div>
-        <strong>{label}</strong>
-        <small>{note}</small>
+        <strong>{title}</strong>
+        <p>{copy}</p>
       </div>
-      <time>{date}</time>
     </li>
   );
 }
 
-function IconGrid({
+function FactGrid({
   title,
   items,
-  columns,
+  icon,
+  empty,
 }: {
   title: string;
-  items: readonly (readonly [string, string])[];
-  columns: 4 | 5;
+  items: string[];
+  icon: string;
+  empty: string;
 }) {
   return (
-    <section className="package-panel icon-grid-panel">
+    <section className="package-panel icon-grid-panel package-fact-grid">
       <h2>{title}</h2>
-      <ul style={{ "--icon-columns": columns } as React.CSSProperties}>
-        {items.map(([icon, label]) => (
-          <li key={label}>
-            <Icon name={icon} />
-            <span>{label}</span>
-          </li>
-        ))}
-      </ul>
-      {title !== "Package includes" ? (
-        <small>
-          Kit contents may differ based on traveller type and itinerary.
-        </small>
-      ) : null}
+      {items.length > 0 ? (
+        <ul>
+          {items.map((item) => (
+            <li key={item}>
+              <Icon name={icon} />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>{empty}</p>
+      )}
     </section>
+  );
+}
+
+function StickySummary({ details }: { details: PackageDetails }) {
+  const available = details.pricing.occupancies.filter(
+    (item) => item.status === "available",
+  );
+  const startingPrice = available.reduce((lowest, item) =>
+    item.amount < lowest.amount ? item : lowest,
+  );
+
+  return (
+    <div
+      className="package-sticky-action"
+      role="region"
+      aria-label="Package actions"
+    >
+      <SummaryCell label="Journey" value={`${details.durationNights} nights`} />
+      <SummaryCell
+        label="Published from"
+        value={formatMoney(startingPrice.amount, details.pricing.currency)}
+        tone="green"
+      />
+      <SummaryCell
+        label="Availability"
+        value={`${available.length} occupanc${available.length === 1 ? "y" : "ies"}`}
+        tone="gold"
+      />
+      <a href="#pricing-and-availability">
+        Review options <span aria-hidden="true">›</span>
+      </a>
+    </div>
   );
 }
 
@@ -405,4 +460,98 @@ function SummaryCell({
       <strong>{value}</strong>
     </div>
   );
+}
+
+function PackageLoading() {
+  return (
+    <section
+      className="package-detail-state package-detail-loading"
+      aria-live="polite"
+      aria-busy="true"
+      aria-label="Loading published package details"
+    >
+      <div className="package-detail-loading-gallery" />
+      <div className="package-detail-loading-copy">
+        <span />
+        <span />
+        <span />
+      </div>
+      <p>Loading published journey details…</p>
+    </section>
+  );
+}
+
+function PackageUnavailable() {
+  return (
+    <section className="package-detail-state" role="status">
+      <p className="package-state-kicker">Published journey unavailable</p>
+      <h1>This package is not currently available.</h1>
+      <p>
+        It may have changed, sold out, or no longer be eligible for public sale.
+      </p>
+      <Link href="/#packages">Browse available packages</Link>
+    </section>
+  );
+}
+
+function PackageError({
+  correlationId,
+  onRetry,
+}: {
+  correlationId?: string;
+  onRetry: () => void;
+}) {
+  return (
+    <section className="package-detail-state" role="alert">
+      <p className="package-state-kicker">Package details unavailable</p>
+      <h1>We could not load this package right now.</h1>
+      <p>Please check your connection and try again.</p>
+      {correlationId ? <small>Reference: {correlationId}</small> : null}
+      <button type="button" onClick={onRetry}>
+        Try again
+      </button>
+    </section>
+  );
+}
+
+function factLabels(details: PackageDetails, state: ConfirmationState) {
+  const facts = [
+    ["Makkah stay", details.makkah.confirmationState],
+    ["Madinah stay", details.madinah.confirmationState],
+    ["Travel details", details.travel.confirmationState],
+  ] as const;
+
+  return facts.filter(([, value]) => value === state).map(([label]) => label);
+}
+
+function confirmationCopy(state: ConfirmationState) {
+  return state === "confirmed" ? "Confirmed" : "Pending confirmation";
+}
+
+function occupancyLabel(value: Occupancy) {
+  return `${value.charAt(0).toUpperCase()}${value.slice(1)} sharing`;
+}
+
+function formatDate(value: string) {
+  const date = new Date(`${value}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+function formatMoney(amount: number, currency: string) {
+  try {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+    }).format(amount);
+  } catch {
+    return `${currency} ${amount.toFixed(2)}`;
+  }
 }

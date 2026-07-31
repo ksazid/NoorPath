@@ -55,6 +55,140 @@ public sealed class CustomerDiscoveryApiTests
     }
 
     [Fact]
+    public async Task Anonymous_customer_sees_authoritative_published_package_details()
+    {
+        using var app = await CommercialApi.CreateAsync(TestContext.Current.CancellationToken);
+        var departureId = await PublishDepartureAsync(app, TestContext.Current.CancellationToken);
+        using var anonymous = app.CreateClient();
+
+        var response = await anonymous.GetAsync(
+            $"/api/v1/departures/{departureId}",
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var raw = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.DoesNotContain("priceVersionId", raw, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("packageVersionId", raw, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("publishedByAccountId", raw, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("actorAccountId", raw, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("adjustmentReason", raw, StringComparison.OrdinalIgnoreCase);
+
+        using var body = JsonDocument.Parse(raw);
+        var root = body.RootElement;
+        Assert.Equal(departureId, root.GetProperty("departureId").GetGuid());
+        Assert.Equal(
+            "Noor International Tours & Travels",
+            root.GetProperty("operator").GetProperty("displayName").GetString());
+        Assert.Equal("Noor Discovery 12 Nights", root.GetProperty("packageName").GetString());
+        Assert.Equal("Delhi (DEL)", root.GetProperty("origin").GetString());
+        Assert.Equal("Makkah Hotel", root.GetProperty("makkah").GetProperty("hotelName").GetString());
+        Assert.Equal("confirmed", root.GetProperty("makkah").GetProperty("confirmationState").GetString());
+        Assert.Equal("Madinah Hotel", root.GetProperty("madinah").GetProperty("hotelName").GetString());
+        Assert.Equal(
+            "Delhi → Jeddah → Makkah → Madinah",
+            root.GetProperty("travel").GetProperty("routeSummary").GetString());
+        Assert.Equal("pending", root.GetProperty("travel").GetProperty("confirmationState").GetString());
+        Assert.Equal(
+            ["Return flights", "Breakfast"],
+            root.GetProperty("inclusions").EnumerateArray().Select(x => x.GetString()!).ToArray());
+        Assert.Equal(
+            ["Personal expenses"],
+            root.GetProperty("exclusions").EnumerateArray().Select(x => x.GetString()!).ToArray());
+
+        var pricing = root.GetProperty("pricing");
+        Assert.Equal("INR", pricing.GetProperty("currency").GetString());
+        var occupancies = pricing.GetProperty("occupancies").EnumerateArray().ToArray();
+        Assert.Equal(3, occupancies.Length);
+        Assert.Equal("double", occupancies[0].GetProperty("occupancy").GetString());
+        Assert.Equal(110000m, occupancies[0].GetProperty("amount").GetDecimal());
+        Assert.Equal(10, occupancies[0].GetProperty("availableQuantity").GetInt32());
+        Assert.Equal("available", occupancies[0].GetProperty("status").GetString());
+        Assert.Equal("quad", occupancies[2].GetProperty("occupancy").GetString());
+        Assert.Equal(90000m, occupancies[2].GetProperty("amount").GetDecimal());
+    }
+
+    [Fact]
+    public async Task Package_details_show_priced_occupancy_as_unavailable_when_current_inventory_is_zero()
+    {
+        using var app = await CommercialApi.CreateAsync(TestContext.Current.CancellationToken);
+        var departureId = await PublishDepartureAsync(app, TestContext.Current.CancellationToken);
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var inventory = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
+            var configuration = await inventory.Configurations.SingleAsync(
+                x => x.DepartureId == departureId,
+                TestContext.Current.CancellationToken);
+            var quad = await inventory.Pools.SingleAsync(
+                x => x.InventoryConfigurationId == configuration.Id && x.Occupancy.ToString() == "Quad",
+                TestContext.Current.CancellationToken);
+            quad.Capacity = 0;
+            await inventory.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
+        using var anonymous = app.CreateClient();
+        var response = await anonymous.GetAsync(
+            $"/api/v1/departures/{departureId}",
+            TestContext.Current.CancellationToken);
+        response.EnsureSuccessStatusCode();
+        using var body = JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        var quadDetail = body.RootElement
+            .GetProperty("pricing")
+            .GetProperty("occupancies")
+            .EnumerateArray()
+            .Single(item => item.GetProperty("occupancy").GetString() == "quad");
+
+        Assert.Equal(0, quadDetail.GetProperty("availableQuantity").GetInt32());
+        Assert.Equal("unavailable", quadDetail.GetProperty("status").GetString());
+    }
+
+    [Fact]
+    public async Task Unknown_or_non_saleable_package_details_return_the_same_public_not_found_status()
+    {
+        using var app = await CommercialApi.CreateAsync(TestContext.Current.CancellationToken);
+        using var author = app.CreateOperatorClient(CommercialApi.AuthorIdentity);
+        using var anonymous = app.CreateClient();
+        var draftId = await CreateDraftAsync(author, TestContext.Current.CancellationToken);
+
+        var unknown = await anonymous.GetAsync(
+            $"/api/v1/departures/{Guid.NewGuid()}",
+            TestContext.Current.CancellationToken);
+        var draft = await anonymous.GetAsync(
+            $"/api/v1/departures/{draftId}",
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.NotFound, unknown.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, draft.StatusCode);
+    }
+
+    [Fact]
+    public async Task Published_package_details_are_hidden_when_operator_is_suspended()
+    {
+        using var app = await CommercialApi.CreateAsync(TestContext.Current.CancellationToken);
+        var departureId = await PublishDepartureAsync(app, TestContext.Current.CancellationToken);
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var operators = scope.ServiceProvider.GetRequiredService<OperatorsDbContext>();
+            var operation = await operators.Operators.SingleAsync(
+                x => x.Id == "operator-noor",
+                TestContext.Current.CancellationToken);
+            operation.State = OperatorState.Suspended;
+            operation.Version++;
+            operation.UpdatedAtUtc = DateTimeOffset.UtcNow;
+            await operators.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
+        using var anonymous = app.CreateClient();
+        var response = await anonymous.GetAsync(
+            $"/api/v1/departures/{departureId}",
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Draft_and_ready_for_review_departures_are_not_public()
     {
         using var app = await CommercialApi.CreateAsync(TestContext.Current.CancellationToken);
@@ -135,6 +269,11 @@ public sealed class CustomerDiscoveryApiTests
 
         using var anonymous = app.CreateClient();
         await AssertNoPublicItemsAsync(anonymous, TestContext.Current.CancellationToken);
+
+        var details = await anonymous.GetAsync(
+            $"/api/v1/departures/{departureId}",
+            TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.NotFound, details.StatusCode);
     }
 
     [Fact]

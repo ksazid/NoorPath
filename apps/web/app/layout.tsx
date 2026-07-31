@@ -6,6 +6,7 @@ import "./commercial.css";
 import "./publication.css";
 import "./public.css";
 import "./discovery.css";
+import "./package-details.css";
 import "./refinement.css";
 
 export const metadata: Metadata = {
