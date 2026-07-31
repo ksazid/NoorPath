@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import {
   expectMinimumTargets,
   expectNoA11yViolations,
@@ -65,9 +65,15 @@ const publishedDetail = {
   },
 };
 
-test("published package detail renders authoritative facts", async ({
-  page,
-}) => {
+async function captureEvidence(page: Page, testInfo: TestInfo, name: string) {
+  await page.screenshot({
+    path: testInfo.outputPath(name),
+    fullPage: true,
+    animations: "disabled",
+  });
+}
+
+test("published package detail renders authoritative facts", async ({ page }, testInfo) => {
   await page.route(`**/api/v1/departures/${departureId}`, (route) =>
     route.fulfill({ json: publishedDetail }),
   );
@@ -98,9 +104,10 @@ test("published package detail renders authoritative facts", async ({
   await expect(page.getByText("15+ Years Experience")).toHaveCount(0);
   await expect(page.getByText("Pay today")).toHaveCount(0);
   await expectNoA11yViolations(page);
+  await captureEvidence(page, testInfo, "populated.png");
 });
 
-test("package detail exposes a calm unavailable state", async ({ page }) => {
+test("package detail exposes a calm unavailable state", async ({ page }, testInfo) => {
   await page.route(`**/api/v1/departures/${departureId}`, (route) =>
     route.fulfill({
       status: 404,
@@ -117,11 +124,10 @@ test("package detail exposes a calm unavailable state", async ({ page }) => {
   ).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await expectNoA11yViolations(page);
+  await captureEvidence(page, testInfo, "unavailable.png");
 });
 
-test("package detail retry recovers after a public API error", async ({
-  page,
-}) => {
+test("package detail retry recovers after a public API error", async ({ page }, testInfo) => {
   let attempts = 0;
   await page.route(`**/api/v1/departures/${departureId}`, (route) =>
     ++attempts === 1
@@ -138,15 +144,18 @@ test("package detail retry recovers after a public API error", async ({
     "We could not load this package right now.",
   );
   await expect(page.getByRole("alert")).toContainText("detail-test-503");
+  await captureEvidence(page, testInfo, "error-before-retry.png");
+
   await page.getByRole("button", { name: "Try again" }).click();
   await expect(
     page.getByText("Browser Verified Journey").first(),
   ).toBeVisible();
+  await captureEvidence(page, testInfo, "retry-recovered.png");
 });
 
 test("package detail remains usable at mobile widths, zoom and reduced motion", async ({
   page,
-}) => {
+}, testInfo) => {
   await page.route(`**/api/v1/departures/${departureId}`, (route) =>
     route.fulfill({ json: publishedDetail }),
   );
@@ -162,6 +171,7 @@ test("package detail remains usable at mobile widths, zoom and reduced motion", 
   await expectNoHorizontalOverflow(page);
   await expectMinimumTargets(page);
   await expectNoA11yViolations(page);
+  await captureEvidence(page, testInfo, "mobile-390.png");
 
   await page.getByRole("link", { name: /Review options/ }).focus();
   const focused = page.locator(":focus");
@@ -174,6 +184,7 @@ test("package detail remains usable at mobile widths, zoom and reduced motion", 
     document.documentElement.style.fontSize = "200%";
   });
   await expectNoHorizontalOverflow(page);
+  await captureEvidence(page, testInfo, "mobile-390-text-200.png");
 
   await page.evaluate(() => {
     document.documentElement.style.fontSize = "100%";
@@ -184,4 +195,5 @@ test("package detail remains usable at mobile widths, zoom and reduced motion", 
   ).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await expectMinimumTargets(page);
+  await captureEvidence(page, testInfo, "mobile-360.png");
 });
