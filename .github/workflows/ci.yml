@@ -14,6 +14,7 @@ jobs:
   secrets:
     name: Secret scanning
     runs-on: ubuntu-latest
+    # Only run on push or on PRs from the same repository (skip fork PRs)
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
         contents: read
@@ -46,8 +47,6 @@ jobs:
   dotnet:
     name: .NET validation
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     services:
       postgres:
         image: postgres:18-alpine
@@ -69,9 +68,6 @@ jobs:
       NOORPATH_COMMERCIAL_TEST_DB: Host=localhost;Port=5432;Database=noorpath_commercial_test;Username=noorpath;Password=ci-local-only-password
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
@@ -80,77 +76,6 @@ jobs:
         run: dotnet tool install --global dotnet-ef --version 10.0.10
 
       - run: dotnet restore NoorPath.slnx
-      - name: Normalize VS-07 integration fixture
-        if: github.event_name == 'pull_request'
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 <<'PY'
-          from pathlib import Path
-
-          path = Path("tests/NoorPath.Commercial.Integration.Tests/CommercialAuthoringApiTests.cs")
-          text = path.read_text()
-
-          if "using NoorPath.Traveller.Infrastructure;" not in text:
-              old = "using NoorPath.Pricing.Infrastructure;\nusing NoorPath.Testing;"
-              if old not in text:
-                  raise SystemExit("CommercialApi using insertion point not found")
-              text = text.replace(
-                  old,
-                  "using NoorPath.Pricing.Infrastructure;\nusing NoorPath.Testing;\nusing NoorPath.Traveller.Infrastructure;",
-                  1,
-              )
-
-          if "GetRequiredService<TravellerDbContext>()" not in text:
-              old = "        var inventory = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();\n        await catalogue.Database.EnsureDeletedAsync(cancellationToken);"
-              if old not in text:
-                  raise SystemExit("CommercialApi migration insertion point not found")
-              text = text.replace(
-                  old,
-                  "        var inventory = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();\n        var traveller = scope.ServiceProvider.GetRequiredService<TravellerDbContext>();\n        await catalogue.Database.EnsureDeletedAsync(cancellationToken);",
-                  1,
-              )
-              old = "        await inventory.Database.MigrateAsync(cancellationToken);\n        await SeedOperatorsAsync(operators, cancellationToken);"
-              if old not in text:
-                  raise SystemExit("CommercialApi traveller migration point not found")
-              text = text.replace(
-                  old,
-                  "        await inventory.Database.MigrateAsync(cancellationToken);\n        await traveller.Database.MigrateAsync(cancellationToken);\n        await SeedOperatorsAsync(operators, cancellationToken);",
-                  1,
-              )
-
-          if "services.RemoveAll<DbContextOptions<TravellerDbContext>>();" not in text:
-              old = "            services.RemoveAll<DbContextOptions<InventoryDbContext>>();\n            services.RemoveAll<InventoryDbContext>();"
-              if old not in text:
-                  raise SystemExit("CommercialApi remove Traveller insertion point not found")
-              text = text.replace(
-                  old,
-                  old + "\n            services.RemoveAll<DbContextOptions<TravellerDbContext>>();\n            services.RemoveAll<TravellerDbContext>();",
-                  1,
-              )
-
-          if "services.AddDbContext<TravellerDbContext>" not in text:
-              old = '''            services.AddDbContext<InventoryDbContext>(options =>\n                options.UseNpgsql(\n                    connection,\n                    postgres => postgres.MigrationsAssembly(typeof(InventoryDbContext).Assembly.FullName)));'''
-              if old not in text:
-                  raise SystemExit("CommercialApi add Traveller insertion point not found")
-              text = text.replace(
-                  old,
-                  old + '''\n            services.AddDbContext<TravellerDbContext>(options =>\n                options.UseNpgsql(\n                    connection,\n                    postgres => postgres.MigrationsAssembly(typeof(TravellerDbContext).Assembly.FullName)));''',
-                  1,
-              )
-
-          path.write_text(text)
-          PY
-
-          dotnet format NoorPath.slnx --no-restore
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- '*.cs'
-          if ! git diff --cached --quiet; then
-            git commit -m 'chore(vs07): normalize quote integration fixture'
-            git push origin HEAD:${{ github.head_ref }}
-          fi
-
       - run: dotnet format NoorPath.slnx --verify-no-changes --no-restore
       - run: dotnet build NoorPath.slnx --configuration Release --no-restore
 
