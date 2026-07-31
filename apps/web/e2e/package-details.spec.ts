@@ -65,7 +65,9 @@ const publishedDetail = {
   },
 };
 
-test("published package detail renders authoritative facts", async ({ page }) => {
+test("published package detail renders authoritative facts", async ({
+  page,
+}) => {
   await page.route(`**/api/v1/departures/${departureId}`, (route) =>
     route.fulfill({ json: publishedDetail }),
   );
@@ -75,10 +77,14 @@ test("published package detail renders authoritative facts", async ({ page }) =>
   await expect(
     page.getByRole("heading", { name: "Noor International Tours & Travels" }),
   ).toBeVisible();
-  await expect(page.getByText("Browser Verified Journey").first()).toBeVisible();
+  await expect(
+    page.getByText("Browser Verified Journey").first(),
+  ).toBeVisible();
   await expect(page.getByText("Makkah Hotel")).toBeVisible();
   await expect(page.getByText("Madinah Hotel")).toBeVisible();
-  await expect(page.getByText("Delhi → Jeddah → Makkah → Madinah")).toBeVisible();
+  await expect(
+    page.getByText("Delhi → Jeddah → Makkah → Madinah"),
+  ).toBeVisible();
   await expect(page.getByText("Return flights")).toBeVisible();
   await expect(page.getByText("Personal expenses")).toBeVisible();
   await expect(page.getByText("₹1,10,000")).toBeVisible();
@@ -96,7 +102,10 @@ test("published package detail renders authoritative facts", async ({ page }) =>
 
 test("package detail exposes a calm unavailable state", async ({ page }) => {
   await page.route(`**/api/v1/departures/${departureId}`, (route) =>
-    route.fulfill({ status: 404, json: { title: "Published package not found" } }),
+    route.fulfill({
+      status: 404,
+      json: { title: "Published package not found" },
+    }),
   );
 
   await page.goto(`/packages/${departureId}`);
@@ -110,7 +119,9 @@ test("package detail exposes a calm unavailable state", async ({ page }) => {
   await expectNoA11yViolations(page);
 });
 
-test("package detail retry recovers after a public API error", async ({ page }) => {
+test("package detail retry recovers after a public API error", async ({
+  page,
+}) => {
   let attempts = 0;
   await page.route(`**/api/v1/departures/${departureId}`, (route) =>
     ++attempts === 1
@@ -128,7 +139,9 @@ test("package detail retry recovers after a public API error", async ({ page }) 
   );
   await expect(page.getByRole("alert")).toContainText("detail-test-503");
   await page.getByRole("button", { name: "Try again" }).click();
-  await expect(page.getByText("Browser Verified Journey").first()).toBeVisible();
+  await expect(
+    page.getByText("Browser Verified Journey").first(),
+  ).toBeVisible();
 });
 
 test("package detail remains usable at mobile widths, zoom and reduced motion", async ({
@@ -141,7 +154,9 @@ test("package detail remains usable at mobile widths, zoom and reduced motion", 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`/packages/${departureId}`);
 
-  await expect(page.getByText("Browser Verified Journey").first()).toBeVisible();
+  await expect(
+    page.getByText("Browser Verified Journey").first(),
+  ).toBeVisible();
   await expect(page.getByText("₹90,000").first()).toBeVisible();
   await expect(page.getByText("Currently unavailable")).toBeVisible();
   await expectNoHorizontalOverflow(page);
@@ -164,7 +179,9 @@ test("package detail remains usable at mobile widths, zoom and reduced motion", 
     document.documentElement.style.fontSize = "100%";
   });
   await page.setViewportSize({ width: 360, height: 800 });
-  await expect(page.getByText("Browser Verified Journey").first()).toBeVisible();
+  await expect(
+    page.getByText("Browser Verified Journey").first(),
+  ).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await expectMinimumTargets(page);
 });
