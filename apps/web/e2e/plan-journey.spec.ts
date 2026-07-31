@@ -110,9 +110,11 @@ async function completeQuote(page: Page) {
   await expect(page.getByText("October Umrah Journey — Delhi")).toBeVisible();
 
   await page.locator('input[name="occupancy"][value="double"]').check();
-  await page.getByText("Amina Khan").click();
-  await page.getByText("Yusuf Khan").click();
-  await expect(page.getByText("2 of 2 travellers selected")).toBeVisible();
+  await page.getByRole("checkbox", { name: /Amina Khan/ }).check();
+  await page.getByRole("checkbox", { name: /Yusuf Khan/ }).check();
+  const selectionCount = page.locator(".plan-selection-count");
+  await expect(selectionCount).toContainText("2");
+  await expect(selectionCount).toContainText("of 2 travellers selected");
 
   await page.getByRole("button", { name: "See my complete quote" }).click();
   await expect(page.getByText("Authoritative quote")).toBeVisible();
