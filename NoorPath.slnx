@@ -24,5 +24,6 @@
     <Project Path="tests/NoorPath.Operators.Tests/NoorPath.Operators.Tests.csproj" />
     <Project Path="tests/NoorPath.Operators.Integration.Tests/NoorPath.Operators.Integration.Tests.csproj" />
     <Project Path="tests/NoorPath.Pricing.Tests/NoorPath.Pricing.Tests.csproj" />
+    <Project Path="tests/NoorPath.Traveller.Tests/NoorPath.Traveller.Tests.csproj" />
   </Folder>
 </Solution>
