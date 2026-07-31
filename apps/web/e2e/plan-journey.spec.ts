@@ -119,7 +119,9 @@ async function completeQuote(page: Page) {
   await expect(page.getByText("₹2,20,000")).toBeVisible();
   await expect(page.getByText("₹44,000")).toBeVisible();
   await expect(page.getByText("₹1,76,000")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Payment schedule" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Payment schedule" }),
+  ).toBeVisible();
   await expect(page.getByText("Instalment 1")).toBeVisible();
   await expect(page.getByText("No place is reserved yet.")).toBeVisible();
 }
