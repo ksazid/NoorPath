@@ -17,9 +17,9 @@ jobs:
     # Only run on push or on PRs from the same repository (skip fork PRs)
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
-        contents: read
-        checks: write
-        pull-requests: read
+      contents: read
+      checks: write
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,6 +43,34 @@ jobs:
       - run: pnpm check
       - run: pnpm test
       - run: pnpm build
+
+  vs06_rendered_review:
+    name: VS-06 rendered review
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        working-directory: apps/web
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run VS-06 Package Details browser checks
+        working-directory: apps/web
+        run: pnpm exec playwright test e2e/package-details.spec.ts --config=playwright.vs06.config.ts
+      - name: Upload rendered evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vs06-rendered-review
+          path: |
+            apps/web/test-results/vs06
+            apps/web/playwright-report/vs06
+            design-references/noorpath-package-reference.png
+          retention-days: 14
 
   dotnet:
     name: .NET validation
