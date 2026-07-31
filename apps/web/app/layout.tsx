@@ -10,6 +10,7 @@ import "./discovery.css";
 import "./package-details.css";
 import "./refinement.css";
 import "./plan-early.css";
+import "./vs07-entry.css";
 import "./plan.css";
 
 export const metadata: Metadata = {
