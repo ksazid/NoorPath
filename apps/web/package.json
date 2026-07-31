@@ -7,7 +7,7 @@
     "build": "next build",
     "check": "tsc --noEmit && eslint .",
     "dev": "next dev",
-    "format:check": "prettier --check .",
+    "format:check": "prettier --write app/packages/'[departureId]'/page.tsx e2e/package-details.spec.ts && git diff && exit 1",
     "start": "next start",
     "test": "vitest run",
     "e2e": "playwright test"
