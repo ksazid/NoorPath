@@ -6,6 +6,11 @@
   justify-content: center;
 }
 
+.plan-page .package-breadcrumbs a:focus {
+  outline: 3px solid rgba(23, 107, 80, 0.32);
+  outline-offset: 2px;
+}
+
 .plan-page .plan-main,
 .plan-page .plan-context,
 .plan-page .plan-workspace,
