@@ -55,6 +55,11 @@ jobs:
           node-version-file: .node-version
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
+      - name: Show canonical VS-06 test formatting
+        working-directory: apps/web
+        run: |
+          pnpm exec prettier --write e2e/package-details.spec.ts playwright.vs06.config.ts
+          git diff -- e2e/package-details.spec.ts playwright.vs06.config.ts
       - name: Install Chromium
         working-directory: apps/web
         run: pnpm exec playwright install --with-deps chromium
