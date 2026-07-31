@@ -24,22 +24,26 @@ const planningSteps = [
   {
     number: "01",
     title: "Choose when you want to travel",
-    copy: "Explore published departures months ahead, from the city that works for you.",
+    copy:
+      "Explore published departures months ahead, from the city that works for you.",
   },
   {
     number: "02",
     title: "Understand the full journey",
-    copy: "Review operator, stay, travel, pricing and availability before making a decision.",
+    copy:
+      "Review operator, stay, travel, pricing and availability before making a decision.",
   },
   {
     number: "03",
     title: "Secure it with a clear plan",
-    copy: "Before commitment, your quote shows the total, due-now amount and payment schedule.",
+    copy:
+      "Before commitment, your quote shows the total, due-now amount and payment schedule.",
   },
   {
     number: "04",
     title: "Prepare until departure",
-    copy: "Follow payments, documents, visa readiness and next steps in one Umrah plan.",
+    copy:
+      "Follow payments, documents, visa readiness and next steps in one Umrah plan.",
   },
 ] as const;
 
@@ -178,13 +182,20 @@ export default function HomePage() {
             </div>
           </section>
 
-          <section className="plan-ahead-story" id="plan-ahead" aria-labelledby="plan-ahead-title">
+          <section
+            className="plan-ahead-story"
+            id="plan-ahead"
+            aria-labelledby="plan-ahead-title"
+          >
             <div className="plan-ahead-intro">
               <p className="plan-ahead-kicker">Start before the rush</p>
-              <h2 id="plan-ahead-title">Your Umrah journey can begin months before departure.</h2>
+              <h2 id="plan-ahead-title">
+                Your Umrah journey can begin months before departure.
+              </h2>
               <p>
-                NoorPath is designed for pilgrims who want time to choose carefully,
-                spread the financial commitment clearly, and prepare with confidence.
+                NoorPath is designed for pilgrims who want time to choose
+                carefully, spread the financial commitment clearly, and prepare
+                with confidence.
               </p>
             </div>
             <ol className="plan-ahead-steps">
@@ -206,8 +217,8 @@ export default function HomePage() {
                 <p className="plan-ahead-kicker">Future departures</p>
                 <h2>Handpicked Umrah Packages</h2>
                 <p>
-                  Explore published journeys early, compare the facts, and give yourself
-                  time to plan.
+                  Explore published journeys early, compare the facts, and give
+                  yourself time to plan.
                 </p>
               </div>
               <a href="#packages">
@@ -218,13 +229,17 @@ export default function HomePage() {
             <CustomerDiscovery />
           </section>
 
-          <section className="umrah-plan-preview" aria-labelledby="umrah-plan-title">
+          <section
+            className="umrah-plan-preview"
+            aria-labelledby="umrah-plan-title"
+          >
             <div className="umrah-plan-preview-copy">
               <p className="plan-ahead-kicker">After you book</p>
               <h2 id="umrah-plan-title">One plan from booking to departure.</h2>
               <p>
-                NoorPath stays useful after the first payment. Your journey view brings
-                together what is paid, what is next, and what still needs your attention.
+                NoorPath stays useful after the first payment. Your journey view
+                brings together what is paid, what is next, and what still needs
+                your attention.
               </p>
               <a href="#packages">Start with a future departure →</a>
             </div>
