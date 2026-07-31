@@ -39,8 +39,6 @@ jobs:
           node-version-file: .node-version
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
-      - name: Print formatted landing page
-        run: pnpm --dir apps/web exec prettier app/page.tsx
       - run: pnpm format:check
       - run: pnpm check
       - run: pnpm test
