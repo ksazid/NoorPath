@@ -118,14 +118,22 @@ function requestHeaders(json = false): HeadersInit {
 export default function PlanJourneyPage() {
   const params = useParams<{ departureId: string }>();
   const departureId = params.departureId;
-  const [packageState, setPackageState] = useState<PackageState>({ kind: "loading" });
-  const [travellerState, setTravellerState] = useState<TravellerState>({ kind: "loading" });
+  const [packageState, setPackageState] = useState<PackageState>({
+    kind: "loading",
+  });
+  const [travellerState, setTravellerState] = useState<TravellerState>({
+    kind: "loading",
+  });
   const [occupancy, setOccupancy] = useState<Occupancy | null>(null);
-  const [selectedTravellerIds, setSelectedTravellerIds] = useState<string[]>([]);
+  const [selectedTravellerIds, setSelectedTravellerIds] = useState<string[]>(
+    [],
+  );
   const [quoteState, setQuoteState] = useState<QuoteState>({ kind: "idle" });
   const [fullName, setFullName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
-  const [travellerErrors, setTravellerErrors] = useState<Record<string, string>>({});
+  const [travellerErrors, setTravellerErrors] = useState<
+    Record<string, string>
+  >({});
   const [savingTraveller, setSavingTraveller] = useState(false);
 
   const loadTravellers = useCallback(async () => {
@@ -184,7 +192,8 @@ export default function PlanJourneyPage() {
 
   useEffect(() => {
     if (quoteState.kind !== "loaded" || quoteState.quote.expired) return;
-    const remaining = new Date(quoteState.quote.expiresAtUtc).getTime() - Date.now();
+    const remaining =
+      new Date(quoteState.quote.expiresAtUtc).getTime() - Date.now();
     if (remaining <= 0) {
       setQuoteState({
         kind: "loaded",
@@ -203,12 +212,14 @@ export default function PlanJourneyPage() {
     return () => window.clearTimeout(timer);
   }, [quoteState]);
 
-  const packageDetails = packageState.kind === "loaded" ? packageState.details : null;
+  const packageDetails =
+    packageState.kind === "loaded" ? packageState.details : null;
   const selectedMeta = occupancy ? occupancyMeta[occupancy] : null;
   const selectedPrice = packageDetails?.pricing.occupancies.find(
     (item) => item.occupancy === occupancy,
   );
-  const travellers = travellerState.kind === "ready" ? travellerState.items : [];
+  const travellers =
+    travellerState.kind === "ready" ? travellerState.items : [];
   const canQuote =
     occupancy !== null &&
     selectedMeta !== null &&
@@ -261,7 +272,9 @@ export default function PlanJourneyPage() {
         return;
       }
       if (!response.ok) {
-        setTravellerErrors({ form: body.detail ?? "Traveller could not be saved." });
+        setTravellerErrors({
+          form: body.detail ?? "Traveller could not be saved.",
+        });
         return;
       }
 
@@ -272,11 +285,16 @@ export default function PlanJourneyPage() {
       );
       setFullName("");
       setDateOfBirth("");
-      if (selectedMeta && selectedTravellerIds.length < selectedMeta.travellers) {
+      if (
+        selectedMeta &&
+        selectedTravellerIds.length < selectedMeta.travellers
+      ) {
         setSelectedTravellerIds((current) => [...current, body.travellerId]);
       }
     } catch {
-      setTravellerErrors({ form: "Traveller could not be saved. Try again safely." });
+      setTravellerErrors({
+        form: "Traveller could not be saved. Try again safely.",
+      });
     } finally {
       setSavingTraveller(false);
     }
@@ -292,7 +310,10 @@ export default function PlanJourneyPage() {
           method: "POST",
           credentials: "include",
           headers: requestHeaders(true),
-          body: JSON.stringify({ occupancy, travellerIds: selectedTravellerIds }),
+          body: JSON.stringify({
+            occupancy,
+            travellerIds: selectedTravellerIds,
+          }),
         },
       );
       const body = (await response.json()) as Quote & ProblemDetails;
@@ -302,7 +323,10 @@ export default function PlanJourneyPage() {
         return;
       }
       if (response.status === 422) {
-        const message = Object.values(body.errors ?? {}).flat()[0] ?? body.detail ?? "Review your plan.";
+        const message =
+          Object.values(body.errors ?? {}).flat()[0] ??
+          body.detail ??
+          "Review your plan.";
         setQuoteState({ kind: "validation", message });
         return;
       }
@@ -326,7 +350,8 @@ export default function PlanJourneyPage() {
     } catch {
       setQuoteState({
         kind: "error",
-        message: "We could not create your quote right now. Check your connection and try again.",
+        message:
+          "We could not create your quote right now. Check your connection and try again.",
       });
     }
   };
@@ -363,14 +388,19 @@ export default function PlanJourneyPage() {
                 <span>{packageDetails.operator.displayName}</span>
                 <strong>{packageDetails.packageName}</strong>
                 <small>
-                  {packageDetails.origin} · {formatDate(packageDetails.departureDate)} · {packageDetails.durationNights} nights
+                  {packageDetails.origin} ·{" "}
+                  {formatDate(packageDetails.departureDate)} ·{" "}
+                  {packageDetails.durationNights} nights
                 </small>
               </div>
             </section>
 
             <div className="plan-workspace">
               <div className="plan-steps">
-                <section className="plan-panel" aria-labelledby="room-step-title">
+                <section
+                  className="plan-panel"
+                  aria-labelledby="room-step-title"
+                >
                   <StepHeading
                     number="01"
                     title="Choose your room sharing"
@@ -400,7 +430,10 @@ export default function PlanJourneyPage() {
                           </span>
                           <span className="plan-occupancy-price">
                             <strong>
-                              {formatMoney(item.amount, packageDetails.pricing.currency)}
+                              {formatMoney(
+                                item.amount,
+                                packageDetails.pricing.currency,
+                              )}
                             </strong>
                             <small>per traveller</small>
                           </span>
@@ -410,7 +443,10 @@ export default function PlanJourneyPage() {
                   </div>
                 </section>
 
-                <section className="plan-panel" aria-labelledby="traveller-step-title">
+                <section
+                  className="plan-panel"
+                  aria-labelledby="traveller-step-title"
+                >
                   <StepHeading
                     number="02"
                     title="Who is travelling?"
@@ -457,7 +493,8 @@ export default function PlanJourneyPage() {
                             const limitReached =
                               !selected &&
                               selectedMeta !== null &&
-                              selectedTravellerIds.length >= selectedMeta.travellers;
+                              selectedTravellerIds.length >=
+                                selectedMeta.travellers;
                             return (
                               <label
                                 className={`traveller-choice${selected ? " selected" : ""}`}
@@ -471,7 +508,10 @@ export default function PlanJourneyPage() {
                                     toggleTraveller(traveller.travellerId)
                                   }
                                 />
-                                <span className="traveller-choice-icon" aria-hidden="true">
+                                <span
+                                  className="traveller-choice-icon"
+                                  aria-hidden="true"
+                                >
                                   <Icon name="user-circle" />
                                 </span>
                                 <span>
@@ -490,11 +530,15 @@ export default function PlanJourneyPage() {
                         </p>
                       )}
 
-                      <form className="traveller-add-form" onSubmit={addTraveller}>
+                      <form
+                        className="traveller-add-form"
+                        onSubmit={addTraveller}
+                      >
                         <div className="traveller-add-heading">
                           <strong>Add an adult traveller</strong>
                           <small>
-                            For VS-07, travellers must be 18 or older on departure day.
+                            For VS-07, travellers must be 18 or older on
+                            departure day.
                           </small>
                         </div>
                         {travellerErrors.form ? (
@@ -508,14 +552,21 @@ export default function PlanJourneyPage() {
                             type="text"
                             autoComplete="name"
                             value={fullName}
-                            onChange={(event) => setFullName(event.target.value)}
+                            onChange={(event) =>
+                              setFullName(event.target.value)
+                            }
                             aria-invalid={Boolean(travellerErrors.fullName)}
                             aria-describedby={
-                              travellerErrors.fullName ? "traveller-name-error" : undefined
+                              travellerErrors.fullName
+                                ? "traveller-name-error"
+                                : undefined
                             }
                           />
                           {travellerErrors.fullName ? (
-                            <small className="field-error" id="traveller-name-error">
+                            <small
+                              className="field-error"
+                              id="traveller-name-error"
+                            >
                               {travellerErrors.fullName}
                             </small>
                           ) : null}
@@ -525,20 +576,29 @@ export default function PlanJourneyPage() {
                           <input
                             type="date"
                             value={dateOfBirth}
-                            onChange={(event) => setDateOfBirth(event.target.value)}
+                            onChange={(event) =>
+                              setDateOfBirth(event.target.value)
+                            }
                             aria-invalid={Boolean(travellerErrors.dateOfBirth)}
                             aria-describedby={
-                              travellerErrors.dateOfBirth ? "traveller-dob-error" : undefined
+                              travellerErrors.dateOfBirth
+                                ? "traveller-dob-error"
+                                : undefined
                             }
                           />
                           {travellerErrors.dateOfBirth ? (
-                            <small className="field-error" id="traveller-dob-error">
+                            <small
+                              className="field-error"
+                              id="traveller-dob-error"
+                            >
                               {travellerErrors.dateOfBirth}
                             </small>
                           ) : null}
                         </label>
                         <button type="submit" disabled={savingTraveller}>
-                          {savingTraveller ? "Adding traveller…" : "Add traveller"}
+                          {savingTraveller
+                            ? "Adding traveller…"
+                            : "Add traveller"}
                         </button>
                       </form>
                     </>
@@ -546,7 +606,10 @@ export default function PlanJourneyPage() {
                 </section>
               </div>
 
-              <aside className="plan-quote-column" aria-labelledby="quote-title">
+              <aside
+                className="plan-quote-column"
+                aria-labelledby="quote-title"
+              >
                 <div className="plan-quote-card">
                   <p className="plan-ahead-kicker">Your quote</p>
                   <h2 id="quote-title">Know the commitment before booking.</h2>
@@ -563,7 +626,8 @@ export default function PlanJourneyPage() {
                         <div>
                           <dt>Travellers</dt>
                           <dd>
-                            {selectedTravellerIds.length} / {selectedMeta?.travellers ?? 0}
+                            {selectedTravellerIds.length} /{" "}
+                            {selectedMeta?.travellers ?? 0}
                           </dd>
                         </div>
                         <div>
@@ -586,7 +650,9 @@ export default function PlanJourneyPage() {
                           {quoteState.message}
                         </p>
                       ) : null}
-                      {quoteState.kind === "unauthenticated" ? <SignInNotice /> : null}
+                      {quoteState.kind === "unauthenticated" ? (
+                        <SignInNotice />
+                      ) : null}
 
                       <button
                         className="plan-primary-action"
@@ -599,8 +665,9 @@ export default function PlanJourneyPage() {
                           : "See my complete quote"}
                       </button>
                       <p className="plan-quote-disclosure">
-                        Creating a quote checks current availability but does not
-                        reserve a place. Inventory is secured in the next booking step.
+                        Creating a quote checks current availability but does
+                        not reserve a place. Inventory is secured in the next
+                        booking step.
                       </p>
                     </>
                   )}
@@ -692,7 +759,8 @@ function QuoteSummary({ quote }: { quote: Quote }) {
         <span>
           <strong>No place is reserved yet.</strong>
           <small>
-            Next, NoorPath will secure availability before any payment commitment.
+            Next, NoorPath will secure availability before any payment
+            commitment.
           </small>
         </span>
       </div>
@@ -714,8 +782,8 @@ function SignInNotice() {
       <span>
         <strong>Sign in to add travellers and create your quote.</strong>
         <small>
-          Package browsing stays public. Personal traveller details are protected
-          behind your NoorPath account.
+          Package browsing stays public. Personal traveller details are
+          protected behind your NoorPath account.
         </small>
       </span>
       {signInUrl ? <a href={signInUrl}>Sign in</a> : null}
