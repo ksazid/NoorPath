@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using NoorPath.Pricing;
 
 namespace NoorPath.Pricing.Infrastructure;
@@ -16,6 +17,37 @@ public sealed class PricingDbContext(DbContextOptions<PricingDbContext> options)
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) => Configure(modelBuilder);
 
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        await SnapshotPaymentPlansForNewPriceVersionsAsync(cancellationToken);
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task SnapshotPaymentPlansForNewPriceVersionsAsync(CancellationToken cancellationToken)
+    {
+        var additions = ChangeTracker.Entries<PriceVersionRecord>()
+            .Where(entry => entry.State == EntityState.Added)
+            .ToArray();
+
+        foreach (var addition in additions)
+        {
+            var version = addition.Entity;
+            var trackedPlan = ChangeTracker.Entries<PricePlanRecord>()
+                .Where(entry => entry.State != EntityState.Deleted)
+                .Select(entry => entry.Entity)
+                .SingleOrDefault(plan => plan.Id == version.PricePlanId);
+            var plan = trackedPlan ?? await PricePlans.AsNoTracking()
+                .SingleAsync(item => item.Id == version.PricePlanId, cancellationToken);
+
+            if (plan.Version != version.SourcePlanVersion)
+                throw new InvalidOperationException("Published price version must snapshot the exact current Pricing plan version.");
+
+            version.DepositPercent = plan.DepositPercent;
+            version.InstalmentDayOfMonth = plan.InstalmentDayOfMonth;
+            version.FinalPaymentDueDaysBeforeDeparture = plan.FinalPaymentDueDaysBeforeDeparture;
+        }
+    }
+
     public static void Configure(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("pricing");
@@ -28,6 +60,7 @@ public sealed class PricingDbContext(DbContextOptions<PricingDbContext> options)
             entity.Property(x => x.Currency).HasMaxLength(3);
             entity.Property(x => x.Version).IsConcurrencyToken();
             entity.Property(x => x.DepositPercent).HasPrecision(5, 2);
+            entity.Ignore(x => x.PaymentPlan);
             entity.HasIndex(x => x.DepartureId).IsUnique();
             entity.HasIndex(x => x.OperatorId);
         });
@@ -51,7 +84,7 @@ public sealed class PricingDbContext(DbContextOptions<PricingDbContext> options)
             entity.HasKey(x => x.Id);
             entity.Property(x => x.ActorAccountId).HasMaxLength(120);
             entity.Property(x => x.CorrelationId).HasMaxLength(100);
-            entity.Property(x => x.Action).HasMaxLength(20);
+            entity.Property(x => x.Action).HasMaxLength(32);
             entity.HasIndex(x => new { x.DepartureId, x.Version });
             entity.HasOne<PricePlanRecord>()
                 .WithMany()
@@ -67,6 +100,7 @@ public sealed class PricingDbContext(DbContextOptions<PricingDbContext> options)
             entity.Property(x => x.Currency).HasMaxLength(3);
             entity.Property(x => x.PublishedByAccountId).HasMaxLength(120);
             entity.Property(x => x.DepositPercent).HasPrecision(5, 2);
+            entity.Ignore(x => x.PaymentPlan);
             entity.HasIndex(x => x.DepartureId).IsUnique();
             entity.HasIndex(x => new { x.PricePlanId, x.SourcePlanVersion }).IsUnique();
             entity.HasOne<PricePlanRecord>()
