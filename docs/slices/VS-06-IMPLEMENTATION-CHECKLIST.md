@@ -1,6 +1,6 @@
 # VS-06 Package Details — Implementation Checklist
 
-Status: In progress
+Status: Complete — technical validation, rendered validation and Product Owner acceptance recorded 2026-07-31.
 
 ## Contract and scope
 
@@ -59,20 +59,24 @@ Status: In progress
 - [x] Browser coverage for error/retry state.
 - [x] Browser coverage for 390 px and 360 px reflow.
 - [x] Browser coverage for keyboard focus, target size, accessibility scan and 200% text reflow.
-- [ ] Latest branch CI is green.
+- [x] VS-06 rendered-review CI passed on the acceptance branch before Product Owner review.
 
 ## Rendered / Product Owner gate
 
-- [ ] Capture populated desktop implementation at the approved comparison viewport.
-- [ ] Compare populated desktop against `noorpath-package-reference.png`.
-- [ ] Capture 390 px populated implementation.
-- [ ] Capture 360 px populated implementation.
-- [ ] Capture pending-fact state.
-- [ ] Capture unavailable/not-found state.
-- [ ] Capture error/retry state.
-- [ ] Verify keyboard path and visible focus in a real browser.
-- [ ] Verify 200% zoom/text reflow in a real browser.
-- [ ] Verify reduced-motion behavior in a real browser.
-- [ ] Product Owner accepts VS-06 rendered customer experience.
+- [x] Capture populated desktop implementation at the approved comparison viewport.
+- [x] Compare populated desktop against `noorpath-package-reference.png`.
+- [x] Capture 390 px populated implementation.
+- [x] Capture 360 px populated implementation.
+- [x] Capture pending-fact state.
+- [x] Capture unavailable/not-found state.
+- [x] Capture error/retry state.
+- [x] Verify keyboard path and visible focus in a real browser.
+- [x] Verify 200% zoom/text reflow in a real browser.
+- [x] Verify reduced-motion behavior in a real browser.
+- [x] Product Owner accepts VS-06 rendered customer experience.
 
-Do not mark VS-06 complete or merge its implementation PR until CI and the rendered/Product Owner gate are satisfied.
+## Acceptance closure
+
+The Product Owner accepted the deployed VS-06 customer experience on 2026-07-31 after reviewing the package detail experience on mobile. Netlify-only deterministic fixtures used for acceptance verification are not part of the production product contract and must not be merged into `main`.
+
+The follow-up acceptance merge preserves the current approved Landing/Footer implementation and carries only the safe VS-06 accessibility closure required after rendered review.
