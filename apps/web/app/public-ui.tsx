@@ -39,10 +39,12 @@ export function PublicHeader({ mode = "detail" }: { mode?: HeaderMode }) {
         <Link href="/#packages">
           {mode === "landing" ? "Explore" : "Packages"}
         </Link>
-        <Link href="/#packages">
-          {mode === "landing" ? "Journey" : "Destinations"}
+        <Link href={mode === "landing" ? "/#plan-ahead" : "/#packages"}>
+          {mode === "landing" ? "Plan ahead" : "Destinations"}
         </Link>
-        <Link href="/#trust">{mode === "landing" ? "Family" : "About Us"}</Link>
+        <Link href="/#trust">
+          {mode === "landing" ? "Why NoorPath" : "About Us"}
+        </Link>
         <a href="mailto:support@noorpath.example">
           {mode === "landing" ? "Help" : "Support"}
         </a>
@@ -81,6 +83,7 @@ export function PublicHeader({ mode = "detail" }: { mode?: HeaderMode }) {
         </summary>
         <nav aria-label="Mobile navigation">
           <Link href="/#packages">Packages</Link>
+          <Link href="/#plan-ahead">Plan ahead</Link>
           <Link href="/#trust">Why NoorPath</Link>
           <a href="mailto:support@noorpath.example">Support</a>
         </nav>
@@ -104,11 +107,12 @@ export function PublicFooter() {
     <footer className="public-footer">
       <NoorPathBrand mode="landing" />
       <p>
-        Calm, factual Umrah journey information with accountable operators and
-        human support.
+        Plan your Umrah early, understand every commitment, and stay supported
+        from booking through travel readiness.
       </p>
       <nav className="public-footer-links" aria-label="Footer navigation">
         <Link href="/#packages">Explore packages</Link>
+        <Link href="/#plan-ahead">Plan ahead</Link>
         <a href="mailto:support@noorpath.example">Contact support</a>
       </nav>
     </footer>
