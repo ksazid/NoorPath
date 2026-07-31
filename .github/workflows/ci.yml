@@ -14,12 +14,11 @@ jobs:
   secrets:
     name: Secret scanning
     runs-on: ubuntu-latest
-    # Only run on push or on PRs from the same repository (skip fork PRs)
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
-        contents: read
-        checks: write
-        pull-requests: read
+      contents: read
+      checks: write
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,6 +27,66 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  vs07_normalize:
+    name: VS-07 generated artifact normalization
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Normalize plan page
+        run: pnpm --dir apps/web exec prettier --write 'app/packages/[departureId]/plan/page.tsx'
+      - run: dotnet tool install --global dotnet-ef --version 10.0.10
+      - run: dotnet restore NoorPath.slnx
+      - name: Generate Pricing migration once
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! find src/Modules/NoorPath.Pricing.Infrastructure/Migrations -name '*_VS07QuotesAndPaymentPlans.cs' -print -quit | grep -q .; then
+            dotnet ef migrations add VS07QuotesAndPaymentPlans \
+              --project src/Modules/NoorPath.Pricing.Infrastructure/NoorPath.Pricing.Infrastructure.csproj \
+              --context PricingDbContext \
+              --output-dir Migrations
+          fi
+      - name: Generate Traveller migration once
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! find src/Modules/NoorPath.Traveller.Infrastructure/Migrations -name '*_VS07TravellerProfiles.cs' -print -quit | grep -q .; then
+            dotnet ef migrations add VS07TravellerProfiles \
+              --project src/Modules/NoorPath.Traveller.Infrastructure/NoorPath.Traveller.Infrastructure.csproj \
+              --context TravellerDbContext \
+              --output-dir Migrations
+          fi
+      - name: Commit generated artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            'apps/web/app/packages/[departureId]/plan/page.tsx' \
+            src/Modules/NoorPath.Pricing.Infrastructure/Migrations \
+            src/Modules/NoorPath.Traveller.Infrastructure/Migrations
+          if git diff --cached --quiet; then
+            echo 'Generated artifacts already normalized.'
+            exit 0
+          fi
+          git commit -m 'chore(vs07): normalize generated artifacts'
+          git push origin HEAD:${{ github.head_ref }}
 
   node:
     name: Node validation
@@ -39,41 +98,10 @@ jobs:
           node-version-file: .node-version
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
-      - name: Print formatted VS-07 plan page
-        run: pnpm --dir apps/web exec prettier 'app/packages/[departureId]/plan/page.tsx'
       - run: pnpm format:check
       - run: pnpm check
       - run: pnpm test
       - run: pnpm build
-
-  vs07_migrations:
-    name: VS-07 migration generation
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v5
-        with:
-          global-json-file: global.json
-      - run: dotnet tool install --global dotnet-ef --version 10.0.10
-      - run: dotnet restore NoorPath.slnx
-      - name: Generate Pricing migration
-        run: >-
-          dotnet ef migrations add VS07QuotesAndPaymentPlans
-          --project src/Modules/NoorPath.Pricing.Infrastructure/NoorPath.Pricing.Infrastructure.csproj
-          --context PricingDbContext
-          --output-dir Migrations
-      - name: Generate Traveller migration
-        run: >-
-          dotnet ef migrations add VS07TravellerProfiles
-          --project src/Modules/NoorPath.Traveller.Infrastructure/NoorPath.Traveller.Infrastructure.csproj
-          --context TravellerDbContext
-          --output-dir Migrations
-      - uses: actions/upload-artifact@v4
-        with:
-          name: vs07-generated-migrations
-          path: |
-            src/Modules/NoorPath.Pricing.Infrastructure/Migrations
-            src/Modules/NoorPath.Traveller.Infrastructure/Migrations
 
   dotnet:
     name: .NET validation
@@ -101,14 +129,11 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
-
       - name: Install EF Core CLI
         run: dotnet tool install --global dotnet-ef --version 10.0.10
-
       - run: dotnet restore NoorPath.slnx
       - run: dotnet format NoorPath.slnx --verify-no-changes --no-restore
       - run: dotnet build NoorPath.slnx --configuration Release --no-restore
-
       - name: Create module test databases
         shell: bash
         run: |
@@ -120,7 +145,6 @@ jobs:
           docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_pricing_test;'
           docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_inventory_test;'
           docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_commercial_test;'
-
       - name: Validate Catalogue migration state
         run: ./scripts/validate-catalogue-migrations.sh
       - name: Validate Operators migration state
@@ -129,7 +153,6 @@ jobs:
         run: bash ./scripts/validate-pricing-migrations.sh
       - name: Validate Inventory migration state
         run: bash ./scripts/validate-inventory-migrations.sh
-
       - run: dotnet test NoorPath.slnx --configuration Release --no-build
 
   postgres:
