@@ -1,6 +1,6 @@
 # VS-06 Package Details — Implementation Checklist
 
-Status: In progress
+Status: Technical and rendered validation complete; Product Owner acceptance pending.
 
 ## Contract and scope
 
@@ -59,20 +59,22 @@ Status: In progress
 - [x] Browser coverage for error/retry state.
 - [x] Browser coverage for 390 px and 360 px reflow.
 - [x] Browser coverage for keyboard focus, target size, accessibility scan and 200% text reflow.
-- [ ] Latest branch CI is green.
+- [x] Latest branch CI is green, including the dedicated VS-06 rendered-review job.
 
 ## Rendered / Product Owner gate
 
-- [ ] Capture populated desktop implementation at the approved comparison viewport.
-- [ ] Compare populated desktop against `noorpath-package-reference.png`.
-- [ ] Capture 390 px populated implementation.
-- [ ] Capture 360 px populated implementation.
-- [ ] Capture pending-fact state.
-- [ ] Capture unavailable/not-found state.
-- [ ] Capture error/retry state.
-- [ ] Verify keyboard path and visible focus in a real browser.
-- [ ] Verify 200% zoom/text reflow in a real browser.
-- [ ] Verify reduced-motion behavior in a real browser.
+- [x] Capture populated desktop implementation at the approved comparison viewport.
+- [x] Compare populated desktop against `noorpath-package-reference.png`.
+- [x] Capture 390 px populated implementation.
+- [x] Capture 360 px populated implementation.
+- [x] Capture pending-fact state.
+- [x] Capture unavailable/not-found state.
+- [x] Capture error/retry state.
+- [x] Verify keyboard path and visible focus in a real browser.
+- [x] Verify 200% zoom/text reflow in a real browser.
+- [x] Verify reduced-motion behavior in a real browser.
 - [ ] Product Owner accepts VS-06 rendered customer experience.
 
-Do not mark VS-06 complete or merge its implementation PR until CI and the rendered/Product Owner gate are satisfied.
+Rendered validation is preserved as a CI artifact alongside the approved Package reference. The review surfaced and corrected CTA contrast, skip-link target sizing, and breadcrumb target sizing before the rendered gate passed.
+
+VS-06 remains pending Product Owner acceptance. Do not treat the follow-up rendered-acceptance PR as complete until that final approval is recorded.
