@@ -1,0 +1,28 @@
+.package-plan-primary {
+  display: inline-flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 14px;
+  padding: 0 14px;
+  border: 1px solid var(--public-green);
+  border-radius: 7px;
+  background: var(--public-green);
+  color: #fff !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.payment-summary-card .package-plan-primary + a {
+  margin-top: 4px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .package-plan-primary:hover,
+  .package-plan-primary:focus-visible {
+    background: var(--public-green-deep);
+  }
+}
