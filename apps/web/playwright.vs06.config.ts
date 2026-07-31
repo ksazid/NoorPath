@@ -6,7 +6,10 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: 0,
-  reporter: [["html", { open: "never", outputFolder: "playwright-report/vs06" }], ["github"]],
+  reporter: [
+    ["html", { open: "never", outputFolder: "playwright-report/vs06" }],
+    ["github"],
+  ],
   use: {
     baseURL: "http://127.0.0.1:3000",
     trace: "retain-on-failure",
@@ -15,11 +18,10 @@ export default defineConfig({
   projects: [
     {
       name: "desktop-chromium",
-      use: { ...devices["Desktop Chrome"], viewport: { width: 1363, height: 936 } },
-    },
-    {
-      name: "mobile-390",
-      use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1363, height: 936 },
+      },
     },
   ],
   webServer: {
