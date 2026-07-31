@@ -145,6 +145,7 @@ export function CustomerDiscovery() {
       {state.items.map((item, index) => {
         const image = packageImages[index % packageImages.length];
         const inclusionHighlights = item.inclusionHighlights.slice(0, 3);
+        const planningLead = planningWindow(item.departureDate);
 
         return (
           <article className="landing-package-card" key={item.departureId}>
@@ -197,6 +198,14 @@ export function CustomerDiscovery() {
                 </div>
               </dl>
 
+              <div className="package-plan-ahead" aria-label="Planning benefit">
+                <Icon name="calendar-blank" />
+                <span>
+                  <strong>{planningLead}</strong>
+                  <small>Payment schedule shown before booking</small>
+                </span>
+              </div>
+
               <div className="package-card-footer">
                 <span>
                   <strong>From {formatMoney(item.headlinePrice)}</strong>
@@ -230,6 +239,18 @@ function originLabel(origin: string) {
   const value = origin.trim();
   const codeStart = value.indexOf("(");
   return codeStart > 0 ? value.slice(0, codeStart).trim() : value;
+}
+
+function planningWindow(value: string) {
+  const departure = new Date(`${value}T00:00:00Z`);
+  if (Number.isNaN(departure.getTime())) return "Plan ahead";
+
+  const days = Math.ceil((departure.getTime() - Date.now()) / 86_400_000);
+  if (days <= 0) return "Departure date published";
+  if (days < 60) return `${days} days to prepare`;
+
+  const months = Math.max(2, Math.round(days / 30.44));
+  return `${months} months to prepare`;
 }
 
 function formatMoney(price: DiscoveryItem["headlinePrice"]) {

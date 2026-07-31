@@ -57,6 +57,34 @@ type DetailState =
   | { kind: "not-found" }
   | { kind: "error"; correlationId?: string };
 
+const journeyMilestones = [
+  {
+    icon: "user-circle",
+    title: "Choose your option",
+    copy: "Select an available occupancy and add the travellers for this journey.",
+  },
+  {
+    icon: "receipt",
+    title: "See your complete quote",
+    copy: "Review the total, amount due to secure your place, and any applicable payment schedule before commitment.",
+  },
+  {
+    icon: "shield-check",
+    title: "Secure your place",
+    copy: "NoorPath checks current availability before the booking moves forward.",
+  },
+  {
+    icon: "file-text",
+    title: "Prepare with confidence",
+    copy: "Complete traveller details, documents, visa steps and readiness actions as departure approaches.",
+  },
+  {
+    icon: "airplane-tilt",
+    title: "Travel for Umrah",
+    copy: "Keep final journey facts, departure information and support together through travel.",
+  },
+] as const;
+
 export default function PackageDetailsPage() {
   const params = useParams<{ departureId: string }>();
   const departureId = params.departureId;
@@ -182,6 +210,8 @@ function PackageContent({ details }: { details: PackageDetails }) {
         <PricingSummary details={details} />
       </section>
 
+      <PackageMilestones departureDate={details.departureDate} />
+
       <div className="package-content-grid" id="journey-facts">
         <section className="package-panel itinerary-panel">
           <h2>Journey &amp; travel</h2>
@@ -273,7 +303,7 @@ function PackageContent({ details }: { details: PackageDetails }) {
               </div>
               <div>
                 <dt>Payment schedule</dt>
-                <dd>Not quoted on this page</dd>
+                <dd>Shown with your quote before commitment</dd>
               </div>
               <div>
                 <dt>Need clarification?</dt>
@@ -297,6 +327,57 @@ function PackageContent({ details }: { details: PackageDetails }) {
         </p>
       </section>
     </>
+  );
+}
+
+function PackageMilestones({ departureDate }: { departureDate: string }) {
+  return (
+    <section
+      className="package-milestones"
+      id="your-path-to-umrah"
+      aria-labelledby="package-milestones-title"
+    >
+      <div className="package-milestones-heading">
+        <div>
+          <p className="plan-ahead-kicker">What happens after you choose</p>
+          <h2 id="package-milestones-title">Your path to Umrah</h2>
+          <p>
+            Planning for {formatDate(departureDate)} gives you time to make a
+            careful decision, organise the journey and prepare step by step.
+          </p>
+        </div>
+        <span className="package-departure-chip">
+          <Icon name="calendar-blank" />
+          <span>
+            <small>Published departure</small>
+            <strong>{formatDate(departureDate)}</strong>
+          </span>
+        </span>
+      </div>
+
+      <ol className="package-milestone-list">
+        {journeyMilestones.map((milestone, index) => (
+          <li key={milestone.title}>
+            <span className="package-milestone-marker" aria-hidden="true">
+              <Icon name={milestone.icon} />
+            </span>
+            <span className="package-milestone-number">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <h3>{milestone.title}</h3>
+            <p>{milestone.copy}</p>
+          </li>
+        ))}
+      </ol>
+
+      <p className="package-milestone-note">
+        <Icon name="receipt" />
+        <span>
+          If an instalment plan applies, exact amounts and due dates are shown
+          only in your authoritative quote before you commit.
+        </span>
+      </p>
+    </section>
   );
 }
 
