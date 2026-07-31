@@ -1,0 +1,759 @@
+.plan-page {
+  min-height: 100vh;
+  background: var(--public-canvas);
+}
+
+.plan-main {
+  width: min(calc(100% - 64px), 1180px);
+  margin: 0 auto;
+  padding: 8px 0 72px;
+}
+
+.plan-context {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  gap: clamp(28px, 5vw, 72px);
+  align-items: end;
+  padding: 38px 0 34px;
+  border-bottom: 1px solid var(--public-line);
+}
+
+.plan-context h1,
+.plan-quote-card h2,
+.plan-page-state h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.plan-context h1 {
+  font-size: clamp(2.2rem, 4vw, 4rem);
+  line-height: 0.98;
+}
+
+.plan-context > div:first-child > p:last-child {
+  max-width: 58ch;
+  margin: 16px 0 0;
+  color: var(--public-muted);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+}
+
+.plan-package-facts {
+  display: grid;
+  gap: 5px;
+  padding: 20px 22px;
+  border: 1px solid var(--public-line);
+  border-radius: 12px;
+  background: var(--public-paper);
+}
+
+.plan-package-facts span {
+  color: var(--public-green-deep);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.plan-package-facts strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+}
+
+.plan-package-facts small {
+  color: var(--public-muted);
+  font-size: 0.625rem;
+  line-height: 1.5;
+}
+
+.plan-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(310px, 0.72fr);
+  gap: 22px;
+  align-items: start;
+  padding-top: 24px;
+}
+
+.plan-steps {
+  display: grid;
+  gap: 18px;
+}
+
+.plan-panel,
+.plan-quote-card {
+  border: 1px solid var(--public-line);
+  border-radius: 12px;
+  background: var(--public-paper);
+}
+
+.plan-panel {
+  padding: clamp(20px, 3vw, 30px);
+}
+
+.plan-step-heading {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 14px;
+  align-items: start;
+  padding-bottom: 18px;
+}
+
+.plan-step-heading > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--public-gold);
+  border-radius: 50%;
+  color: var(--public-gold-deep);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.6875rem;
+}
+
+.plan-step-heading h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.35rem;
+  font-weight: 400;
+}
+
+.plan-step-heading p {
+  margin: 6px 0 0;
+  color: var(--public-muted);
+  font-size: 0.6875rem;
+  line-height: 1.55;
+}
+
+.plan-occupancy-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.plan-occupancy-option {
+  position: relative;
+  display: grid;
+  min-height: 148px;
+  align-content: space-between;
+  gap: 18px;
+  padding: 16px;
+  border: 1px solid var(--public-line);
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.plan-occupancy-option.selected {
+  border-color: var(--public-green);
+  box-shadow: inset 0 0 0 1px var(--public-green);
+}
+
+.plan-occupancy-option.disabled {
+  opacity: 0.56;
+  cursor: not-allowed;
+}
+
+.plan-occupancy-option input {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--public-green);
+}
+
+.plan-occupancy-option > span:not(.plan-occupancy-price) {
+  display: grid;
+  gap: 5px;
+  padding-right: 22px;
+}
+
+.plan-occupancy-option strong {
+  font-size: 0.75rem;
+}
+
+.plan-occupancy-option small {
+  color: var(--public-muted);
+  font-size: 0.5625rem;
+  line-height: 1.45;
+}
+
+.plan-occupancy-price {
+  display: grid;
+  gap: 3px;
+}
+
+.plan-occupancy-price strong {
+  color: var(--public-green-deep);
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.plan-selection-count {
+  display: flex;
+  min-height: 50px;
+  align-items: baseline;
+  gap: 7px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--public-ivory);
+}
+
+.plan-selection-count strong {
+  color: var(--public-green-deep);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.4rem;
+}
+
+.plan-selection-count span {
+  color: var(--public-muted);
+  font-size: 0.625rem;
+}
+
+.traveller-choice-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.traveller-choice {
+  display: grid;
+  min-height: 74px;
+  grid-template-columns: auto 38px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--public-line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.traveller-choice.selected {
+  border-color: var(--public-green);
+  background: var(--public-ivory);
+}
+
+.traveller-choice input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--public-green);
+}
+
+.traveller-choice-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--public-ivory);
+}
+
+.traveller-choice-icon .public-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.traveller-choice > span:last-child {
+  display: grid;
+  gap: 3px;
+}
+
+.traveller-choice strong {
+  font-size: 0.6875rem;
+}
+
+.traveller-choice small,
+.plan-empty-copy {
+  color: var(--public-muted);
+  font-size: 0.5625rem;
+}
+
+.plan-empty-copy {
+  margin: 0 0 14px;
+}
+
+.traveller-add-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(170px, 0.65fr) auto;
+  gap: 10px 12px;
+  align-items: end;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--public-line);
+}
+
+.traveller-add-heading {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 4px;
+}
+
+.traveller-add-heading strong {
+  font-size: 0.75rem;
+}
+
+.traveller-add-heading small {
+  color: var(--public-muted);
+  font-size: 0.5625rem;
+}
+
+.traveller-add-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.traveller-add-form label > span {
+  font-size: 0.625rem;
+  font-weight: 650;
+}
+
+.traveller-add-form input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 11px;
+  border: 1px solid var(--public-line);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--public-ink);
+  font: inherit;
+  font-size: 0.75rem;
+}
+
+.traveller-add-form input[aria-invalid="true"] {
+  border-color: var(--public-gold-deep);
+}
+
+.traveller-add-form button,
+.plan-primary-action,
+.plan-inline-state button,
+.plan-page-state button,
+.plan-page-state a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border: 1px solid var(--public-green);
+  border-radius: 7px;
+  background: var(--public-green);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.traveller-add-form button:disabled,
+.plan-primary-action:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.field-error {
+  color: var(--public-gold-deep);
+  font-size: 0.5625rem;
+  line-height: 1.4;
+}
+
+.traveller-add-form > .field-error {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.plan-quote-column {
+  position: sticky;
+  top: 18px;
+}
+
+.plan-quote-card {
+  padding: 22px;
+  box-shadow: var(--public-shadow);
+}
+
+.plan-quote-card h2 {
+  font-size: 1.7rem;
+  line-height: 1.05;
+}
+
+.plan-preview-totals,
+.quote-financials {
+  display: grid;
+  margin: 20px 0 0;
+}
+
+.plan-preview-totals > div {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--public-line);
+}
+
+.plan-preview-totals dt,
+.quote-financials dt {
+  color: var(--public-muted);
+  font-size: 0.625rem;
+}
+
+.plan-preview-totals dd {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  text-align: right;
+}
+
+.plan-primary-action {
+  width: 100%;
+  margin-top: 18px;
+}
+
+.plan-quote-disclosure,
+.plan-quote-error,
+.quote-full-payment-note {
+  margin: 12px 0 0;
+  color: var(--public-muted);
+  font-size: 0.5625rem;
+  line-height: 1.55;
+}
+
+.plan-quote-error {
+  padding: 10px 11px;
+  border-left: 3px solid var(--public-gold);
+  background: var(--public-ivory);
+  color: var(--public-ink);
+}
+
+.quote-status-line {
+  display: grid;
+  gap: 3px;
+  margin-top: 18px;
+  padding: 11px 12px;
+  border-radius: 8px;
+  background: var(--public-ivory);
+}
+
+.quote-status-line span {
+  color: var(--public-green-deep);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.quote-status-line small {
+  color: var(--public-muted);
+  font-size: 0.5625rem;
+}
+
+.authoritative-quote.expired .quote-status-line span {
+  color: var(--public-gold-deep);
+}
+
+.quote-financials {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--public-line);
+  border-bottom: 1px solid var(--public-line);
+}
+
+.quote-financials > div {
+  display: grid;
+  gap: 4px;
+  padding: 14px 0;
+}
+
+.quote-financials > div:nth-child(3) {
+  padding-left: 14px;
+  border-left: 1px solid var(--public-line);
+}
+
+.quote-financials .quote-total {
+  grid-column: 1 / -1;
+  border-bottom: 1px solid var(--public-line);
+}
+
+.quote-financials dd {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.quote-total dd {
+  color: var(--public-green-deep);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.8rem;
+  font-weight: 400;
+}
+
+.quote-schedule {
+  margin-top: 18px;
+}
+
+.quote-schedule h3 {
+  margin: 0 0 10px;
+  font-size: 0.75rem;
+}
+
+.quote-schedule ol {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.quote-schedule li {
+  position: relative;
+  display: grid;
+  min-height: 54px;
+  grid-template-columns: 12px 1fr auto;
+  gap: 9px;
+  align-items: start;
+}
+
+.quote-schedule li:not(:last-child)::before {
+  position: absolute;
+  top: 10px;
+  bottom: 0;
+  left: 4px;
+  width: 1px;
+  background: var(--public-line);
+  content: "";
+}
+
+.quote-schedule-marker {
+  position: relative;
+  z-index: 1;
+  width: 9px;
+  height: 9px;
+  margin-top: 4px;
+  border: 2px solid var(--public-paper);
+  border-radius: 50%;
+  background: var(--public-green);
+  box-shadow: 0 0 0 1px var(--public-green);
+}
+
+.quote-schedule li > span:nth-child(2) {
+  display: grid;
+  gap: 3px;
+}
+
+.quote-schedule li strong {
+  font-size: 0.625rem;
+}
+
+.quote-schedule li > strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.quote-schedule li small {
+  color: var(--public-muted);
+  font-size: 0.5625rem;
+}
+
+.quote-next-step,
+.plan-sign-in {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 10px;
+  align-items: start;
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid var(--public-line);
+  border-radius: 8px;
+  background: var(--public-ivory);
+}
+
+.quote-next-step .public-icon,
+.plan-sign-in .public-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.quote-next-step > span,
+.plan-sign-in > span {
+  display: grid;
+  gap: 4px;
+}
+
+.quote-next-step strong,
+.plan-sign-in strong {
+  font-size: 0.625rem;
+}
+
+.quote-next-step small,
+.plan-sign-in small {
+  color: var(--public-muted);
+  font-size: 0.5625rem;
+  line-height: 1.5;
+}
+
+.plan-sign-in {
+  grid-template-columns: 28px 1fr auto;
+}
+
+.plan-sign-in a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--public-green-deep);
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+
+.plan-inline-state {
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--public-ivory);
+  color: var(--public-muted);
+  font-size: 0.6875rem;
+}
+
+.plan-inline-state.error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.plan-inline-state button {
+  flex: 0 0 auto;
+}
+
+.plan-page-state {
+  display: grid;
+  width: min(100%, 48rem);
+  min-height: 55vh;
+  align-content: center;
+  justify-items: start;
+  gap: 12px;
+  margin: 0 auto;
+}
+
+.plan-page-state h1 {
+  font-size: clamp(1.9rem, 5vw, 3.6rem);
+}
+
+.plan-page-state > p:not(.plan-ahead-kicker) {
+  max-width: 50ch;
+  margin: 0;
+  color: var(--public-muted);
+  line-height: 1.6;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .plan-occupancy-option:not(.disabled):hover,
+  .traveller-choice:hover {
+    border-color: var(--public-gold);
+  }
+
+  .traveller-add-form button:hover,
+  .plan-primary-action:not(:disabled):hover,
+  .plan-inline-state button:hover,
+  .plan-page-state button:hover,
+  .plan-page-state a:hover {
+    background: var(--public-green-deep);
+  }
+}
+
+@media (max-width: 900px) {
+  .plan-context,
+  .plan-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .plan-quote-column {
+    position: static;
+  }
+
+  .plan-occupancy-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .plan-main {
+    width: calc(100% - 32px);
+    padding-bottom: 48px;
+  }
+
+  .plan-context {
+    gap: 20px;
+    padding: 28px 0 24px;
+  }
+
+  .plan-context h1 {
+    font-size: clamp(2.15rem, 11vw, 3rem);
+  }
+
+  .plan-workspace {
+    gap: 14px;
+    padding-top: 16px;
+  }
+
+  .plan-panel,
+  .plan-quote-card {
+    padding: 18px;
+  }
+
+  .plan-occupancy-grid,
+  .traveller-choice-list,
+  .traveller-add-form {
+    grid-template-columns: 1fr;
+  }
+
+  .plan-occupancy-option {
+    min-height: 116px;
+  }
+
+  .traveller-add-form button {
+    width: 100%;
+  }
+
+  .plan-sign-in {
+    grid-template-columns: 28px 1fr;
+  }
+
+  .plan-sign-in a {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 390px) {
+  .plan-panel,
+  .plan-quote-card,
+  .plan-package-facts {
+    border-radius: 9px;
+  }
+
+  .plan-step-heading {
+    grid-template-columns: 34px 1fr;
+    gap: 10px;
+  }
+
+  .plan-step-heading > span {
+    width: 30px;
+    height: 30px;
+  }
+
+  .quote-financials dd {
+    font-size: 1rem;
+  }
+
+  .quote-total dd {
+    font-size: 1.55rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-page *,
+  .plan-page *::before,
+  .plan-page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

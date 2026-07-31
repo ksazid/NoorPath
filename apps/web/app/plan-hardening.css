@@ -1,0 +1,55 @@
+.plan-page .skip-link {
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+}
+
+.plan-page .plan-main,
+.plan-page .plan-context,
+.plan-page .plan-workspace,
+.plan-page .plan-steps,
+.plan-page .plan-panel,
+.plan-page .plan-quote-column,
+.plan-page .plan-quote-card,
+.plan-page .authoritative-quote,
+.plan-page .quote-financials > div,
+.plan-page .quote-schedule li > span,
+.plan-page .traveller-add-form label {
+  min-width: 0;
+}
+
+.plan-page .plan-main,
+.plan-page .plan-context,
+.plan-page .plan-workspace,
+.plan-page .plan-panel,
+.plan-page .plan-quote-column,
+.plan-page .plan-quote-card,
+.plan-page .authoritative-quote {
+  max-width: 100%;
+}
+
+.plan-page .traveller-add-form input {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 900px) {
+  .plan-page .plan-context,
+  .plan-page .plan-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .plan-page .plan-occupancy-grid,
+  .plan-page .traveller-choice-list,
+  .plan-page .traveller-add-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .plan-page .quote-schedule li {
+    grid-template-columns: 12px minmax(0, 1fr) auto;
+  }
+}

@@ -3,12 +3,16 @@ import type { ReactNode } from "react";
 import "./styles.css";
 import "./composer.css";
 import "./commercial.css";
+import "./payment-plan.css";
 import "./publication.css";
 import "./public.css";
 import "./discovery.css";
 import "./package-details.css";
 import "./refinement.css";
 import "./plan-early.css";
+import "./vs07-entry.css";
+import "./plan.css";
+import "./plan-hardening.css";
 
 export const metadata: Metadata = {
   title: "NoorPath",

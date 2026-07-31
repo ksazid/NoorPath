@@ -5,6 +5,7 @@ using NoorPath.Inventory.Infrastructure;
 using NoorPath.Operators;
 using NoorPath.Operators.Infrastructure;
 using NoorPath.Pricing.Infrastructure;
+using NoorPath.Traveller.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("NoorPath") ?? throw new InvalidOperationException("ConnectionStrings:NoorPath is required.");
@@ -12,6 +13,7 @@ builder.Services.AddDbContext<CatalogueDbContext>(options => options.UseNpgsql(c
 builder.Services.AddDbContext<OperatorsDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(OperatorsDbContext).Assembly.FullName)));
 builder.Services.AddDbContext<PricingDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(PricingDbContext).Assembly.FullName)));
 builder.Services.AddDbContext<InventoryDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(InventoryDbContext).Assembly.FullName)));
+builder.Services.AddDbContext<TravellerDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(TravellerDbContext).Assembly.FullName)));
 builder.Services.AddScoped<IOperatorAccess>(services => services.GetRequiredService<OperatorsDbContext>());
 builder.Services.AddScoped<IOperatorPublicationEligibility>(services => services.GetRequiredService<OperatorsDbContext>());
 builder.Services.AddNoorPathAuthentication(builder.Configuration, builder.Environment);
@@ -32,9 +34,11 @@ app.MapGet("/health/ready", () => Results.Ok(new HealthResponse("Ready")));
 app.MapOperatorAccess();
 app.MapCatalogueAuthoring();
 app.MapCommercialAuthoring();
+app.MapPaymentPlanAuthoring();
 app.MapPublicationReview();
 app.MapPublicDiscovery();
 app.MapPublicPackageDetails();
+app.MapTravellerQuotes();
 app.Run();
 
 public partial class Program;

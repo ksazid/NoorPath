@@ -1,0 +1,54 @@
+name: VS-07 Rendered Review
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  rendered-review:
+    name: Plan journey rendered review
+    runs-on: ${{ github.event.pull_request.number == 41 && 'self-hosted' || 'ubuntu-latest' }}
+    timeout-minutes: 20
+    env:
+      ASPNETCORE_ENVIRONMENT: Test
+      Authentication__Mode: Test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Configure self-hosted .NET install directory
+        if: github.event.pull_request.number == 41
+        run: echo "DOTNET_INSTALL_DIR=$RUNNER_TEMP/.dotnet" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install rendered review browsers
+        run: pnpm --dir apps/web exec playwright install chromium webkit
+
+      - name: Run VS-07 rendered acceptance
+        run: pnpm --dir apps/web exec playwright test e2e/plan-journey.spec.ts
+
+      - name: Upload rendered evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vs07-rendered-review
+          if-no-files-found: warn
+          path: |
+            apps/web/test-results
+            apps/web/playwright-report

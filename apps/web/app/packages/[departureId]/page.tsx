@@ -409,6 +409,12 @@ function PricingSummary({ details }: { details: PackageDetails }) {
       <p className="package-pricing-note">
         Published occupancy pricing. No payment is taken on this page.
       </p>
+      <Link
+        className="package-plan-primary"
+        href={`/packages/${details.departureId}/plan`}
+      >
+        Plan this journey <span aria-hidden="true">›</span>
+      </Link>
       <a href="mailto:support@noorpath.example">
         Ask about this package <span aria-hidden="true">›</span>
       </a>

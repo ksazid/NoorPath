@@ -12,6 +12,8 @@
     <Project Path="src/Modules/NoorPath.Operators.Infrastructure/NoorPath.Operators.Infrastructure.csproj" />
     <Project Path="src/Modules/NoorPath.Pricing/NoorPath.Pricing.csproj" />
     <Project Path="src/Modules/NoorPath.Pricing.Infrastructure/NoorPath.Pricing.Infrastructure.csproj" />
+    <Project Path="src/Modules/NoorPath.Traveller/NoorPath.Traveller.csproj" />
+    <Project Path="src/Modules/NoorPath.Traveller.Infrastructure/NoorPath.Traveller.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/NoorPath.Architecture.Tests/NoorPath.Architecture.Tests.csproj" />
@@ -22,5 +24,6 @@
     <Project Path="tests/NoorPath.Operators.Tests/NoorPath.Operators.Tests.csproj" />
     <Project Path="tests/NoorPath.Operators.Integration.Tests/NoorPath.Operators.Integration.Tests.csproj" />
     <Project Path="tests/NoorPath.Pricing.Tests/NoorPath.Pricing.Tests.csproj" />
+    <Project Path="tests/NoorPath.Traveller.Tests/NoorPath.Traveller.Tests.csproj" />
   </Folder>
 </Solution>

@@ -13,7 +13,8 @@ public sealed record OccupancyPriceDraft(
 
 public sealed record PricingDraftDetails(
     string Currency,
-    IReadOnlyList<OccupancyPriceDraft> Occupancies);
+    IReadOnlyList<OccupancyPriceDraft> Occupancies,
+    PaymentPlanDefinition? PaymentPlan = null);
 
 public sealed class PricingDraft
 {
@@ -55,6 +56,12 @@ public sealed class PricingDraft
                 errors[$"occupancies[{index}].amount"] = ["Price must be greater than zero."];
             else if (decimal.Round(amount, 2, MidpointRounding.ToEven) != amount)
                 errors[$"occupancies[{index}].amount"] = ["Price can use at most two decimal places."];
+        }
+
+        if (value.PaymentPlan is not null)
+        {
+            foreach (var error in PaymentPlanPolicy.Validate(value.PaymentPlan))
+                errors[error.Key] = error.Value;
         }
 
         return errors;

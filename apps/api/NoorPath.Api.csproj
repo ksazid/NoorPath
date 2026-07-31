@@ -9,6 +9,8 @@
     <ProjectReference Include="../../src/Modules/NoorPath.Operators.Infrastructure/NoorPath.Operators.Infrastructure.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Pricing/NoorPath.Pricing.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Pricing.Infrastructure/NoorPath.Pricing.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Modules/NoorPath.Traveller/NoorPath.Traveller.csproj" />
+    <ProjectReference Include="../../src/Modules/NoorPath.Traveller.Infrastructure/NoorPath.Traveller.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">

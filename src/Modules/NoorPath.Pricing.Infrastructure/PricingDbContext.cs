@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using NoorPath.Pricing;
 
 namespace NoorPath.Pricing.Infrastructure;
@@ -10,8 +11,42 @@ public sealed class PricingDbContext(DbContextOptions<PricingDbContext> options)
     public DbSet<PricingAuditRecord> Audits => Set<PricingAuditRecord>();
     public DbSet<PriceVersionRecord> PriceVersions => Set<PriceVersionRecord>();
     public DbSet<PublishedOccupancyPriceRecord> PublishedOccupancyPrices => Set<PublishedOccupancyPriceRecord>();
+    public DbSet<QuoteRecord> Quotes => Set<QuoteRecord>();
+    public DbSet<QuoteTravellerRecord> QuoteTravellers => Set<QuoteTravellerRecord>();
+    public DbSet<QuoteInstalmentRecord> QuoteInstalments => Set<QuoteInstalmentRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) => Configure(modelBuilder);
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        await SnapshotPaymentPlansForNewPriceVersionsAsync(cancellationToken);
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task SnapshotPaymentPlansForNewPriceVersionsAsync(CancellationToken cancellationToken)
+    {
+        var additions = ChangeTracker.Entries<PriceVersionRecord>()
+            .Where(entry => entry.State == EntityState.Added)
+            .ToArray();
+
+        foreach (var addition in additions)
+        {
+            var version = addition.Entity;
+            var trackedPlan = ChangeTracker.Entries<PricePlanRecord>()
+                .Where(entry => entry.State != EntityState.Deleted)
+                .Select(entry => entry.Entity)
+                .SingleOrDefault(plan => plan.Id == version.PricePlanId);
+            var plan = trackedPlan ?? await PricePlans.AsNoTracking()
+                .SingleAsync(item => item.Id == version.PricePlanId, cancellationToken);
+
+            if (plan.Version != version.SourcePlanVersion)
+                throw new InvalidOperationException("Published price version must snapshot the exact current Pricing plan version.");
+
+            version.DepositPercent = plan.DepositPercent;
+            version.InstalmentDayOfMonth = plan.InstalmentDayOfMonth;
+            version.FinalPaymentDueDaysBeforeDeparture = plan.FinalPaymentDueDaysBeforeDeparture;
+        }
+    }
 
     public static void Configure(ModelBuilder modelBuilder)
     {
@@ -24,6 +59,8 @@ public sealed class PricingDbContext(DbContextOptions<PricingDbContext> options)
             entity.Property(x => x.OperatorId).HasMaxLength(80);
             entity.Property(x => x.Currency).HasMaxLength(3);
             entity.Property(x => x.Version).IsConcurrencyToken();
+            entity.Property(x => x.DepositPercent).HasPrecision(5, 2);
+            entity.Ignore(x => x.PaymentPlan);
             entity.HasIndex(x => x.DepartureId).IsUnique();
             entity.HasIndex(x => x.OperatorId);
         });
@@ -47,7 +84,7 @@ public sealed class PricingDbContext(DbContextOptions<PricingDbContext> options)
             entity.HasKey(x => x.Id);
             entity.Property(x => x.ActorAccountId).HasMaxLength(120);
             entity.Property(x => x.CorrelationId).HasMaxLength(100);
-            entity.Property(x => x.Action).HasMaxLength(20);
+            entity.Property(x => x.Action).HasMaxLength(32);
             entity.HasIndex(x => new { x.DepartureId, x.Version });
             entity.HasOne<PricePlanRecord>()
                 .WithMany()
@@ -62,6 +99,8 @@ public sealed class PricingDbContext(DbContextOptions<PricingDbContext> options)
             entity.Property(x => x.OperatorId).HasMaxLength(80);
             entity.Property(x => x.Currency).HasMaxLength(3);
             entity.Property(x => x.PublishedByAccountId).HasMaxLength(120);
+            entity.Property(x => x.DepositPercent).HasPrecision(5, 2);
+            entity.Ignore(x => x.PaymentPlan);
             entity.HasIndex(x => x.DepartureId).IsUnique();
             entity.HasIndex(x => new { x.PricePlanId, x.SourcePlanVersion }).IsUnique();
             entity.HasOne<PricePlanRecord>()
@@ -82,6 +121,51 @@ public sealed class PricingDbContext(DbContextOptions<PricingDbContext> options)
                 .HasForeignKey(x => x.PriceVersionId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
+
+        modelBuilder.Entity<QuoteRecord>(entity =>
+        {
+            entity.ToTable("quotes");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.AccountId).HasMaxLength(120);
+            entity.Property(x => x.OperatorId).HasMaxLength(80);
+            entity.Property(x => x.Occupancy).HasConversion<string>().HasMaxLength(16);
+            entity.Property(x => x.Currency).HasMaxLength(3);
+            entity.Property(x => x.UnitPrice).HasPrecision(18, 2);
+            entity.Property(x => x.Total).HasPrecision(18, 2);
+            entity.Property(x => x.DueNow).HasPrecision(18, 2);
+            entity.Property(x => x.Remaining).HasPrecision(18, 2);
+            entity.HasIndex(x => x.AccountId);
+            entity.HasIndex(x => x.DepartureId);
+            entity.HasIndex(x => x.ExpiresAtUtc);
+            entity.HasOne<PriceVersionRecord>()
+                .WithMany()
+                .HasForeignKey(x => x.PriceVersionId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<QuoteTravellerRecord>(entity =>
+        {
+            entity.ToTable("quote_travellers");
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => new { x.QuoteId, x.Position }).IsUnique();
+            entity.HasIndex(x => new { x.QuoteId, x.TravellerId }).IsUnique();
+            entity.HasOne<QuoteRecord>()
+                .WithMany()
+                .HasForeignKey(x => x.QuoteId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<QuoteInstalmentRecord>(entity =>
+        {
+            entity.ToTable("quote_instalments");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Amount).HasPrecision(18, 2);
+            entity.HasIndex(x => new { x.QuoteId, x.Sequence }).IsUnique();
+            entity.HasOne<QuoteRecord>()
+                .WithMany()
+                .HasForeignKey(x => x.QuoteId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }
 
@@ -91,9 +175,16 @@ public sealed class PricePlanRecord
     public Guid DepartureId { get; set; }
     public required string OperatorId { get; set; }
     public required string Currency { get; set; }
+    public decimal? DepositPercent { get; set; }
+    public int? InstalmentDayOfMonth { get; set; }
+    public int? FinalPaymentDueDaysBeforeDeparture { get; set; }
     public int Version { get; set; } = 1;
     public DateTimeOffset CreatedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
+
+    public PaymentPlanDefinition? PaymentPlan => DepositPercent is null
+        ? null
+        : new(DepositPercent.Value, InstalmentDayOfMonth!.Value, FinalPaymentDueDaysBeforeDeparture!.Value);
 }
 
 public sealed class OccupancyPriceRecord
@@ -124,8 +215,15 @@ public sealed class PriceVersionRecord
     public required string OperatorId { get; set; }
     public int SourcePlanVersion { get; set; }
     public required string Currency { get; set; }
+    public decimal? DepositPercent { get; set; }
+    public int? InstalmentDayOfMonth { get; set; }
+    public int? FinalPaymentDueDaysBeforeDeparture { get; set; }
     public required string PublishedByAccountId { get; set; }
     public DateTimeOffset PublishedAtUtc { get; set; }
+
+    public PaymentPlanDefinition? PaymentPlan => DepositPercent is null
+        ? null
+        : new(DepositPercent.Value, InstalmentDayOfMonth!.Value, FinalPaymentDueDaysBeforeDeparture!.Value);
 }
 
 public sealed class PublishedOccupancyPriceRecord
@@ -133,5 +231,40 @@ public sealed class PublishedOccupancyPriceRecord
     public Guid Id { get; set; }
     public Guid PriceVersionId { get; set; }
     public PricingOccupancy Occupancy { get; set; }
+    public decimal Amount { get; set; }
+}
+
+public sealed class QuoteRecord
+{
+    public Guid Id { get; set; }
+    public required string AccountId { get; set; }
+    public Guid DepartureId { get; set; }
+    public required string OperatorId { get; set; }
+    public Guid PriceVersionId { get; set; }
+    public PricingOccupancy Occupancy { get; set; }
+    public int TravellerCount { get; set; }
+    public required string Currency { get; set; }
+    public decimal UnitPrice { get; set; }
+    public decimal Total { get; set; }
+    public decimal DueNow { get; set; }
+    public decimal Remaining { get; set; }
+    public DateTimeOffset CreatedAtUtc { get; set; }
+    public DateTimeOffset ExpiresAtUtc { get; set; }
+}
+
+public sealed class QuoteTravellerRecord
+{
+    public Guid Id { get; set; }
+    public Guid QuoteId { get; set; }
+    public Guid TravellerId { get; set; }
+    public int Position { get; set; }
+}
+
+public sealed class QuoteInstalmentRecord
+{
+    public Guid Id { get; set; }
+    public Guid QuoteId { get; set; }
+    public int Sequence { get; set; }
+    public DateOnly DueDate { get; set; }
     public decimal Amount { get; set; }
 }
