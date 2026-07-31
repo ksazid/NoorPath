@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   checks: write
@@ -13,13 +17,13 @@ permissions:
 jobs:
   secrets:
     name: Secret scanning
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.pull_request.number == 41 && 'self-hosted' || 'ubuntu-latest' }}
     # Only run on push or on PRs from the same repository (skip fork PRs)
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
-        contents: read
-        checks: write
-        pull-requests: read
+      contents: read
+      checks: write
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,7 +35,7 @@ jobs:
 
   node:
     name: Node validation
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.pull_request.number == 41 && 'self-hosted' || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -46,7 +50,7 @@ jobs:
 
   dotnet:
     name: .NET validation
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.pull_request.number == 41 && 'self-hosted' || 'ubuntu-latest' }}
     services:
       postgres:
         image: postgres:18-alpine
@@ -107,7 +111,7 @@ jobs:
 
   postgres:
     name: PostgreSQL configuration
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.pull_request.number == 41 && 'self-hosted' || 'ubuntu-latest' }}
     timeout-minutes: 10
     env:
       NOORPATH_DB_PASSWORD: ci-local-only-password
