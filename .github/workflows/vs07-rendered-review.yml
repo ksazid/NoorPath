@@ -12,6 +12,9 @@ jobs:
     name: Plan journey rendered review
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      ASPNETCORE_ENVIRONMENT: Test
+      Authentication__Mode: Test
     steps:
       - uses: actions/checkout@v4
 
