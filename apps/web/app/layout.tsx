@@ -9,6 +9,7 @@ import "./discovery.css";
 import "./package-details.css";
 import "./refinement.css";
 import "./plan-early.css";
+import "./plan.css";
 
 export const metadata: Metadata = {
   title: "NoorPath",
