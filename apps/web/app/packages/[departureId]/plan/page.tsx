@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Icon, PublicFooter, PublicHeader } from "../../../public-ui";
 
@@ -186,21 +186,18 @@ export default function PlanJourneyPage() {
   }, [departureId]);
 
   useEffect(() => {
-    void loadPackage();
-    void loadTravellers();
+    const pending = window.setTimeout(() => {
+      void loadPackage();
+      void loadTravellers();
+    }, 0);
+    return () => window.clearTimeout(pending);
   }, [loadPackage, loadTravellers]);
 
   useEffect(() => {
     if (quoteState.kind !== "loaded" || quoteState.quote.expired) return;
     const remaining =
       new Date(quoteState.quote.expiresAtUtc).getTime() - Date.now();
-    if (remaining <= 0) {
-      setQuoteState({
-        kind: "loaded",
-        quote: { ...quoteState.quote, expired: true },
-      });
-      return;
-    }
+    const delay = Math.max(remaining, 0);
 
     const timer = window.setTimeout(() => {
       setQuoteState((current) =>
@@ -208,7 +205,7 @@ export default function PlanJourneyPage() {
           ? { kind: "loaded", quote: { ...current.quote, expired: true } }
           : current,
       );
-    }, remaining);
+    }, delay);
     return () => window.clearTimeout(timer);
   }, [quoteState]);
 

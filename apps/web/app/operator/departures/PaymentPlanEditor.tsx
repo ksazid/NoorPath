@@ -84,7 +84,9 @@ export default function PaymentPlanEditor({
   onDirtyChange: (dirty: boolean) => void;
   onBusyChange: (busy: boolean) => void;
 }) {
-  const [state, setState] = useState<LoadState>(departureId ? "loading" : "idle");
+  const [state, setState] = useState<LoadState>(
+    departureId ? "loading" : "idle",
+  );
   const [pricingVersion, setPricingVersion] = useState(0);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [savedForm, setSavedForm] = useState<FormState>(emptyForm);
@@ -171,7 +173,8 @@ export default function PaymentPlanEditor({
           }),
         },
       );
-      const body = (await response.json()) as PaymentPlanResponse & ProblemDetails;
+      const body = (await response.json()) as PaymentPlanResponse &
+        ProblemDetails;
       if (response.status === 401) return setState("unauthenticated");
       if (response.status === 403) return setState("forbidden");
       if (response.status === 404) return setState("not-found");
@@ -203,7 +206,9 @@ export default function PaymentPlanEditor({
       setSavedForm(next);
       setState("saved");
     } catch {
-      setProblem("We couldn’t save the payment plan. Your entries are preserved.");
+      setProblem(
+        "We couldn’t save the payment plan. Your entries are preserved.",
+      );
       setState("error");
     }
   };
@@ -215,7 +220,9 @@ export default function PaymentPlanEditor({
           <span>07</span>
           <div>
             <h2>Customer payment plan</h2>
-            <p>Save the catalogue draft before configuring customer payments.</p>
+            <p>
+              Save the catalogue draft before configuring customer payments.
+            </p>
           </div>
         </div>
       </section>
@@ -223,7 +230,10 @@ export default function PaymentPlanEditor({
   }
 
   return (
-    <section className="form-card payment-plan-card" aria-busy={state === "loading" || state === "saving"}>
+    <section
+      className="form-card payment-plan-card"
+      aria-busy={state === "loading" || state === "saving"}
+    >
       <div className="form-card-heading">
         <span>07</span>
         <div>
@@ -249,20 +259,32 @@ export default function PaymentPlanEditor({
       ) : null}
 
       {state === "loading" ? (
-        <p className="payment-plan-state" role="status">Loading payment plan…</p>
+        <p className="payment-plan-state" role="status">
+          Loading payment plan…
+        </p>
       ) : null}
       {state === "unauthenticated" ? (
-        <p className="payment-plan-state" role="alert">Sign in again to continue.</p>
+        <p className="payment-plan-state" role="alert">
+          Sign in again to continue.
+        </p>
       ) : null}
       {state === "forbidden" ? (
-        <p className="payment-plan-state" role="alert">You do not have access to change this payment plan.</p>
+        <p className="payment-plan-state" role="alert">
+          You do not have access to change this payment plan.
+        </p>
       ) : null}
       {state === "not-found" ? (
-        <p className="payment-plan-state" role="alert">This draft is no longer available for editing.</p>
+        <p className="payment-plan-state" role="alert">
+          This draft is no longer available for editing.
+        </p>
       ) : null}
       {state === "error" || state === "conflict" ? (
         <div className={`commercial-notice ${state}`} role="alert">
-          <strong>{state === "conflict" ? "Pricing changed" : "Payment plan not saved"}</strong>
+          <strong>
+            {state === "conflict"
+              ? "Pricing changed"
+              : "Payment plan not saved"}
+          </strong>
           <span>{problem}</span>
           <button type="button" onClick={() => void load()}>
             Reload payment plan
@@ -273,14 +295,17 @@ export default function PaymentPlanEditor({
         <div className="commercial-notice saved" role="status">
           <strong>Payment plan saved</strong>
           <span>
-            Publication will freeze these rules with the immutable price version.
+            Publication will freeze these rules with the immutable price
+            version.
           </span>
         </div>
       ) : null}
 
       <fieldset
         className="payment-plan-fieldset"
-        disabled={pricingVersion === 0 || state === "loading" || state === "saving"}
+        disabled={
+          pricingVersion === 0 || state === "loading" || state === "saving"
+        }
       >
         <label className="payment-plan-toggle">
           <input
@@ -305,7 +330,9 @@ export default function PaymentPlanEditor({
                 <input
                   inputMode="decimal"
                   value={form.depositPercent}
-                  onChange={(event) => change("depositPercent", event.target.value)}
+                  onChange={(event) =>
+                    change("depositPercent", event.target.value)
+                  }
                   aria-invalid={Boolean(errors["paymentPlan.depositPercent"])}
                 />
                 <span>%</span>
@@ -322,8 +349,12 @@ export default function PaymentPlanEditor({
                 min="1"
                 max="28"
                 value={form.instalmentDayOfMonth}
-                onChange={(event) => change("instalmentDayOfMonth", event.target.value)}
-                aria-invalid={Boolean(errors["paymentPlan.instalmentDayOfMonth"])}
+                onChange={(event) =>
+                  change("instalmentDayOfMonth", event.target.value)
+                }
+                aria-invalid={Boolean(
+                  errors["paymentPlan.instalmentDayOfMonth"],
+                )}
               />
               <small>
                 {errors["paymentPlan.instalmentDayOfMonth"] ??

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import CommercialEditor from "./CommercialEditor";
+import PaymentPlanEditor from "./PaymentPlanEditor";
 import {
   useEffect,
   useMemo,
@@ -446,7 +447,9 @@ export default function DepartureComposer({
   const [isDirty, setIsDirty] = useState(false);
   const [commercialDirty, setCommercialDirty] = useState(false);
   const [commercialBusy, setCommercialBusy] = useState(false);
-  const hasUnsavedChanges = isDirty || commercialDirty;
+  const [paymentPlanDirty, setPaymentPlanDirty] = useState(false);
+  const [paymentPlanBusy, setPaymentPlanBusy] = useState(false);
+  const hasUnsavedChanges = isDirty || commercialDirty || paymentPlanDirty;
   const isLocked = draftStatus !== "draft";
 
   const duration = useMemo(() => {
@@ -527,7 +530,7 @@ export default function DepartureComposer({
   }, [initialDepartureId]);
 
   const guardNavigation = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (state === "saving" || commercialBusy) {
+    if (state === "saving" || commercialBusy || paymentPlanBusy) {
       event.preventDefault();
       return;
     }
@@ -760,7 +763,7 @@ export default function DepartureComposer({
       <section
         id="composer-main"
         className="admin-content composer-content"
-        aria-busy={state === "saving" || commercialBusy}
+        aria-busy={state === "saving" || commercialBusy || paymentPlanBusy}
         tabIndex={-1}
       >
         <div className="admin-titlebar">
@@ -1066,11 +1069,18 @@ export default function DepartureComposer({
             </Link>
           </section>
         ) : (
-          <CommercialEditor
-            departureId={departureId || undefined}
-            onDirtyChange={setCommercialDirty}
-            onBusyChange={setCommercialBusy}
-          />
+          <>
+            <CommercialEditor
+              departureId={departureId || undefined}
+              onDirtyChange={setCommercialDirty}
+              onBusyChange={setCommercialBusy}
+            />
+            <PaymentPlanEditor
+              departureId={departureId || undefined}
+              onDirtyChange={setPaymentPlanDirty}
+              onBusyChange={setPaymentPlanBusy}
+            />
+          </>
         )}
       </section>
 
