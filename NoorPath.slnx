@@ -12,6 +12,8 @@
     <Project Path="src/Modules/NoorPath.Operators.Infrastructure/NoorPath.Operators.Infrastructure.csproj" />
     <Project Path="src/Modules/NoorPath.Pricing/NoorPath.Pricing.csproj" />
     <Project Path="src/Modules/NoorPath.Pricing.Infrastructure/NoorPath.Pricing.Infrastructure.csproj" />
+    <Project Path="src/Modules/NoorPath.Traveller/NoorPath.Traveller.csproj" />
+    <Project Path="src/Modules/NoorPath.Traveller.Infrastructure/NoorPath.Traveller.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/NoorPath.Architecture.Tests/NoorPath.Architecture.Tests.csproj" />
