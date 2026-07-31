@@ -24,26 +24,22 @@ const planningSteps = [
   {
     number: "01",
     title: "Choose when you want to travel",
-    copy:
-      "Explore published departures months ahead, from the city that works for you.",
+    copy: "Explore published departures months ahead, from the city that works for you.",
   },
   {
     number: "02",
     title: "Understand the full journey",
-    copy:
-      "Review operator, stay, travel, pricing and availability before making a decision.",
+    copy: "Review operator, stay, travel, pricing and availability before making a decision.",
   },
   {
     number: "03",
     title: "Secure it with a clear plan",
-    copy:
-      "Before commitment, your quote shows the total, due-now amount and payment schedule.",
+    copy: "Before commitment, your quote shows the total, due-now amount and payment schedule.",
   },
   {
     number: "04",
     title: "Prepare until departure",
-    copy:
-      "Follow payments, documents, visa readiness and next steps in one Umrah plan.",
+    copy: "Follow payments, documents, visa readiness and next steps in one Umrah plan.",
   },
 ] as const;
 
