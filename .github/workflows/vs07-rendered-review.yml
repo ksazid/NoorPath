@@ -30,7 +30,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Install rendered review browsers
-        run: pnpm --dir apps/web exec playwright install --with-deps chromium webkit
+        run: pnpm --dir apps/web exec playwright install chromium webkit
 
       - name: Run VS-07 rendered acceptance
         run: pnpm --dir apps/web exec playwright test e2e/plan-journey.spec.ts
