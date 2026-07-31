@@ -117,7 +117,9 @@ async function completeQuote(page: Page) {
   await expect(selectionCount).toContainText("of 2 travellers selected");
 
   await page.getByRole("button", { name: "See my complete quote" }).click();
-  await expect(page.getByText("Authoritative quote")).toBeVisible();
+  await expect(
+    page.getByText("Authoritative quote", { exact: true }),
+  ).toBeVisible();
   await expect(page.getByText("₹2,20,000")).toBeVisible();
   await expect(page.getByText("₹44,000")).toBeVisible();
   await expect(page.getByText("₹1,76,000")).toBeVisible();
