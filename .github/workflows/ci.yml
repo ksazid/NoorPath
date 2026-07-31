@@ -46,6 +46,35 @@ jobs:
       - run: pnpm test
       - run: pnpm build
 
+  vs07_migrations:
+    name: VS-07 migration generation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - run: dotnet tool install --global dotnet-ef --version 10.0.10
+      - run: dotnet restore NoorPath.slnx
+      - name: Generate Pricing migration
+        run: >-
+          dotnet ef migrations add VS07QuotesAndPaymentPlans
+          --project src/Modules/NoorPath.Pricing.Infrastructure/NoorPath.Pricing.Infrastructure.csproj
+          --context PricingDbContext
+          --output-dir Migrations
+      - name: Generate Traveller migration
+        run: >-
+          dotnet ef migrations add VS07TravellerProfiles
+          --project src/Modules/NoorPath.Traveller.Infrastructure/NoorPath.Traveller.Infrastructure.csproj
+          --context TravellerDbContext
+          --output-dir Migrations
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vs07-generated-migrations
+          path: |
+            src/Modules/NoorPath.Pricing.Infrastructure/Migrations
+            src/Modules/NoorPath.Traveller.Infrastructure/Migrations
+
   dotnet:
     name: .NET validation
     runs-on: ubuntu-latest
