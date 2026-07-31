@@ -39,6 +39,8 @@ jobs:
           node-version-file: .node-version
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
+      - name: Print formatted VS-07 plan page
+        run: pnpm --dir apps/web exec prettier 'app/packages/[departureId]/plan/page.tsx'
       - run: pnpm format:check
       - run: pnpm check
       - run: pnpm test
