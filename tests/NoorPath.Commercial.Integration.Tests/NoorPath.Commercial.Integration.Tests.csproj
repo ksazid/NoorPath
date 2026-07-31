@@ -10,6 +10,7 @@
     <ProjectReference Include="../../src/Modules/NoorPath.Inventory.Infrastructure/NoorPath.Inventory.Infrastructure.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Operators.Infrastructure/NoorPath.Operators.Infrastructure.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Pricing.Infrastructure/NoorPath.Pricing.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Modules/NoorPath.Traveller.Infrastructure/NoorPath.Traveller.Infrastructure.csproj" />
     <ProjectReference Include="../../apps/api/NoorPath.Api.csproj" />
   </ItemGroup>
 </Project>
