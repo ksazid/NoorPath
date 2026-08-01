@@ -3,6 +3,9 @@ name: Format Delivery Factory
 on:
   push:
     branches: [eng/slice-delivery-factory]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
   workflow_dispatch:
 
 permissions:
@@ -10,7 +13,9 @@ permissions:
 
 jobs:
   format:
-    if: github.actor != 'github-actions[bot]'
+    if: >-
+      github.actor != 'github-actions[bot]' &&
+      (github.event_name != 'pull_request' || github.head_ref == 'eng/slice-delivery-factory')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
