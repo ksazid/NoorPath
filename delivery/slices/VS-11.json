@@ -1,0 +1,60 @@
+{
+  "id": "VS-11",
+  "title": "My Journey",
+  "slug": "my-journey",
+  "outcome": "A confirmed customer has one trusted, accessible place to understand the booking, payment and upcoming Umrah journey state without fabricated readiness or operational facts.",
+  "actor": "Authenticated customer viewing only bookings and travellers within the customer account scope.",
+  "dependsOn": ["VS-10"],
+  "modules": [
+    "Booking supplies the confirmed booking and commercial summary projection.",
+    "Payments supplies payment and instalment state without exposing provider-sensitive data.",
+    "Catalogue supplies immutable published journey facts referenced by the booking snapshot.",
+    "Traveller supplies customer-owned traveller identities and future readiness placeholders."
+  ],
+  "routes": [
+    "Customer account -> My Journey list",
+    "My Journey list -> Confirmed booking dashboard",
+    "Booking dashboard -> Payment schedule and status",
+    "Booking dashboard -> Traveller summary",
+    "Booking dashboard -> Support entry point"
+  ],
+  "acceptance": [
+    "The customer sees only account-owned bookings and receives a safe not-found response for foreign identifiers.",
+    "The dashboard presents booking reference, confirmation state, departure, stay, travellers, occupancy and immutable commercial totals truthfully.",
+    "Payment state, due-now, remaining balance and instalment schedule come from authoritative payment and booking projections.",
+    "Future document, visa and readiness capabilities appear only as explicit unavailable or coming-next placeholders, never fabricated completion states.",
+    "Loading, empty, unavailable, delayed-projection and recoverable-error states are complete and actionable.",
+    "The page preserves the approved NoorPath customer visual language, header and footer across desktop and mobile.",
+    "Keyboard navigation, visible focus, semantics, live status messaging, 44px targets, 200% text and reduced motion pass.",
+    "Landing, Discovery, Package Details, Plan, Booking and My Journey form a connected, non-orphaned customer route graph.",
+    "Support entry includes the booking reference and correlation context without leaking sensitive information.",
+    "Telemetry measures successful dashboard load, projection delay, error outcome and support entry without collecting unnecessary personal data."
+  ],
+  "exclusions": [
+    "Document upload and review; owned by VS-12.",
+    "Visa lifecycle; owned by VS-13.",
+    "Live flight tracking, GPS group tracking, chat and orientation content.",
+    "Operator exception management; owned by VS-14.",
+    "Editable booking, traveller or payment state from the customer dashboard."
+  ],
+  "qualityGates": [
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "migration",
+    "security",
+    "accessibility",
+    "rendered-regression",
+    "journey-linking",
+    "telemetry",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "e2e/my-journey.spec.ts"
+  },
+  "specPath": "docs/slices/VS-11-MY-JOURNEY.md",
+  "checklistPath": "docs/slices/VS-11-IMPLEMENTATION-CHECKLIST.md"
+}
