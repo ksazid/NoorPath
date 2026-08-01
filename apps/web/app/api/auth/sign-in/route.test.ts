@@ -8,7 +8,9 @@ const names = [
   "AUTH0_CLIENT_SECRET",
   "AUTH0_SECRET",
 ] as const;
-const original = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+const original = Object.fromEntries(
+  names.map((name) => [name, process.env[name]]),
+);
 
 beforeEach(() => {
   process.env.AUTH0_DOMAIN = "tenant.example.test";
