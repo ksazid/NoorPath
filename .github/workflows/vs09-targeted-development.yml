@@ -3,8 +3,12 @@ name: VS-09 Targeted Development
 on:
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened]
+    types: [edited]
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -13,7 +17,9 @@ jobs:
   backend:
     if: >-
       github.actor != 'github-actions[bot]' &&
-      (github.event_name != 'pull_request' || github.head_ref == 'agent/vs09-booking-payment')
+      (github.event_name != 'pull_request' ||
+        (github.head_ref == 'agent/vs09-booking-payment' &&
+         contains(github.event.pull_request.body, '<!-- run-vs09-backend -->')))
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -47,20 +53,28 @@ jobs:
         run: |
           dotnet restore NoorPath.slnx
           dotnet format NoorPath.slnx --no-restore
-      - name: Generate Booking migration
-        run: >-
-          dotnet ef migrations add VS09Booking
-          --project src/Modules/NoorPath.Booking.Infrastructure/NoorPath.Booking.Infrastructure.csproj
-          --startup-project apps/api/NoorPath.Api.csproj
-          --context BookingDbContext
-          --output-dir Migrations
-      - name: Generate Payments migration
-        run: >-
-          dotnet ef migrations add VS09Payments
-          --project src/Modules/NoorPath.Payments.Infrastructure/NoorPath.Payments.Infrastructure.csproj
-          --startup-project apps/api/NoorPath.Api.csproj
-          --context PaymentsDbContext
-          --output-dir Migrations
+      - name: Generate Booking migration when absent
+        run: |
+          if [ -d src/Modules/NoorPath.Booking.Infrastructure/Migrations ]; then
+            echo "Booking migration already exists."
+          else
+            dotnet ef migrations add VS09Booking \
+              --project src/Modules/NoorPath.Booking.Infrastructure/NoorPath.Booking.Infrastructure.csproj \
+              --startup-project apps/api/NoorPath.Api.csproj \
+              --context BookingDbContext \
+              --output-dir Migrations
+          fi
+      - name: Generate Payments migration when absent
+        run: |
+          if [ -d src/Modules/NoorPath.Payments.Infrastructure/Migrations ]; then
+            echo "Payments migration already exists."
+          else
+            dotnet ef migrations add VS09Payments \
+              --project src/Modules/NoorPath.Payments.Infrastructure/NoorPath.Payments.Infrastructure.csproj \
+              --startup-project apps/api/NoorPath.Api.csproj \
+              --context PaymentsDbContext \
+              --output-dir Migrations
+          fi
       - name: Build complete solution
         run: dotnet build NoorPath.slnx --configuration Release --no-restore
       - name: Create VS-09 test databases
