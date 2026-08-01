@@ -26,7 +26,9 @@ type TransitionState =
 function requestHeaders(additional: Record<string, string> = {}): HeadersInit {
   const headers: Record<string, string> = { ...additional };
   const testIdentity = process.env.NEXT_PUBLIC_NOORPATH_TEST_IDENTITY;
-  if (testIdentity) headers["X-NoorPath-Test-Identity"] = testIdentity;
+  if (testIdentity) {
+    headers["X-NoorPath-Test-Identity"] = testIdentity;
+  }
   return headers;
 }
 
@@ -37,7 +39,9 @@ function storageKey(holdId: string) {
 function getOrCreateBookingKey(holdId: string) {
   const key = storageKey(holdId);
   const existing = window.sessionStorage.getItem(key);
-  if (existing) return existing;
+  if (existing) {
+    return existing;
+  }
   const created = `booking-${window.crypto.randomUUID()}`;
   window.sessionStorage.setItem(key, created);
   return created;
