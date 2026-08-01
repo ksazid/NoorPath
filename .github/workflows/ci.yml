@@ -59,8 +59,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-
       - run: pnpm install --frozen-lockfile
-      - name: Validate slice manifests
-        run: pnpm slice:validate
+      - name: Validate delivery manifests and module registry
+        run: |
+          pnpm slice:validate
+          pnpm migrations:registry
       - name: Verify pre-commit formatting automation
         shell: bash
         run: |
@@ -104,14 +106,11 @@ jobs:
           --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       NOORPATH_TEST_DB: Host=localhost;Port=5432;Database=noorpath_test;Username=noorpath;Password=ci-local-only-password
-      NOORPATH_CATALOGUE_TEST_DB: Host=localhost;Port=5432;Database=noorpath_catalogue_test;Username=noorpath;Password=ci-local-only-password
-      NOORPATH_OPERATORS_TEST_DB: Host=localhost;Port=5432;Database=noorpath_operators_test;Username=noorpath;Password=ci-local-only-password
-      NOORPATH_PRICING_TEST_DB: Host=localhost;Port=5432;Database=noorpath_pricing_test;Username=noorpath;Password=ci-local-only-password
-      NOORPATH_INVENTORY_TEST_DB: Host=localhost;Port=5432;Database=noorpath_inventory_test;Username=noorpath;Password=ci-local-only-password
-      NOORPATH_TRAVELLER_TEST_DB: Host=localhost;Port=5432;Database=noorpath_traveller_test;Username=noorpath;Password=ci-local-only-password
-      NOORPATH_COMMERCIAL_TEST_DB: Host=localhost;Port=5432;Database=noorpath_commercial_test;Username=noorpath;Password=ci-local-only-password
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
@@ -127,27 +126,19 @@ jobs:
       - run: dotnet restore NoorPath.slnx
       - run: dotnet format NoorPath.slnx --verify-no-changes --no-restore
       - run: dotnet build NoorPath.slnx --configuration Release --no-restore
-      - name: Create module test databases
+      - name: Validate persistence registry
+        run: node scripts/module-migrations.mjs validate-registry
+      - name: Create registered test databases
         shell: bash
         run: |
           set -euo pipefail
           postgres_container="$(docker ps --filter "publish=5432" --format '{{.ID}}' | head -n 1)"
           test -n "$postgres_container"
-          for database in catalogue operators pricing inventory traveller commercial; do
-            docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test \
-              -c "CREATE DATABASE noorpath_${database}_test;"
-          done
-      - name: Validate Catalogue migration state
-        run: ./scripts/validate-catalogue-migrations.sh
-      - name: Validate Operators migration state
-        run: ./scripts/validate-operators-migrations.sh
-      - name: Validate Pricing migration state
-        run: bash ./scripts/validate-pricing-migrations.sh
-      - name: Validate Inventory migration state
-        run: bash ./scripts/validate-inventory-migrations.sh
-      - name: Validate Traveller migration state
-        run: bash ./scripts/validate-traveller-migrations.sh
-      - run: dotnet test NoorPath.slnx --configuration Release --no-build
+          node scripts/module-migrations.mjs create-databases "$postgres_container"
+      - name: Validate all registered migrations
+        run: node scripts/module-migrations.mjs validate
+      - name: Run solution tests with registered database connections
+        run: node scripts/module-migrations.mjs test
 
   postgres:
     name: PostgreSQL configuration
@@ -203,7 +194,7 @@ jobs:
           - Exact SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           - Secret scanning: passed
           - Node validation: passed
-          - .NET and migration validation: passed
+          - .NET, registered migrations and solution tests: passed
           - PostgreSQL configuration: passed
           - Rendered review: required separately when enabled
           - Product Owner acceptance: required through \`po-approved\`
@@ -218,14 +209,16 @@ jobs:
         with:
           script: |
             const marker = '<!-- noorpath-certification -->';
-            const body = `${marker}\n## Automated certification\n\n- Slice: \`${{ steps.slice.outputs.slice_id }}\`\n- Exact SHA: \`${context.payload.pull_request.head.sha}\`\n- CI, migrations, PostgreSQL and secret scanning: **passed**\n- Rendered Slice Review: **required when enabled**\n- Product Owner acceptance: **requires \`po-approved\`**\n\nAny later commit invalidates this evidence and reruns certification while the \`certify\` label remains.`;
+            const body = `${marker}\n## Automated certification\n\n- Slice: \`${{ steps.slice.outputs.slice_id }}\`\n- Exact SHA: \`${context.payload.pull_request.head.sha}\`\n- CI, registered migrations, PostgreSQL and secret scanning: **passed**\n- Rendered Slice Review: **required when enabled**\n- Product Owner acceptance: **requires \`po-approved\`**\n\nAny later commit invalidates this evidence and reruns certification while the \`certify\` label remains.`;
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
               per_page: 100,
             });
-            const existing = comments.find(comment => comment.body?.includes(marker));
+            const existing = comments.find((comment) =>
+              comment.body?.includes(marker),
+            );
             if (existing) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
