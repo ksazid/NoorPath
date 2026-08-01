@@ -6,7 +6,8 @@
   justify-content: center;
 }
 
-.plan-page .package-breadcrumbs a:focus {
+.plan-page .package-breadcrumbs a:focus,
+.plan-page .public-footer-links a:focus {
   outline: 3px solid rgba(23, 107, 80, 0.32);
   outline-offset: 2px;
 }
