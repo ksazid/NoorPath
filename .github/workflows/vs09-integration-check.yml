@@ -39,6 +39,54 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
+      - name: Apply exact payment replay ordering fix
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("apps/api/PaymentEndpoints.cs")
+          text = path.read_text()
+          if "var replayByKey" not in text:
+              duplicate = '''        var idempotencyKeyHash = CheckoutIdempotency.Hash(idempotencyKey!);
+                  var requestFingerprint = CheckoutIdempotency.Hash(
+                      $"{accountId}\\n{booking.BookingId:D}\\n{booking.Currency}\\n{booking.DueNow:0.00}");
+
+                  PaymentAttemptRecord? attempt;'''
+              replacement = '''        PaymentAttemptRecord? attempt;'''
+              if duplicate not in text:
+                  raise SystemExit("Unable to locate the existing payment fingerprint block")
+              text = text.replace(duplicate, replacement, 1)
+
+              anchor = '''        if (booking.State == BookingState.PaymentSucceeded)
+                      return PaymentAlreadySettled(http);'''
+              insertion = '''        var idempotencyKeyHash = CheckoutIdempotency.Hash(idempotencyKey!);
+                  var requestFingerprint = CheckoutIdempotency.Hash(
+                      $"{accountId}\\n{booking.BookingId:D}\\n{booking.Currency}\\n{booking.DueNow:0.00}");
+                  var replayByKey = await payments.PaymentAttempts.AsNoTracking()
+                      .SingleOrDefaultAsync(item =>
+                          item.AccountId == accountId
+                          && item.IdempotencyKeyHash == idempotencyKeyHash,
+                          cancellationToken);
+                  if (replayByKey is not null)
+                  {
+                      if (!string.Equals(
+                              replayByKey.RequestFingerprint,
+                              requestFingerprint,
+                              StringComparison.Ordinal))
+                      {
+                          return IdempotencyConflict(http);
+                      }
+
+                      if (replayByKey.State != PaymentAttemptState.Created)
+                          return Results.Ok(ToResponse(replayByKey, razorpay.Value));
+                  }
+
+          '''
+              if anchor not in text:
+                  raise SystemExit("Unable to locate the booking payment-state gate")
+              text = text.replace(anchor, insertion + anchor, 1)
+              path.write_text(text)
+          PY
       - name: Restore and format
         run: |
           dotnet restore NoorPath.slnx
@@ -65,14 +113,14 @@ jobs:
           retention-days: 1
           if-no-files-found: error
           path: test-results/vs09
-      - name: Commit formatting
+      - name: Commit validated fix and formatting
         run: |
           if git diff --quiet; then
-            echo "No formatting changes required."
+            echo "No implementation changes required."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add apps/api src tests NoorPath.slnx delivery/modules.json
-          git commit -m "style(vs09): format booking-payment implementation"
+          git commit -m "fix(vs09): resolve payment replay before state gate"
           git push origin HEAD:agent/vs09-booking-payment
