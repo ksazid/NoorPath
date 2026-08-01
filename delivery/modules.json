@@ -1,6 +1,13 @@
 {
   "modules": [
     {
+      "name": "Booking",
+      "project": "src/Modules/NoorPath.Booking.Infrastructure/NoorPath.Booking.Infrastructure.csproj",
+      "context": "BookingDbContext",
+      "database": "noorpath_booking_test",
+      "environment": "NOORPATH_BOOKING_TEST_DB"
+    },
+    {
       "name": "Catalogue",
       "project": "src/Modules/NoorPath.Catalogue.Infrastructure/NoorPath.Catalogue.Infrastructure.csproj",
       "context": "CatalogueDbContext",
@@ -13,6 +20,13 @@
       "context": "OperatorsDbContext",
       "database": "noorpath_operators_test",
       "environment": "NOORPATH_OPERATORS_TEST_DB"
+    },
+    {
+      "name": "Payments",
+      "project": "src/Modules/NoorPath.Payments.Infrastructure/NoorPath.Payments.Infrastructure.csproj",
+      "context": "PaymentsDbContext",
+      "database": "noorpath_payments_test",
+      "environment": "NOORPATH_PAYMENTS_TEST_DB"
     },
     {
       "name": "Pricing",
