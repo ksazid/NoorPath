@@ -5,8 +5,8 @@
   "scripts": {
     "build": "pnpm --recursive build",
     "check": "pnpm --recursive check",
-    "format": "pnpm --dir apps/web exec prettier --write \"../../package.json\" \"../../scripts/**/*.mjs\" \"../../.github/workflows/*.yml\" && pnpm --recursive format",
-    "format:check": "pnpm --dir apps/web exec prettier --check \"../../package.json\" \"../../scripts/**/*.mjs\" \"../../.github/workflows/*.yml\" && pnpm --recursive format:check",
+    "format": "pnpm --dir apps/web exec prettier --write \"../../package.json\" \"../../delivery/**/*.json\" \"../../scripts/**/*.mjs\" \"../../.github/workflows/*.yml\" && pnpm --recursive format",
+    "format:check": "pnpm --dir apps/web exec prettier --check \"../../package.json\" \"../../delivery/**/*.json\" \"../../scripts/**/*.mjs\" \"../../.github/workflows/*.yml\" && pnpm --recursive format:check",
     "hooks:install": "node scripts/install-git-hooks.mjs",
     "migrations:registry": "node scripts/module-migrations.mjs validate-registry",
     "prepare": "node scripts/install-git-hooks.mjs",
