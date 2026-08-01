@@ -36,7 +36,7 @@
     "Visa lifecycle or official visa-authority decisions; owned by VS-13.",
     "OCR, biometric matching, automated passport extraction or automated approval.",
     "Permanent public document URLs, direct object-store listing or production documents in lower environments.",
-    "Inventing required-document policy, retention periods, storage provider or malware scanner inside implementation.",
+    "Changing the approved v1 requirements, retention schedule, private S3 access model or ClamAV fail-closed policy inside implementation.",
     "General-purpose case management, CRM or unrestricted operator file browsing."
   ],
   "qualityGates": [
