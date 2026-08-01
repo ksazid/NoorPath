@@ -4,7 +4,7 @@ Status: Implementation review; Product Owner acceptance pending
 
 ## Scope
 
-- [x] Provider-neutral hosted phone OTP and Google sign-in hand-off
+- [x] Auth0 Universal Login and Google sign-in hand-off
 - [x] Same-origin return-path validation and safe unconfigured state
 - [x] Protected Customer Account shell
 - [x] Protected Operator User shell using server-derived membership and scope
@@ -12,7 +12,8 @@ Status: Implementation review; Product Owner acceptance pending
 - [x] Loading, unauthenticated, forbidden, retryable-error and authorized states
 - [x] Unit and API authorization tests added
 - [x] Responsive and accessibility-oriented rendered tests added
-- [ ] Real identity-provider tenant and callback/session exchange configured
+- [x] Auth0 tenant, Google connection and callback/session exchange integrated in code
+- [ ] Hosting secrets configured and live Google callback verified
 - [ ] Privileged MFA policy verified
 - [ ] Full certification green on the exact PR head
 - [ ] Rendered desktop/mobile evidence approved
