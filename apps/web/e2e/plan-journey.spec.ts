@@ -179,7 +179,9 @@ async function secureAvailability(page: Page) {
   await expect(
     page.getByText("Booking and payment have not started."),
   ).toBeVisible();
-  await expect(page.getByText("Time remaining on this hold")).toBeVisible();
+  await expect(page.locator(".inventory-hold-countdown > small")).toHaveText(
+    "Time remaining on this hold",
+  );
   await expect(
     page.getByRole("button", { name: "Release and edit plan" }),
   ).toBeVisible();
