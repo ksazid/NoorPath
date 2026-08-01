@@ -13,6 +13,7 @@ import "./plan-early.css";
 import "./vs07-entry.css";
 import "./plan.css";
 import "./plan-hardening.css";
+import "./inventory-hold.css";
 
 export const metadata: Metadata = {
   title: "NoorPath",
