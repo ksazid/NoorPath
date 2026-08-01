@@ -1,0 +1,46 @@
+{
+  "modules": [
+    {
+      "name": "Catalogue",
+      "project": "src/Modules/NoorPath.Catalogue.Infrastructure/NoorPath.Catalogue.Infrastructure.csproj",
+      "context": "CatalogueDbContext",
+      "database": "noorpath_catalogue_test",
+      "environment": "NOORPATH_CATALOGUE_TEST_DB"
+    },
+    {
+      "name": "Operators",
+      "project": "src/Modules/NoorPath.Operators.Infrastructure/NoorPath.Operators.Infrastructure.csproj",
+      "context": "OperatorsDbContext",
+      "database": "noorpath_operators_test",
+      "environment": "NOORPATH_OPERATORS_TEST_DB"
+    },
+    {
+      "name": "Pricing",
+      "project": "src/Modules/NoorPath.Pricing.Infrastructure/NoorPath.Pricing.Infrastructure.csproj",
+      "context": "PricingDbContext",
+      "database": "noorpath_pricing_test",
+      "environment": "NOORPATH_PRICING_TEST_DB"
+    },
+    {
+      "name": "Inventory",
+      "project": "src/Modules/NoorPath.Inventory.Infrastructure/NoorPath.Inventory.Infrastructure.csproj",
+      "context": "InventoryDbContext",
+      "database": "noorpath_inventory_test",
+      "environment": "NOORPATH_INVENTORY_TEST_DB"
+    },
+    {
+      "name": "Traveller",
+      "project": "src/Modules/NoorPath.Traveller.Infrastructure/NoorPath.Traveller.Infrastructure.csproj",
+      "context": "TravellerDbContext",
+      "database": "noorpath_traveller_test",
+      "environment": "NOORPATH_TRAVELLER_TEST_DB"
+    }
+  ],
+  "extraDatabases": [
+    {
+      "name": "Commercial integration",
+      "database": "noorpath_commercial_test",
+      "environment": "NOORPATH_COMMERCIAL_TEST_DB"
+    }
+  ]
+}

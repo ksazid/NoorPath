@@ -1,0 +1,60 @@
+{
+  "id": "VS-09",
+  "title": "Booking & Payment",
+  "slug": "booking-payment",
+  "outcome": "A customer can create exactly one booking from a valid quote and active inventory hold, then initiate and reconcile an approved provider-hosted payment without duplicate financial effects.",
+  "actor": "Authenticated customer, with verified payment webhooks from the approved provider.",
+  "dependsOn": ["VS-08"],
+  "modules": [
+    "Booking owns the immutable commercial snapshot and booking lifecycle.",
+    "Payments owns provider attempts, webhook verification, reconciliation and payment lifecycle.",
+    "Inventory remains authoritative for the active hold; VS-09 may consume but must not bypass it.",
+    "Pricing remains authoritative for the quote snapshot used to create the booking."
+  ],
+  "routes": [
+    "Landing / Discovery -> Package Details -> Plan -> Active Inventory Hold",
+    "Active Inventory Hold -> Booking review",
+    "Booking review -> Provider-hosted payment initiation",
+    "Payment return/webhook -> Booking payment state",
+    "Booking payment state -> VS-10 confirmation entry"
+  ],
+  "acceptance": [
+    "A valid customer-owned quote and active hold create one immutable booking with a human-readable reference.",
+    "The booking snapshots departure, travellers, occupancy, currency, total, due-now, instalment schedule and price version without recomputing money.",
+    "Repeating the same create-booking request returns the original booking and never creates a duplicate.",
+    "A reused idempotency key with a different request is rejected deterministically.",
+    "Expired, released, foreign or already-consumed holds cannot create a booking.",
+    "Payment initiation uses provider-hosted or tokenised payment handling; NoorPath never receives raw card data.",
+    "Provider callbacks are authenticated, replay-safe and mapped to explicit pending, succeeded, failed or requires-action states.",
+    "Duplicate or out-of-order webhooks do not create duplicate financial effects or regress a terminal state.",
+    "The customer sees clear non-scarcity messaging for payment pending, failed, cancelled and retry-safe states.",
+    "Telemetry links booking reference, payment attempt, provider event, correlation ID and outcome without leaking sensitive payment data."
+  ],
+  "exclusions": [
+    "Final booking confirmation and durable inventory commitment; owned by VS-10.",
+    "Refunds, chargebacks, disputes and operator-led payment corrections.",
+    "Multiple payment providers, saved cards, wallet balances or offline cash collection.",
+    "Multi-room bookings, child or infant pricing, promotions and dynamic pricing.",
+    "Raw card number, CVV or unrestricted provider payload storage."
+  ],
+  "qualityGates": [
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "migration",
+    "security",
+    "accessibility",
+    "rendered-regression",
+    "journey-linking",
+    "telemetry",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "e2e/booking-payment.spec.ts"
+  },
+  "specPath": "docs/slices/VS-09-BOOKING-PAYMENT.md",
+  "checklistPath": "docs/slices/VS-09-IMPLEMENTATION-CHECKLIST.md"
+}
