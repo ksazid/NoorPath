@@ -1,0 +1,3 @@
+NoorPath VS-08 deployment
+Product main: 9f5221c48addb569be0e6708fc82d952d30cd8d3
+Validated preview base: dccd9cff51a225837c37dc1c4a2e86fe4d6721cd
