@@ -3,18 +3,20 @@ name: VS-08 Regression Test Apply
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [agent/vs08-inventory-hold]
 
 permissions:
   contents: write
 
 jobs:
   apply-regression-test:
-    if: github.event.pull_request.number == 44 && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'push' || (github.event.pull_request.number == 44 && github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: agent/vs08-inventory-hold
       - name: Add quoted price version regression test
         shell: bash
         run: |
@@ -75,8 +77,14 @@ jobs:
           path.write_text(content)
           PY
 
+          test_file='tests/NoorPath.Commercial.Integration.Tests/InventoryHoldApiTests.cs'
+          if git diff --quiet -- "$test_file"; then
+            echo "Regression test already present."
+            exit 0
+          fi
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- tests/NoorPath.Commercial.Integration.Tests/InventoryHoldApiTests.cs
+          git add -- "$test_file"
           git commit -m "test(inventory): preserve valid quoted price version"
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          git push origin HEAD:agent/vs08-inventory-hold
