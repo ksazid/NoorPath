@@ -46,7 +46,8 @@ public static class NoorPathAuthentication
 
     public static CurrentPrincipal? GetCurrentPrincipal(this ClaimsPrincipal principal)
     {
-        var accountId = principal.FindFirstValue("noorpath_account_id");
+        var accountId = principal.FindFirstValue("noorpath_account_id")
+            ?? principal.FindFirstValue("https://noorpath.in/noorpath_account_id");
         if (!string.IsNullOrWhiteSpace(accountId)) return accountId.Length <= 120 ? new(new(accountId)) : null;
 
         var issuer = principal.FindFirstValue("iss");
