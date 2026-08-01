@@ -5,20 +5,16 @@ import {
   expectNoHorizontalOverflow,
 } from "./helpers";
 
-test("sign in offers phone OTP and Google without collecting credentials", async ({
-  page,
-}) => {
+test("sign in offers Google without collecting credentials", async ({ page }) => {
   await page.goto("/auth/sign-in?returnUrl=/account");
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Sign in to NoorPath",
   );
   await expect(
-    page.getByRole("link", { name: "Continue with phone OTP" }),
-  ).toHaveAttribute("href", /method=phone/);
-  await expect(
     page.getByRole("link", { name: "Continue with Google" }),
   ).toHaveAttribute("href", /method=google/);
+  await expect(page.getByText(/Phone OTP will be enabled/)).toBeVisible();
   await expect(page.locator("input")).toHaveCount(0);
   await expectNoA11yViolations(page);
   await expectMinimumTargets(page);
