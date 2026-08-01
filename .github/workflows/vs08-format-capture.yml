@@ -1,0 +1,28 @@
+name: VS-08 Format Capture
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  format-capture:
+    if: github.event.pull_request.number == 44
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Format plan page
+        run: pnpm --dir apps/web exec prettier --write "app/packages/[departureId]/plan/page.tsx"
+      - name: Upload formatted plan page
+        uses: actions/upload-artifact@v4
+        with:
+          name: vs08-formatted-plan-page
+          path: apps/web/app/packages/[departureId]/plan/page.tsx
+          if-no-files-found: error
