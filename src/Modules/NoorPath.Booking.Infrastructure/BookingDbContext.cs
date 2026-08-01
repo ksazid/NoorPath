@@ -57,6 +57,7 @@ public sealed class BookingDbContext(DbContextOptions<BookingDbContext> options)
         {
             entity.ToTable("booking_travellers");
             entity.HasKey(x => x.Id);
+            entity.Property(x => x.FullName).HasMaxLength(120);
             entity.HasIndex(x => new { x.BookingId, x.Position }).IsUnique();
             entity.HasIndex(x => new { x.BookingId, x.TravellerId }).IsUnique();
             entity.HasOne<BookingRecord>()
@@ -126,6 +127,8 @@ public sealed class BookingTravellerRecord
     public Guid BookingId { get; set; }
     public Guid TravellerId { get; set; }
     public int Position { get; set; }
+    public required string FullName { get; set; }
+    public DateOnly DateOfBirth { get; set; }
 }
 
 public sealed class BookingInstalmentRecord
