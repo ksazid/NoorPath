@@ -85,6 +85,43 @@ public sealed class OperatorAccessApiTests
         Assert.DoesNotContain("Rahma Tours", body);
         Assert.DoesNotContain("noorpath_account_id", body);
     }
+
+    [Fact]
+    public async Task Authenticated_customer_receives_account_access()
+    {
+        using var app = await OperatorApi.CreateAsync();
+        using var client = app.CreateClientFor("customer-account");
+
+        var response = await client.GetAsync(
+            "/api/v1/account/access",
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains(
+            "customer-account",
+            await response.Content.ReadAsStringAsync(
+                TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData(null, HttpStatusCode.Unauthorized)]
+    [InlineData("customer-account", HttpStatusCode.Forbidden)]
+    [InlineData("platform-administrator", HttpStatusCode.OK)]
+    public async Task Platform_access_is_explicit_and_deny_by_default(
+        string? accountId,
+        HttpStatusCode expected)
+    {
+        using var app = await OperatorApi.CreateAsync();
+        using var client = accountId is null
+            ? app.CreateClient()
+            : app.CreateClientFor(accountId);
+
+        var response = await client.GetAsync(
+            "/api/v1/platform/access",
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(expected, response.StatusCode);
+    }
 }
 
 public sealed class OperatorApi : WebApplicationFactory<Program>
@@ -125,6 +162,9 @@ public sealed class OperatorApi : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         IntegrationTestSettings.ConfigureTestHost(builder);
+        builder.UseSetting(
+            "Authorization:PlatformAdministratorAccountIds:0",
+            "platform-administrator");
 
         builder.ConfigureServices(services =>
         {
