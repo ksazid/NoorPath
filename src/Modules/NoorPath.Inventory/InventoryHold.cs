@@ -4,7 +4,8 @@ public enum InventoryHoldState
 {
     Active,
     Released,
-    Expired
+    Expired,
+    Committed
 }
 
 public sealed class InventoryHoldOptions

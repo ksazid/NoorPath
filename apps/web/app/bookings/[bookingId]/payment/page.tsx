@@ -37,7 +37,11 @@ type Booking = {
     | "PaymentInProgress"
     | "PaymentSucceeded"
     | "PaymentFailed"
-    | "PaymentCancelled";
+    | "PaymentCancelled"
+    | "PendingConfirmation"
+    | "Confirming"
+    | "Confirmed"
+    | "ConfirmationException";
   travellers: BookingTraveller[];
   instalments: BookingInstalment[];
   createdAtUtc: string;
@@ -209,7 +213,9 @@ export default function BookingPaymentPage() {
   const params = useParams<{ bookingId: string }>();
   const bookingId = params.bookingId;
   const [pageState, setPageState] = useState<PageState>({ kind: "loading" });
-  const [paymentState, setPaymentState] = useState<PaymentState>({ kind: "idle" });
+  const [paymentState, setPaymentState] = useState<PaymentState>({
+    kind: "idle",
+  });
   const pollTimer = useRef<number | null>(null);
 
   const stopPolling = useCallback(() => {
@@ -245,17 +251,24 @@ export default function BookingPaymentPage() {
         });
         return;
       }
-      setPageState({ kind: "ready", booking: (await response.json()) as Booking });
+      setPageState({
+        kind: "ready",
+        booking: (await response.json()) as Booking,
+      });
     } catch {
       setPageState({
         kind: "error",
-        message: "We could not load this booking. Check your connection and retry.",
+        message:
+          "We could not load this booking. Check your connection and retry.",
       });
     }
   }, [bookingId]);
 
   const loadPayment = useCallback(
-    async (paymentAttemptId: string, polling = false): Promise<Payment | null> => {
+    async (
+      paymentAttemptId: string,
+      polling = false,
+    ): Promise<Payment | null> => {
       try {
         const response = await fetch(
           `/api/v1/payments/${encodeURIComponent(paymentAttemptId)}`,
@@ -292,6 +305,7 @@ export default function BookingPaymentPage() {
               "Payment identity is verified. NoorPath is waiting for the authenticated provider settlement event.",
           });
           pollTimer.current = window.setTimeout(
+            // eslint-disable-next-line react-hooks/immutability -- polling intentionally recurs through the stable callback
             () => void loadPayment(payment.paymentAttemptId, true),
             2500,
           );
@@ -386,18 +400,19 @@ export default function BookingPaymentPage() {
   const openCheckout = async () => {
     if (!booking || !payment?.checkout) return;
     const currentPayment = payment;
+    const checkoutDetails = payment.checkout;
     setPaymentState({ kind: "opening", payment: currentPayment });
     try {
-      await loadCheckoutScript(currentPayment.checkout.checkoutScriptUri);
+      await loadCheckoutScript(checkoutDetails.checkoutScriptUri);
       if (!window.Razorpay) throw new Error("Checkout is unavailable.");
 
       const checkout = new window.Razorpay({
-        key: currentPayment.checkout.publicKeyId,
-        amount: currentPayment.checkout.amountSubunits,
-        currency: currentPayment.checkout.currency,
+        key: checkoutDetails.publicKeyId,
+        amount: checkoutDetails.amountSubunits,
+        currency: checkoutDetails.currency,
         name: "NoorPath",
         description: `Booking ${booking.bookingReference}`,
-        order_id: currentPayment.checkout.providerSessionId,
+        order_id: checkoutDetails.providerSessionId,
         handler: async (result) => {
           setPaymentState({
             kind: "waiting",
@@ -468,7 +483,9 @@ export default function BookingPaymentPage() {
           <Link href="/">Home</Link>
           <span>/</span>
           {booking ? (
-            <Link href={`/packages/${booking.departureId}/plan`}>Your plan</Link>
+            <Link href={`/packages/${booking.departureId}/plan`}>
+              Your plan
+            </Link>
           ) : (
             <span>Your plan</span>
           )}
@@ -537,7 +554,10 @@ export default function BookingPaymentPage() {
             </section>
 
             <div className="booking-payment-layout">
-              <section className="booking-review-card" aria-labelledby="booking-review-title">
+              <section
+                className="booking-review-card"
+                aria-labelledby="booking-review-title"
+              >
                 <div className="booking-payment-heading-row">
                   <div>
                     <p className="public-eyebrow">Immutable review</p>
@@ -583,7 +603,9 @@ export default function BookingPaymentPage() {
                         <span>{traveller.position}</span>
                         <div>
                           <strong>{traveller.fullName}</strong>
-                          <small>Born {formatDate(traveller.dateOfBirth)}</small>
+                          <small>
+                            Born {formatDate(traveller.dateOfBirth)}
+                          </small>
                         </div>
                       </li>
                     ))}
@@ -610,7 +632,10 @@ export default function BookingPaymentPage() {
                 ) : null}
               </section>
 
-              <aside className="payment-action-card" aria-labelledby="payment-action-title">
+              <aside
+                className="payment-action-card"
+                aria-labelledby="payment-action-title"
+              >
                 <div className="payment-action-icon">
                   <Icon name="shield-check" />
                 </div>
@@ -667,21 +692,43 @@ function PaymentAction({
   onOpen: () => void;
   onRefresh: () => void;
 }) {
-  if (booking.state === "PaymentSucceeded") {
+  if (
+    [
+      "PaymentSucceeded",
+      "PendingConfirmation",
+      "Confirming",
+      "Confirmed",
+      "ConfirmationException",
+    ].includes(booking.state)
+  ) {
     return (
-      <div className="payment-state-block success" role="status" aria-live="polite">
+      <div
+        className="payment-state-block success"
+        role="status"
+        aria-live="polite"
+      >
         <strong>Payment received</strong>
         <p>
           This is not the final booking confirmation. NoorPath will confirm the
           booking after the durable inventory commitment completes.
         </p>
+        <Link
+          className="payment-primary-action"
+          href={`/bookings/${booking.bookingId}/confirmation`}
+        >
+          View confirmation status
+        </Link>
       </div>
     );
   }
 
   if (state.kind === "idle") {
     return (
-      <button className="payment-primary-action" type="button" onClick={onStart}>
+      <button
+        className="payment-primary-action"
+        type="button"
+        onClick={onStart}
+      >
         Prepare secure payment
       </button>
     );
@@ -711,7 +758,11 @@ function PaymentAction({
   const payment = state.payment;
   if (payment.state === "Succeeded") {
     return (
-      <div className="payment-state-block success" role="status" aria-live="polite">
+      <div
+        className="payment-state-block success"
+        role="status"
+        aria-live="polite"
+      >
         <strong>Payment received</strong>
         <p>NoorPath is moving this booking into confirmation.</p>
       </div>
@@ -736,7 +787,11 @@ function PaymentAction({
 
   if (state.kind === "waiting") {
     return (
-      <div className="payment-state-block pending" role="status" aria-live="polite">
+      <div
+        className="payment-state-block pending"
+        role="status"
+        aria-live="polite"
+      >
         <strong>Waiting for authenticated settlement</strong>
         <p>{state.message}</p>
         <button type="button" onClick={onRefresh}>
@@ -776,7 +831,9 @@ function PaymentAction({
         disabled={state.kind === "opening"}
         onClick={onOpen}
       >
-        {state.kind === "opening" ? "Opening secure checkout…" : "Open secure checkout"}
+        {state.kind === "opening"
+          ? "Opening secure checkout…"
+          : "Open secure checkout"}
       </button>
       <small>
         Closing checkout does not confirm payment. You can reopen this same

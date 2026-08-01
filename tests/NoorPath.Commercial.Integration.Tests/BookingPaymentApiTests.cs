@@ -293,6 +293,7 @@ public sealed class BookingPaymentApiTests
         using var scope = app.Services.CreateScope();
         var payments = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
         var bookings = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
+        var inventory = scope.ServiceProvider.GetRequiredService<NoorPath.Inventory.Infrastructure.InventoryDbContext>();
         var attempt = await payments.PaymentAttempts.SingleAsync(
             cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(PaymentAttemptState.Succeeded, attempt.State);
@@ -303,9 +304,15 @@ public sealed class BookingPaymentApiTests
             await payments.ProviderEvents.CountAsync(
                 TestContext.Current.CancellationToken));
         Assert.Equal(
-            BookingState.PaymentSucceeded,
-            (await bookings.Bookings.SingleAsync(
-                cancellationToken: TestContext.Current.CancellationToken)).State);
+            BookingState.Confirmed,
+            (await bookings.Bookings.SingleAsync(cancellationToken: TestContext.Current.CancellationToken)).State);
+        Assert.Single(await inventory.Commitments.ToListAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(
+            NoorPath.Inventory.InventoryHoldState.Committed,
+            (await inventory.Holds.SingleAsync(cancellationToken: TestContext.Current.CancellationToken)).State);
+        Assert.Single(await bookings.OutboxMessages
+            .Where(item => item.EventType == "BookingConfirmed")
+            .ToListAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]

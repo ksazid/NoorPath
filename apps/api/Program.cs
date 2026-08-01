@@ -23,6 +23,7 @@ builder.Services.AddDbContext<PricingDbContext>(options => options.UseNpgsql(con
 builder.Services.AddDbContext<InventoryDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(InventoryDbContext).Assembly.FullName)));
 builder.Services.AddDbContext<TravellerDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(TravellerDbContext).Assembly.FullName)));
 builder.Services.AddScoped<IBookingCheckoutService, BookingCheckoutService>();
+builder.Services.AddScoped<ConfirmationService>();
 builder.Services.AddScoped<IOperatorAccess>(services => services.GetRequiredService<OperatorsDbContext>());
 builder.Services.AddScoped<IOperatorPublicationEligibility>(services => services.GetRequiredService<OperatorsDbContext>());
 builder.Services.AddSingleton(TimeProvider.System);
@@ -76,6 +77,7 @@ app.MapTravellerQuotes();
 app.MapInventoryHolds();
 app.MapBookings();
 app.MapPayments();
+app.MapConfirmations();
 app.Run();
 
 public partial class Program;

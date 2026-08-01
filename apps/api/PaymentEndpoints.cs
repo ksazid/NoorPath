@@ -430,6 +430,7 @@ public static class PaymentEndpoints
         HttpContext http,
         PaymentsDbContext payments,
         IBookingCheckoutService bookingCheckout,
+        ConfirmationService confirmation,
         IPaymentProviderEventVerifier verifier,
         TimeProvider timeProvider,
         ILogger<Program> log,
@@ -626,6 +627,15 @@ public static class PaymentEndpoints
                     bookingState,
                     providerEvent.ProviderEventId,
                     http.TraceIdentifier);
+            }
+            else if (providerEvent.RequestedState == PaymentAttemptState.Succeeded)
+            {
+                await confirmation.ProcessAsync(
+                    attempt.BookingId,
+                    attempt.Id,
+                    http.TraceIdentifier,
+                    providerEvent.ProviderEventId,
+                    cancellationToken);
             }
         }
 
