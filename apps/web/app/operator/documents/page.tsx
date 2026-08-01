@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useCallback, useState } from "react";
+import { useDeferredInitialLoad } from "../../../lib/use-deferred-initial-load";
 import { PublicHeader, PublicFooter } from "../../public-ui";
 type Item = {
   id: string;
