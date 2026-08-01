@@ -2,9 +2,11 @@
   "id": "VS-02R",
   "title": "Customer Phone OTP, Google Login and Protected Account Shell",
   "slug": "authentication-account-shell",
-  "outcome": "A customer can begin hosted phone OTP or Google authentication, while authenticated Customer Accounts, Operator Users and NoorPath Platform Administrators enter only their authorized protected shell.",
+  "outcome": "A customer can authenticate with Google through Auth0 Universal Login, while authenticated Customer Accounts, Operator Users and NoorPath Platform Administrators enter only their authorized protected shell. Phone OTP remains deferred until an SMS provider is configured.",
   "actor": "Customer Account, Operator User and explicitly authorized NoorPath Platform Administrator.",
-  "dependsOn": ["VS-01"],
+  "dependsOn": [
+    "VS-01"
+  ],
   "modules": [
     "Identity owns authentication subject normalization and authenticated AccountId.",
     "Operators owns operator membership, operator scope and operator permissions.",
@@ -13,15 +15,15 @@
   ],
   "routes": [
     "Public page -> Sign in",
-    "Sign in -> Hosted phone OTP or Google authentication",
+    "Sign in -> Auth0 Universal Login -> Google authentication",
     "Authenticated Customer Account -> My NoorPath",
     "Authenticated Operator User -> Operator workspace",
     "Authorized NoorPath Platform Administrator -> NoorPath administration",
     "Unauthorized or forbidden principal -> Safe access state"
   ],
   "acceptance": [
-    "The sign-in screen offers phone OTP and Google without collecting passwords, OTP values or provider tokens in NoorPath frontend code.",
-    "Only phone and google authentication methods can be handed to the configured hosted identity adapter.",
+    "The sign-in screen offers Google through Auth0 Universal Login without collecting passwords or provider tokens in NoorPath browser code; phone OTP is clearly unavailable until configured.",
+    "Only the configured Auth0 Google connection can begin the current hosted authentication flow.",
     "Return paths are same-origin and external or protocol-relative redirects are rejected.",
     "Missing authentication configuration fails safely without exposing secrets or accepting a principal.",
     "Authenticated principals are normalized to one internal AccountId independent of authentication provider.",
@@ -33,7 +35,7 @@
     "Protected shells preserve existing customer discovery, operator authoring and platform publication-review entry points.",
     "Authentication failures, tokens, OTP values, secrets and sensitive principal claims are not logged.",
     "Responsive, keyboard, minimum-target, reflow, reduced-motion and WCAG checks pass at approved viewports.",
-    "A real provider tenant, callback/session exchange and production credentials are required before production acceptance."
+    "The Auth0 tenant and callback/session exchange are integrated; hosting secrets and live callback verification remain required before production acceptance."
   ],
   "exclusions": [
     "Building a custom OTP service or storing OTP values in NoorPath.",
