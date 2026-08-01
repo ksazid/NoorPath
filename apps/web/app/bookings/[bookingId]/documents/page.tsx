@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useState } from "react";
+import { useDeferredInitialLoad } from "../../../../lib/use-deferred-initial-load";
 import { PublicFooter, PublicHeader } from "../../../public-ui";
 type Requirement = {
   id: string;
