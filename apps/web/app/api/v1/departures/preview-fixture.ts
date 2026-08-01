@@ -28,7 +28,8 @@ export const previewDepartures = [
     madinah: stay("Madinah Preview Hotel", 5, "confirmed"),
     travel: {
       routeSummary: "Delhi → Jeddah → Makkah → Madinah → Delhi",
-      details: "Final carrier and timing remain pending for this preview journey.",
+      details:
+        "Final carrier and timing remain pending for this preview journey.",
       confirmationState: "pending" as const,
     },
     inclusions: ["Return flights", "Breakfast", "Journey support"],
@@ -74,7 +75,8 @@ export const previewDepartures = [
     madinah: stay("Taiba Preview Residence", 5, "confirmed"),
     travel: {
       routeSummary: "Lucknow → Jeddah → Makkah → Madinah → Lucknow",
-      details: "Preview routing is confirmed for customer-experience verification.",
+      details:
+        "Preview routing is confirmed for customer-experience verification.",
       confirmationState: "confirmed" as const,
     },
     inclusions: ["Return flights", "Breakfast & dinner", "Journey support"],
@@ -120,7 +122,8 @@ export const previewDepartures = [
     madinah: stay("Madinah Central Preview Hotel", 6, "pending"),
     travel: {
       routeSummary: "Mumbai → Jeddah → Makkah → Madinah → Mumbai",
-      details: "Return carrier timing remains pending for this preview journey.",
+      details:
+        "Return carrier timing remains pending for this preview journey.",
       confirmationState: "pending" as const,
     },
     inclusions: ["Return flights", "Breakfast", "Airport transfers"],

@@ -58,7 +58,8 @@ export function createPreviewHold(request: NextRequest, quoteId: string) {
     return NextResponse.json(
       {
         title: "Review the hold request",
-        detail: "Provide an Idempotency-Key containing 8 to 100 ASCII characters.",
+        detail:
+          "Provide an Idempotency-Key containing 8 to 100 ASCII characters.",
         code: "invalid_idempotency_key",
       },
       { status: 400 },

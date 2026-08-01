@@ -34,7 +34,10 @@ export async function createPreviewQuote(
   }
 
   const required = requiredTravellers[occupancy];
-  if (travellerIds.length !== required || new Set(travellerIds).size !== required) {
+  if (
+    travellerIds.length !== required ||
+    new Set(travellerIds).size !== required
+  ) {
     return NextResponse.json(
       {
         title: "Review your Umrah plan",
@@ -67,11 +70,17 @@ export async function createPreviewQuote(
   const expiresAt = new Date(createdAt.getTime() + 30 * 60 * 1000);
   const total = price.amount * required;
   const departureDate = new Date(`${departure.departureDate}T00:00:00Z`);
-  const finalDueDate = new Date(departureDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const finalDueDate = new Date(
+    departureDate.getTime() - 30 * 24 * 60 * 60 * 1000,
+  );
 
   let dueNow = roundMoney(total * 0.2);
   let remaining = roundMoney(total - dueNow);
-  let instalments: Array<{ sequence: number; dueDate: string; amount: number }> = [];
+  let instalments: Array<{
+    sequence: number;
+    dueDate: string;
+    amount: number;
+  }> = [];
 
   if (finalDueDate <= createdAt) {
     dueNow = total;
@@ -127,14 +136,19 @@ export async function createPreviewQuote(
   return response;
 }
 
-function buildDueDates(createdAt: Date, finalDueDate: Date, dayOfMonth: number) {
+function buildDueDates(
+  createdAt: Date,
+  finalDueDate: Date,
+  dayOfMonth: number,
+) {
   const dates: Date[] = [];
   let year = createdAt.getUTCFullYear();
   let month = createdAt.getUTCMonth();
 
   while (true) {
     const candidate = new Date(Date.UTC(year, month, dayOfMonth));
-    if (candidate > createdAt && candidate <= finalDueDate) dates.push(candidate);
+    if (candidate > createdAt && candidate <= finalDueDate)
+      dates.push(candidate);
     if (candidate >= finalDueDate) break;
 
     month += 1;
