@@ -57,4 +57,23 @@
   .plan-page .quote-schedule li {
     grid-template-columns: 12px minmax(0, 1fr) auto;
   }
+
+  .plan-page .public-footer {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+    gap: 16px;
+    padding-inline: 16px;
+  }
+
+  .plan-page .public-footer > *,
+  .plan-page .public-footer-links {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .plan-page .public-footer-links {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
 }
