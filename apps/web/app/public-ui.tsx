@@ -45,6 +45,7 @@ export function PublicHeader({ mode = "detail" }: { mode?: HeaderMode }) {
         <Link href="/#trust">
           {mode === "landing" ? "Why NoorPath" : "About Us"}
         </Link>
+        {mode === "detail" ? <Link href="/journeys">My Journey</Link> : null}
         <a href="mailto:support@noorpath.example">
           {mode === "landing" ? "Help" : "Support"}
         </a>
@@ -85,6 +86,7 @@ export function PublicHeader({ mode = "detail" }: { mode?: HeaderMode }) {
           <Link href="/#packages">Packages</Link>
           <Link href="/#plan-ahead">Plan ahead</Link>
           <Link href="/#trust">Why NoorPath</Link>
+          <Link href="/journeys">My Journey</Link>
           <a href="mailto:support@noorpath.example">Support</a>
         </nav>
       </details>
