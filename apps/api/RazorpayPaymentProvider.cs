@@ -1,5 +1,5 @@
-using System.Globalization;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -21,7 +21,8 @@ public sealed class RazorpayOptions
 
 public sealed class RazorpayPaymentProvider(
     HttpClient client,
-    IOptions<RazorpayOptions> options) :
+    IOptions<RazorpayOptions> options,
+    TimeProvider timeProvider) :
     IPaymentProviderGateway,
     IPaymentCheckoutCallbackVerifier,
     IPaymentProviderEventVerifier
@@ -36,6 +37,8 @@ public sealed class RazorpayPaymentProvider(
         CancellationToken cancellationToken)
     {
         PaymentPolicy.ValidateAmount(request.Currency, request.Amount);
+        EnsureConfigured(requireWebhook: false);
+
         if (!string.Equals(request.Currency, "INR", StringComparison.Ordinal))
         {
             throw new PaymentProviderUnavailableException(
@@ -73,7 +76,9 @@ public sealed class RazorpayPaymentProvider(
         }
 
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-        using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+        using var document = await JsonDocument.ParseAsync(
+            stream,
+            cancellationToken: cancellationToken);
         var root = document.RootElement;
         var orderId = root.GetProperty("id").GetString();
         var status = root.GetProperty("status").GetString();
@@ -101,6 +106,8 @@ public sealed class RazorpayPaymentProvider(
 
     public bool Verify(PaymentCheckoutCallback callback)
     {
+        EnsureConfigured(requireWebhook: false);
+
         if (string.IsNullOrWhiteSpace(callback.ProviderSessionId)
             || string.IsNullOrWhiteSpace(callback.ProviderPaymentId)
             || string.IsNullOrWhiteSpace(callback.Signature))
@@ -123,11 +130,13 @@ public sealed class RazorpayPaymentProvider(
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        EnsureConfigured(requireWebhook: true);
 
         if (!TryGetHeader(headers, "X-Razorpay-Signature", out var signature)
             || !TryGetHeader(headers, "x-razorpay-event-id", out var providerEventId))
         {
-            throw new CryptographicException("Required Razorpay webhook headers are missing.");
+            throw new CryptographicException(
+                "Required Razorpay webhook headers are missing.");
         }
 
         var expected = HMACSHA256.HashData(
@@ -155,12 +164,15 @@ public sealed class RazorpayPaymentProvider(
 
         var providerSessionId = ReadOrderId(root);
         if (string.IsNullOrWhiteSpace(providerSessionId))
-            throw new CryptographicException("Razorpay webhook order identity is missing.");
+        {
+            throw new CryptographicException(
+                "Razorpay webhook order identity is missing.");
+        }
 
         var providerPaymentId = ReadPaymentId(root);
         var occurredAt = root.TryGetProperty("created_at", out var createdAt)
             ? DateTimeOffset.FromUnixTimeSeconds(createdAt.GetInt64())
-            : DateTimeOffset.UtcNow;
+            : timeProvider.GetUtcNow();
         var payloadHash = Convert.ToHexString(SHA256.HashData(payload.Span));
 
         return ValueTask.FromResult<PaymentProviderEvent?>(new PaymentProviderEvent(
@@ -173,6 +185,17 @@ public sealed class RazorpayPaymentProvider(
             payloadHash,
             _options.WebhookSecretId,
             occurredAt));
+    }
+
+    private void EnsureConfigured(bool requireWebhook)
+    {
+        if (string.IsNullOrWhiteSpace(_options.KeyId)
+            || string.IsNullOrWhiteSpace(_options.KeySecret)
+            || (requireWebhook && string.IsNullOrWhiteSpace(_options.WebhookSecret)))
+        {
+            throw new PaymentProviderUnavailableException(
+                "Razorpay credentials are not configured for this environment.");
+        }
     }
 
     private static long ToSubunits(decimal amount)
