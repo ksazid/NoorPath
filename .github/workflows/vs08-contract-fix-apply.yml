@@ -24,12 +24,10 @@ jobs:
 
           path = Path("apps/api/InventoryHoldEndpoints.cs")
           content = path.read_text()
-          old = """                item.Status == CatalogueDraftStatus.Published &&
-                item.PublishedPriceVersionId == quote.PriceVersionId)"""
-          new = """                item.Status == CatalogueDraftStatus.Published &&
-                item.PublishedPriceVersionId != null)"""
-          if old not in content:
-              raise SystemExit("Expected quote-version saleability condition was not found.")
+          old = "item.PublishedPriceVersionId == quote.PriceVersionId"
+          new = "item.PublishedPriceVersionId != null"
+          if content.count(old) != 1:
+              raise SystemExit("Expected one quote-version saleability condition.")
           path.write_text(content.replace(old, new, 1))
           PY
 
