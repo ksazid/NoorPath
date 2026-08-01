@@ -1,0 +1,62 @@
+{
+  "id": "VS-12",
+  "title": "Documents",
+  "slug": "documents",
+  "outcome": "Required traveller documents can be uploaded securely, reviewed by an authorized operator, corrected when needed and reflected truthfully in per-traveller readiness.",
+  "actor": "Authenticated customer and an authorized operator user acting within the booking's operator scope.",
+  "dependsOn": ["VS-01", "VS-11"],
+  "modules": [
+    "Documents owns document requirements, submission metadata, validation, review state and append-oriented review history.",
+    "Traveller supplies customer-owned traveller identities without duplicating identity data in Documents.",
+    "Booking supplies the confirmed booking and operator relationship used for resource authorization.",
+    "Private object storage holds encrypted document content behind short-lived authorized access."
+  ],
+  "routes": [
+    "My Journey -> Traveller document requirements",
+    "Document requirement -> Private upload -> Validation and quarantine",
+    "Authorized operator queue -> Safe document review",
+    "Correction required -> Customer resubmission",
+    "Per-traveller document state -> Derived booking readiness"
+  ],
+  "acceptance": [
+    "Document requirements come from an approved, explicit versioned policy and remain distinct per traveller and requirement.",
+    "Customers can upload only for account-owned travellers on eligible bookings, and operators can review only bookings within their authorized operator scope.",
+    "Objects remain private, encrypted and non-enumerable; access uses short-lived authorized URLs and every access is audited.",
+    "File size, declared type, content signature and malware status are validated before a reviewer can access a submission.",
+    "Unsafe or indeterminate uploads remain quarantined and produce a safe, actionable customer state.",
+    "Validation, under-review, approved, correction-required and rejected states are explicit and cannot be skipped by direct editing.",
+    "Resubmission preserves the prior submission and append-oriented review history, including actor, reason and timestamp.",
+    "Booking-level document readiness is derived only when every required traveller requirement is approved.",
+    "Document content, object keys and signed URLs never enter ordinary logs, analytics, integration events or customer-safe projections.",
+    "The approved retention and deletion schedule is enforced and auditable before production document storage is enabled.",
+    "Loading, empty, upload-progress, offline, validation, quarantine, permission, stale/conflict, correction, success and retry states are complete.",
+    "Customer and operator surfaces preserve approved NoorPath visual language and pass keyboard, focus, target-size, reflow, reduced-motion and WCAG checks."
+  ],
+  "exclusions": [
+    "Visa lifecycle or official visa-authority decisions; owned by VS-13.",
+    "OCR, biometric matching, automated passport extraction or automated approval.",
+    "Permanent public document URLs, direct object-store listing or production documents in lower environments.",
+    "Inventing required-document policy, retention periods, storage provider or malware scanner inside implementation.",
+    "General-purpose case management, CRM or unrestricted operator file browsing."
+  ],
+  "qualityGates": [
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "migration",
+    "security",
+    "accessibility",
+    "rendered-regression",
+    "journey-linking",
+    "telemetry",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "e2e/documents.spec.ts"
+  },
+  "specPath": "docs/slices/VS-12-DOCUMENTS.md",
+  "checklistPath": "docs/slices/VS-12-IMPLEMENTATION-CHECKLIST.md"
+}
