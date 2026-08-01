@@ -35,7 +35,10 @@ export default function JourneysPage() {
     }
   }, []);
 
-  useEffect(() => void load(), [load]);
+  useEffect(() => {
+    const timeout = window.setTimeout(() => void load(), 0);
+    return () => window.clearTimeout(timeout);
+  }, [load]);
 
   return (
     <div className="journey-page">
