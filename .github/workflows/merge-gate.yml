@@ -1,0 +1,152 @@
+name: NoorPath Merge Gate
+
+on:
+  workflow_run:
+    workflows: [CI, Rendered Slice Review]
+    types: [completed]
+  pull_request_target:
+    branches: [main]
+    types: [labeled, unlabeled, synchronize, ready_for_review, reopened, converted_to_draft]
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: write
+  statuses: write
+
+jobs:
+  evaluate:
+    name: Evaluate exact-head gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate certification, review and approval evidence
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            let prNumber;
+
+            if (context.eventName === 'workflow_run') {
+              const linked = context.payload.workflow_run.pull_requests ?? [];
+              if (linked.length === 0) {
+                core.info('Workflow run is not linked to a pull request.');
+                return;
+              }
+              prNumber = linked[0].number;
+            } else {
+              prNumber = context.payload.pull_request.number;
+            }
+
+            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+            const sha = pr.head.sha;
+            const labels = pr.labels.map(label => label.name);
+            const certify = labels.includes('certify');
+            const poLabel = labels.includes('po-approved');
+
+            const approvalMarker = '<!-- noorpath-po-approval -->';
+            const gateMarker = '<!-- noorpath-merge-gate -->';
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: prNumber,
+              per_page: 100,
+            });
+
+            if (
+              context.eventName === 'pull_request_target' &&
+              context.payload.action === 'labeled' &&
+              context.payload.label?.name === 'po-approved'
+            ) {
+              const approvalBody = `${approvalMarker}\n## Product Owner acceptance\n\nApproved exact SHA: \`${sha}\`\n\nAny subsequent commit invalidates this acceptance automatically.`;
+              const existingApproval = comments.find(comment => comment.body?.includes(approvalMarker));
+              if (existingApproval) {
+                await github.rest.issues.updateComment({ owner, repo, comment_id: existingApproval.id, body: approvalBody });
+              } else {
+                await github.rest.issues.createComment({ owner, repo, issue_number: prNumber, body: approvalBody });
+              }
+            }
+
+            const refreshedComments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: prNumber,
+              per_page: 100,
+            });
+            const approvalComment = refreshedComments.find(comment => comment.body?.includes(approvalMarker));
+            const poExactHead = poLabel && approvalComment?.body?.includes(`Approved exact SHA: \`${sha}\``);
+
+            const workflowRuns = await github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
+              owner,
+              repo,
+              event: 'pull_request',
+              head_sha: sha,
+              per_page: 100,
+            });
+            const latestByName = name => workflowRuns
+              .filter(run => run.name === name && run.head_sha === sha)
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+
+            const ci = latestByName('CI');
+            const rendered = latestByName('Rendered Slice Review');
+            const ciPassed = ci?.status === 'completed' && ci.conclusion === 'success';
+            const renderedPassed = rendered?.status === 'completed' && rendered.conclusion === 'success';
+
+            let unresolvedThreads = 0;
+            try {
+              const reviewData = await github.graphql(
+                `query($owner: String!, $repo: String!, $number: Int!) {
+                  repository(owner: $owner, name: $repo) {
+                    pullRequest(number: $number) {
+                      reviewThreads(first: 100) {
+                        nodes { isResolved }
+                      }
+                    }
+                  }
+                }`,
+                { owner, repo, number: prNumber },
+              );
+              unresolvedThreads = reviewData.repository.pullRequest.reviewThreads.nodes.filter(thread => !thread.isResolved).length;
+            } catch (error) {
+              core.warning(`Unable to query review threads: ${error.message}`);
+              unresolvedThreads = 1;
+            }
+
+            let state = 'pending';
+            let description = 'Awaiting explicit certification';
+            if (certify) {
+              if (ci?.conclusion === 'failure' || rendered?.conclusion === 'failure') {
+                state = 'failure';
+                description = 'Certification failed on current SHA';
+              } else if (!ciPassed || !renderedPassed) {
+                description = 'Certification running on current SHA';
+              } else if (unresolvedThreads > 0) {
+                state = 'failure';
+                description = `${unresolvedThreads} unresolved review thread(s)`;
+              } else if (!poExactHead) {
+                description = 'Awaiting Product Owner approval for current SHA';
+              } else if (pr.draft) {
+                description = 'Certification passed; mark PR ready for review';
+              } else {
+                state = 'success';
+                description = 'Exact-head certification and approval complete';
+              }
+            }
+
+            await github.rest.repos.createCommitStatus({
+              owner,
+              repo,
+              sha,
+              state,
+              context: 'NoorPath / Merge Gate',
+              description: description.slice(0, 140),
+              target_url: pr.html_url,
+            });
+
+            const body = `${gateMarker}\n## NoorPath merge gate\n\n- Exact SHA: \`${sha}\`\n- \`certify\` label: **${certify ? 'present' : 'missing'}**\n- Full CI: **${ciPassed ? 'passed' : ci?.status ?? 'not started'}**\n- Rendered Slice Review: **${renderedPassed ? 'passed' : rendered?.status ?? 'not started'}**\n- Unresolved review threads: **${unresolvedThreads}**\n- Product Owner approval for exact SHA: **${poExactHead ? 'recorded' : 'missing or stale'}**\n- PR state: **${pr.draft ? 'Draft' : 'Ready for review'}**\n\nFinal status: **${state.toUpperCase()} — ${description}**`;
+            const existingGate = refreshedComments.find(comment => comment.body?.includes(gateMarker));
+            if (existingGate) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existingGate.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: prNumber, body });
+            }
