@@ -22,7 +22,11 @@ const forwardedResponseHeaders = [
 function apiOrigin() {
   const configured = process.env.NOORPATH_API_URL ?? "http://localhost:5000";
   const url = new URL(configured);
-  if (!["http:", "https:"].includes(url.protocol) || url.username || url.password)
+  if (
+    !["http:", "https:"].includes(url.protocol) ||
+    url.username ||
+    url.password
+  )
     throw new Error("NOORPATH_API_URL must be an HTTP(S) origin.");
   return url.origin;
 }
