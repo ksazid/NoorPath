@@ -327,7 +327,7 @@ public static class InventoryHoldEndpoints
                 item.Id == quote.DepartureId &&
                 item.OperatorId == quote.OperatorId &&
                 item.Status == CatalogueDraftStatus.Published &&
-                item.PublishedPriceVersionId == quote.PriceVersionId)
+                item.PublishedPriceVersionId != null)
             .Select(item => new { item.PackageVersionId })
             .SingleOrDefaultAsync(cancellationToken);
         if (departure is null)
