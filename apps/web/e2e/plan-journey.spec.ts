@@ -140,7 +140,11 @@ test("VS-07 renders the authoritative traveller quote flow accessibly", async ({
   await expectMinimumTargets(page);
   await expectNoA11yViolations(page);
 
-  await page.getByRole("link", { name: "Package", exact: true }).focus();
+  const focusTarget =
+    testInfo.project.name === "mobile-390"
+      ? page.getByRole("link", { name: "Explore packages", exact: true })
+      : page.getByRole("link", { name: "Package", exact: true });
+  await focusTarget.focus();
   const focused = page.locator(":focus");
   await expect(focused).toBeVisible();
   expect(

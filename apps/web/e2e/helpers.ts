@@ -41,13 +41,52 @@ export async function expectMinimumTargets(page: Page) {
 }
 
 export async function expectNoHorizontalOverflow(page: Page) {
-  expect(
-    await page.evaluate(
-      () =>
-        document.documentElement.scrollWidth <=
-        document.documentElement.clientWidth,
-    ),
-  ).toBe(true);
+  const report = await page.evaluate(() => {
+    const viewportWidth = document.documentElement.clientWidth;
+    const documentWidth = document.documentElement.scrollWidth;
+    const allElements = document.querySelectorAll<HTMLElement>("body *");
+
+    const elements = Array.from(allElements)
+      .filter((element) => {
+        const style = getComputedStyle(element);
+        if (style.display === "none" || style.visibility === "hidden") {
+          return false;
+        }
+
+        const box = element.getBoundingClientRect();
+        return box.right > viewportWidth + 1 || box.left < -1;
+      })
+      .slice(0, 20)
+      .map((element) => {
+        const box = element.getBoundingClientRect();
+        const classes = Array.from(element.classList);
+        const classNames = classes.map((name) => `.${name}`);
+        const rawText = element.textContent ?? "";
+        const text = rawText.trim().replace(/\s+/g, " ").slice(0, 120);
+        const identity = [
+          element.tagName.toLowerCase(),
+          element.id ? `#${element.id}` : "",
+          ...classNames,
+        ].join("");
+
+        return {
+          element: identity,
+          text,
+          left: Math.round(box.left * 100) / 100,
+          right: Math.round(box.right * 100) / 100,
+          width: Math.round(box.width * 100) / 100,
+          clientWidth: element.clientWidth,
+          scrollWidth: element.scrollWidth,
+        };
+      });
+
+    return { viewportWidth, documentWidth, elements };
+  });
+
+  if (report.documentWidth > report.viewportWidth) {
+    const details = JSON.stringify(report, null, 2);
+    throw new Error(`Horizontal overflow detected:\n${details}`);
+  }
 }
 
 declare global {

@@ -6,6 +6,12 @@
   justify-content: center;
 }
 
+.plan-page .package-breadcrumbs a:focus,
+.plan-page .public-footer-links a:focus {
+  outline: 3px solid rgba(23, 107, 80, 0.32);
+  outline-offset: 2px;
+}
+
 .plan-page .plan-main,
 .plan-page .plan-context,
 .plan-page .plan-workspace,
@@ -51,5 +57,24 @@
 
   .plan-page .quote-schedule li {
     grid-template-columns: 12px minmax(0, 1fr) auto;
+  }
+
+  .plan-page .public-footer {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+    gap: 16px;
+    padding-inline: 16px;
+  }
+
+  .plan-page .public-footer > *,
+  .plan-page .public-footer-links {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .plan-page .public-footer-links {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px 16px;
   }
 }
