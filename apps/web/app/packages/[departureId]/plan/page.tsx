@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { Icon, PublicFooter, PublicHeader } from "../../../public-ui";
 
 type Occupancy = "double" | "triple" | "quad";
+type HoldStatus = "active" | "released" | "expired";
 
 type OccupancyDetail = {
   occupancy: Occupancy;
@@ -58,10 +59,24 @@ type Quote = {
   availabilityReserved: boolean;
 };
 
+type InventoryHold = {
+  holdId: string;
+  quoteId: string;
+  departureId: string;
+  occupancy: Occupancy;
+  quantity: number;
+  status: HoldStatus;
+  createdAtUtc: string;
+  expiresAtUtc: string;
+  terminalAtUtc?: string | null;
+  availabilityReserved: boolean;
+};
+
 type ProblemDetails = {
   title?: string;
   detail?: string;
   code?: string;
+  holdId?: string;
   errors?: Record<string, string[]>;
 };
 
@@ -86,6 +101,23 @@ type QuoteState =
   | { kind: "unauthenticated" }
   | { kind: "error"; message: string };
 
+type HoldState =
+  | { kind: "idle" }
+  | { kind: "securing" }
+  | { kind: "active"; hold: InventoryHold }
+  | { kind: "releasing"; hold: InventoryHold }
+  | { kind: "released"; hold: InventoryHold }
+  | { kind: "expired"; hold: InventoryHold }
+  | { kind: "quote-expired"; message: string }
+  | { kind: "unavailable"; message: string }
+  | { kind: "unauthenticated" }
+  | {
+      kind: "error";
+      message: string;
+      uncertain: boolean;
+      hold?: InventoryHold;
+    };
+
 const occupancyMeta: Record<
   Occupancy,
   { label: string; travellers: number; detail: string }
@@ -107,12 +139,41 @@ const occupancyMeta: Record<
   },
 };
 
-function requestHeaders(json = false): HeadersInit {
-  const headers: Record<string, string> = {};
+function requestHeaders(
+  json = false,
+  additional: Record<string, string> = {},
+): HeadersInit {
+  const headers: Record<string, string> = { ...additional };
   if (json) headers["Content-Type"] = "application/json";
   const testIdentity = process.env.NEXT_PUBLIC_NOORPATH_TEST_IDENTITY;
   if (testIdentity) headers["X-NoorPath-Test-Identity"] = testIdentity;
   return headers;
+}
+
+function idempotencyStorageKey(quoteId: string) {
+  return `noorpath:inventory-hold:key:${quoteId}`;
+}
+
+function holdStorageKey(quoteId: string) {
+  return `noorpath:inventory-hold:id:${quoteId}`;
+}
+
+function getOrCreateIdempotencyKey(quoteId: string) {
+  const storageKey = idempotencyStorageKey(quoteId);
+  const existing = window.sessionStorage.getItem(storageKey);
+  if (existing) return existing;
+  const created = `hold-${window.crypto.randomUUID()}`;
+  window.sessionStorage.setItem(storageKey, created);
+  return created;
+}
+
+function rememberHold(hold: InventoryHold) {
+  window.sessionStorage.setItem(holdStorageKey(hold.quoteId), hold.holdId);
+}
+
+function clearHoldAttempt(quoteId: string) {
+  window.sessionStorage.removeItem(idempotencyStorageKey(quoteId));
+  window.sessionStorage.removeItem(holdStorageKey(quoteId));
 }
 
 export default function PlanJourneyPage() {
@@ -129,12 +190,73 @@ export default function PlanJourneyPage() {
     [],
   );
   const [quoteState, setQuoteState] = useState<QuoteState>({ kind: "idle" });
+  const [holdState, setHoldState] = useState<HoldState>({ kind: "idle" });
   const [fullName, setFullName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [travellerErrors, setTravellerErrors] = useState<
     Record<string, string>
   >({});
   const [savingTraveller, setSavingTraveller] = useState(false);
+
+  const applyHold = useCallback((hold: InventoryHold) => {
+    if (hold.status === "active") {
+      rememberHold(hold);
+      setHoldState({ kind: "active", hold });
+      return;
+    }
+
+    clearHoldAttempt(hold.quoteId);
+    setHoldState(
+      hold.status === "released"
+        ? { kind: "released", hold }
+        : { kind: "expired", hold },
+    );
+  }, []);
+
+  const loadHold = useCallback(
+    async (holdId: string) => {
+      try {
+        const response = await fetch(
+          `/api/v1/inventory-holds/${encodeURIComponent(holdId)}`,
+          {
+            cache: "no-store",
+            credentials: "include",
+            headers: requestHeaders(),
+          },
+        );
+        if (response.status === 401) {
+          setHoldState({ kind: "unauthenticated" });
+          return;
+        }
+        if (response.status === 404) {
+          setHoldState({
+            kind: "error",
+            message: "We could not recover this availability hold.",
+            uncertain: false,
+          });
+          return;
+        }
+        if (!response.ok) {
+          setHoldState({
+            kind: "error",
+            message:
+              "We could not confirm the latest hold status. Try again safely.",
+            uncertain: true,
+          });
+          return;
+        }
+        applyHold((await response.json()) as InventoryHold);
+      } catch {
+        setHoldState({
+          kind: "error",
+          message:
+            "We could not confirm the latest hold status. Check your connection and try again.",
+          uncertain: true,
+        });
+      }
+    },
+    [applyHold],
+  );
 
   const loadTravellers = useCallback(async () => {
     setTravellerState({ kind: "loading" });
@@ -197,17 +319,30 @@ export default function PlanJourneyPage() {
     if (quoteState.kind !== "loaded" || quoteState.quote.expired) return;
     const remaining =
       new Date(quoteState.quote.expiresAtUtc).getTime() - Date.now();
-    const delay = Math.max(remaining, 0);
-
     const timer = window.setTimeout(() => {
       setQuoteState((current) =>
         current.kind === "loaded"
           ? { kind: "loaded", quote: { ...current.quote, expired: true } }
           : current,
       );
-    }, delay);
+    }, Math.max(remaining, 0));
     return () => window.clearTimeout(timer);
   }, [quoteState]);
+
+  useEffect(() => {
+    if (holdState.kind !== "active") return;
+    const hold = holdState.hold;
+    const refresh = () => void loadHold(hold.holdId);
+    const remaining = new Date(hold.expiresAtUtc).getTime() - Date.now();
+    const expiryTimer = window.setTimeout(refresh, Math.max(remaining, 0) + 50);
+    window.addEventListener("focus", refresh);
+    window.addEventListener("online", refresh);
+    return () => {
+      window.clearTimeout(expiryTimer);
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("online", refresh);
+    };
+  }, [holdState, loadHold]);
 
   const packageDetails =
     packageState.kind === "loaded" ? packageState.details : null;
@@ -217,21 +352,36 @@ export default function PlanJourneyPage() {
   );
   const travellers =
     travellerState.kind === "ready" ? travellerState.items : [];
+  const selectionLocked =
+    holdState.kind === "active" ||
+    holdState.kind === "releasing" ||
+    holdState.kind === "securing" ||
+    (holdState.kind === "error" && holdState.uncertain);
   const canQuote =
     occupancy !== null &&
     selectedMeta !== null &&
     selectedTravellerIds.length === selectedMeta.travellers &&
-    quoteState.kind !== "creating";
+    quoteState.kind !== "creating" &&
+    !selectionLocked;
+
+  const resetQuote = () => {
+    if (quoteState.kind === "loaded") {
+      clearHoldAttempt(quoteState.quote.quoteId);
+    }
+    setQuoteState({ kind: "idle" });
+    setHoldState({ kind: "idle" });
+  };
 
   const selectOccupancy = (value: Occupancy) => {
+    if (selectionLocked) return;
     setOccupancy(value);
     setSelectedTravellerIds([]);
-    setQuoteState({ kind: "idle" });
+    resetQuote();
   };
 
   const toggleTraveller = (travellerId: string) => {
-    if (!selectedMeta) return;
-    setQuoteState({ kind: "idle" });
+    if (!selectedMeta || selectionLocked) return;
+    resetQuote();
     setSelectedTravellerIds((current) => {
       if (current.includes(travellerId)) {
         return current.filter((id) => id !== travellerId);
@@ -243,6 +393,7 @@ export default function PlanJourneyPage() {
 
   const addTraveller = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (selectionLocked) return;
     setTravellerErrors({});
     setSavingTraveller(true);
     try {
@@ -299,6 +450,10 @@ export default function PlanJourneyPage() {
 
   const createQuote = async () => {
     if (!occupancy || !canQuote) return;
+    if (quoteState.kind === "loaded") {
+      clearHoldAttempt(quoteState.quote.quoteId);
+    }
+    setHoldState({ kind: "idle" });
     setQuoteState({ kind: "creating" });
     try {
       const response = await fetch(
@@ -353,6 +508,128 @@ export default function PlanJourneyPage() {
     }
   };
 
+  const secureAvailability = async () => {
+    if (quoteState.kind !== "loaded" || quoteState.quote.expired) return;
+    const quote = quoteState.quote;
+    setHoldState({ kind: "securing" });
+    const idempotencyKey = getOrCreateIdempotencyKey(quote.quoteId);
+
+    try {
+      const response = await fetch(
+        `/api/v1/quotes/${encodeURIComponent(quote.quoteId)}/holds`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: requestHeaders(false, {
+            "Idempotency-Key": idempotencyKey,
+          }),
+        },
+      );
+      const body = (await response.json()) as InventoryHold & ProblemDetails;
+
+      if (response.status === 401) {
+        setHoldState({ kind: "unauthenticated" });
+        return;
+      }
+      if (response.status === 410) {
+        clearHoldAttempt(quote.quoteId);
+        setQuoteState({
+          kind: "loaded",
+          quote: { ...quote, expired: true },
+        });
+        setHoldState({
+          kind: "quote-expired",
+          message:
+            body.detail ?? "Create a fresh quote before securing availability.",
+        });
+        return;
+      }
+      if (
+        response.status === 409 &&
+        body.code === "active_hold_exists" &&
+        body.holdId
+      ) {
+        await loadHold(body.holdId);
+        return;
+      }
+      if (response.status === 409 || response.status === 404) {
+        setHoldState({
+          kind: "unavailable",
+          message:
+            body.detail ??
+            "This room-sharing option is no longer available for a hold.",
+        });
+        return;
+      }
+      if (!response.ok) {
+        setHoldState({
+          kind: "error",
+          message:
+            body.detail ??
+            "We could not confirm whether availability was secured. Retry safely with the same request.",
+          uncertain: true,
+        });
+        return;
+      }
+
+      applyHold(body);
+    } catch {
+      setHoldState({
+        kind: "error",
+        message:
+          "We could not confirm whether availability was secured. Check your connection, then retry safely.",
+        uncertain: true,
+      });
+    }
+  };
+
+  const releaseHold = async () => {
+    const hold =
+      holdState.kind === "active" || holdState.kind === "releasing"
+        ? holdState.hold
+        : holdState.kind === "error"
+          ? holdState.hold
+          : undefined;
+    if (!hold) return;
+
+    setHoldState({ kind: "releasing", hold });
+    try {
+      const response = await fetch(
+        `/api/v1/inventory-holds/${encodeURIComponent(hold.holdId)}/release`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: requestHeaders(),
+        },
+      );
+      if (response.status === 401) {
+        setHoldState({ kind: "unauthenticated" });
+        return;
+      }
+      if (!response.ok) {
+        const body = (await response.json()) as ProblemDetails;
+        setHoldState({
+          kind: "error",
+          message:
+            body.detail ??
+            "We could not confirm whether availability was released. Try again safely.",
+          uncertain: true,
+          hold,
+        });
+        return;
+      }
+      applyHold((await response.json()) as InventoryHold);
+    } catch {
+      setHoldState({
+        kind: "error",
+        message:
+          "We could not confirm whether availability was released. Check your connection and try again.",
+        uncertain: true,
+        hold,
+      });
+    }
+  };
+
   return (
     <div className="public-page plan-page">
       <PublicHeader />
@@ -377,8 +654,9 @@ export default function PlanJourneyPage() {
                 <p className="plan-ahead-kicker">Plan before you commit</p>
                 <h1 id="plan-title">Build your Umrah plan</h1>
                 <p>
-                  Choose the room, add the adults travelling with you, then see
-                  the complete authoritative quote and payment schedule.
+                  Choose the room, add the adults travelling with you, review
+                  the authoritative quote, then secure that availability for a
+                  short, explicit period.
                 </p>
               </div>
               <div className="plan-package-facts" aria-label="Selected package">
@@ -402,7 +680,7 @@ export default function PlanJourneyPage() {
                     number="01"
                     title="Choose your room sharing"
                     id="room-step-title"
-                    copy="Published per-traveller pricing and current availability."
+                    copy="Published per-traveller pricing and current effective availability."
                   />
                   <div className="plan-occupancy-grid">
                     {packageDetails.pricing.occupancies.map((item) => {
@@ -410,7 +688,7 @@ export default function PlanJourneyPage() {
                       const disabled = item.status !== "available";
                       return (
                         <label
-                          className={`plan-occupancy-option${occupancy === item.occupancy ? " selected" : ""}${disabled ? " disabled" : ""}`}
+                          className={`plan-occupancy-option${occupancy === item.occupancy ? " selected" : ""}${disabled || selectionLocked ? " disabled" : ""}`}
                           key={item.occupancy}
                         >
                           <input
@@ -418,7 +696,7 @@ export default function PlanJourneyPage() {
                             name="occupancy"
                             value={item.occupancy}
                             checked={occupancy === item.occupancy}
-                            disabled={disabled}
+                            disabled={disabled || selectionLocked}
                             onChange={() => selectOccupancy(item.occupancy)}
                           />
                           <span>
@@ -481,6 +759,14 @@ export default function PlanJourneyPage() {
                         </span>
                       </div>
 
+                      {selectionLocked ? (
+                        <p className="plan-selection-lock" role="status">
+                          This room and traveller selection is locked while
+                          NoorPath confirms or holds availability. Release the
+                          active hold before editing it.
+                        </p>
+                      ) : null}
+
                       {travellers.length > 0 ? (
                         <div className="traveller-choice-list">
                           {travellers.map((traveller) => {
@@ -494,13 +780,17 @@ export default function PlanJourneyPage() {
                                 selectedMeta.travellers;
                             return (
                               <label
-                                className={`traveller-choice${selected ? " selected" : ""}`}
+                                className={`traveller-choice${selected ? " selected" : ""}${selectionLocked ? " disabled" : ""}`}
                                 key={traveller.travellerId}
                               >
                                 <input
                                   type="checkbox"
                                   checked={selected}
-                                  disabled={!selectedMeta || limitReached}
+                                  disabled={
+                                    !selectedMeta ||
+                                    limitReached ||
+                                    selectionLocked
+                                  }
                                   onChange={() =>
                                     toggleTraveller(traveller.travellerId)
                                   }
@@ -534,8 +824,7 @@ export default function PlanJourneyPage() {
                         <div className="traveller-add-heading">
                           <strong>Add an adult traveller</strong>
                           <small>
-                            For VS-07, travellers must be 18 or older on
-                            departure day.
+                            Travellers must be 18 or older on departure day.
                           </small>
                         </div>
                         {travellerErrors.form ? (
@@ -549,6 +838,7 @@ export default function PlanJourneyPage() {
                             type="text"
                             autoComplete="name"
                             value={fullName}
+                            disabled={selectionLocked}
                             onChange={(event) =>
                               setFullName(event.target.value)
                             }
@@ -573,6 +863,7 @@ export default function PlanJourneyPage() {
                           <input
                             type="date"
                             value={dateOfBirth}
+                            disabled={selectionLocked}
                             onChange={(event) =>
                               setDateOfBirth(event.target.value)
                             }
@@ -592,7 +883,10 @@ export default function PlanJourneyPage() {
                             </small>
                           ) : null}
                         </label>
-                        <button type="submit" disabled={savingTraveller}>
+                        <button
+                          type="submit"
+                          disabled={savingTraveller || selectionLocked}
+                        >
                           {savingTraveller
                             ? "Adding traveller…"
                             : "Add traveller"}
@@ -612,7 +906,13 @@ export default function PlanJourneyPage() {
                   <h2 id="quote-title">Know the commitment before booking.</h2>
 
                   {quoteState.kind === "loaded" ? (
-                    <QuoteSummary quote={quoteState.quote} />
+                    <QuoteSummary
+                      quote={quoteState.quote}
+                      holdState={holdState}
+                      onSecure={secureAvailability}
+                      onRelease={releaseHold}
+                      onCreateFreshQuote={createQuote}
+                    />
                   ) : (
                     <>
                       <dl className="plan-preview-totals">
@@ -662,9 +962,9 @@ export default function PlanJourneyPage() {
                           : "See my complete quote"}
                       </button>
                       <p className="plan-quote-disclosure">
-                        Creating a quote checks current availability but does
-                        not reserve a place. Inventory is secured in the next
-                        booking step.
+                        Creating a quote checks effective availability but does
+                        not hold it. You can secure the selected room after
+                        reviewing the complete quote.
                       </p>
                     </>
                   )}
@@ -701,7 +1001,19 @@ function StepHeading({
   );
 }
 
-function QuoteSummary({ quote }: { quote: Quote }) {
+function QuoteSummary({
+  quote,
+  holdState,
+  onSecure,
+  onRelease,
+  onCreateFreshQuote,
+}: {
+  quote: Quote;
+  holdState: HoldState;
+  onSecure: () => void;
+  onRelease: () => void;
+  onCreateFreshQuote: () => void;
+}) {
   return (
     <div className={`authoritative-quote${quote.expired ? " expired" : ""}`}>
       <div className="quote-status-line">
@@ -747,37 +1059,209 @@ function QuoteSummary({ quote }: { quote: Quote }) {
       ) : (
         <p className="quote-full-payment-note">
           This published package does not currently have future instalments for
-          this quote; the full amount is due at the next payment step.
+          this quote; the full amount is due at the future payment step.
         </p>
       )}
 
-      <div className="quote-next-step">
-        <Icon name="shield-check" />
-        <span>
-          <strong>No place is reserved yet.</strong>
-          <small>
-            Next, NoorPath will secure availability before any payment
-            commitment.
-          </small>
-        </span>
-      </div>
-
-      {quote.expired ? (
-        <p className="plan-quote-disclosure">
-          Prices and availability must be checked again before proceeding.
-        </p>
-      ) : null}
+      <HoldJourney
+        quote={quote}
+        state={holdState}
+        onSecure={onSecure}
+        onRelease={onRelease}
+        onCreateFreshQuote={onCreateFreshQuote}
+      />
     </div>
   );
 }
 
-function SignInNotice() {
+function HoldJourney({
+  quote,
+  state,
+  onSecure,
+  onRelease,
+  onCreateFreshQuote,
+}: {
+  quote: Quote;
+  state: HoldState;
+  onSecure: () => void;
+  onRelease: () => void;
+  onCreateFreshQuote: () => void;
+}) {
+  if (quote.expired || state.kind === "quote-expired") {
+    return (
+      <div className="inventory-hold-state expired" role="status">
+        <Icon name="shield-check" />
+        <div>
+          <strong>Availability was not held.</strong>
+          <p>
+            {state.kind === "quote-expired"
+              ? state.message
+              : "Prices and availability must be checked again before continuing."}
+          </p>
+          <button type="button" onClick={onCreateFreshQuote}>
+            Create a fresh quote
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (state.kind === "active" || state.kind === "releasing") {
+    return (
+      <div
+        className="inventory-hold-state active"
+        role="status"
+        aria-live="polite"
+      >
+        <Icon name="shield-check" />
+        <div>
+          <strong>Availability secured</strong>
+          <p>
+            One {occupancyMeta[state.hold.occupancy].label.toLowerCase()} room
+            allocation is held until{" "}
+            <time dateTime={state.hold.expiresAtUtc}>
+              {formatDateTime(state.hold.expiresAtUtc)}
+            </time>
+            .
+          </p>
+          <HoldCountdown expiresAtUtc={state.hold.expiresAtUtc} />
+          <p className="inventory-hold-boundary">
+            Booking and payment have not started.
+          </p>
+          <button
+            type="button"
+            className="inventory-hold-release"
+            disabled={state.kind === "releasing"}
+            onClick={onRelease}
+          >
+            {state.kind === "releasing"
+              ? "Releasing availability…"
+              : "Release and edit plan"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (state.kind === "released" || state.kind === "expired") {
+    const expired = state.kind === "expired";
+    return (
+      <div className={`inventory-hold-state ${state.kind}`} role="status">
+        <Icon name="shield-check" />
+        <div>
+          <strong>
+            {expired ? "Availability hold expired" : "Availability released"}
+          </strong>
+          <p>
+            {expired
+              ? "The room allocation has returned to current availability."
+              : "You can now change the room or traveller selection safely."}
+          </p>
+          <button type="button" onClick={onSecure}>
+            Secure availability again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (state.kind === "unavailable") {
+    return (
+      <div className="inventory-hold-state unavailable" role="alert">
+        <Icon name="shield-check" />
+        <div>
+          <strong>Availability could not be secured</strong>
+          <p>{state.message}</p>
+          <Link href={`/packages/${quote.departureId}`}>
+            Review latest package options
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (state.kind === "unauthenticated") {
+    return <SignInNotice action="secure availability" />;
+  }
+
+  if (state.kind === "error") {
+    return (
+      <div className="inventory-hold-state error" role="alert">
+        <Icon name="shield-check" />
+        <div>
+          <strong>Hold status needs confirmation</strong>
+          <p>{state.message}</p>
+          <button type="button" onClick={state.hold ? onRelease : onSecure}>
+            {state.hold ? "Try release again" : "Retry safely"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="inventory-hold-state idle" role="status">
+      <Icon name="shield-check" />
+      <div>
+        <strong>
+          {state.kind === "securing"
+            ? "Securing availability…"
+            : "Availability is not held yet."}
+        </strong>
+        <p>
+          NoorPath can temporarily hold one selected room allocation until an
+          exact server deadline. No booking or payment is created.
+        </p>
+        <button
+          type="button"
+          className="plan-primary-action"
+          disabled={state.kind === "securing"}
+          onClick={onSecure}
+        >
+          {state.kind === "securing"
+            ? "Securing availability…"
+            : "Secure availability"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function HoldCountdown({ expiresAtUtc }: { expiresAtUtc: string }) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const remainingSeconds = Math.max(
+    0,
+    Math.ceil((new Date(expiresAtUtc).getTime() - now) / 1000),
+  );
+  const minutes = Math.floor(remainingSeconds / 60);
+  const seconds = remainingSeconds % 60;
+
+  return (
+    <div className="inventory-hold-countdown">
+      <span aria-hidden="true">
+        {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+      </span>
+      <small>Time remaining on this hold</small>
+      <span className="plan-visually-hidden">
+        Availability is held until {formatDateTime(expiresAtUtc)}.
+      </span>
+    </div>
+  );
+}
+
+function SignInNotice({ action = "create your quote" }: { action?: string }) {
   const signInUrl = process.env.NEXT_PUBLIC_NOORPATH_SIGN_IN_URL;
   return (
     <div className="plan-sign-in" role="status">
       <Icon name="user-circle" />
       <span>
-        <strong>Sign in to add travellers and create your quote.</strong>
+        <strong>Sign in to add travellers and {action}.</strong>
         <small>
           Package browsing stays public. Personal traveller details are
           protected behind your NoorPath account.
