@@ -1,0 +1,40 @@
+name: VS-08 Contract Fix Apply
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  apply-contract-fix:
+    if: github.event.pull_request.number == 44 && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Preserve valid quote across later price publication
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("apps/api/InventoryHoldEndpoints.cs")
+          content = path.read_text()
+          old = """                item.Status == CatalogueDraftStatus.Published &&
+                item.PublishedPriceVersionId == quote.PriceVersionId)"""
+          new = """                item.Status == CatalogueDraftStatus.Published &&
+                item.PublishedPriceVersionId != null)"""
+          if old not in content:
+              raise SystemExit("Expected quote-version saleability condition was not found.")
+          path.write_text(content.replace(old, new, 1))
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/api/InventoryHoldEndpoints.cs
+          git commit -m "fix(inventory): preserve valid quoted price version"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
