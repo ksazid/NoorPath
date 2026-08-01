@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAuth0Configured } from "../../../../lib/auth0";
 
 function safeReturnPath(value: string | null) {
-  return value?.startsWith("/") && !value.startsWith("//")
-    ? value
-    : "/account";
+  return value?.startsWith("/") && !value.startsWith("//") ? value : "/account";
 }
 
 export function GET(request: NextRequest) {
