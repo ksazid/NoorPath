@@ -127,7 +127,7 @@ public sealed class BookingTravellerRecord
     public Guid BookingId { get; set; }
     public Guid TravellerId { get; set; }
     public int Position { get; set; }
-    public required string FullName { get; set; }
+    public string FullName { get; set; } = string.Empty;
     public DateOnly DateOfBirth { get; set; }
 }
 
