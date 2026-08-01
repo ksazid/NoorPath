@@ -37,7 +37,9 @@ function chunk(values, size) {
 
 const repositoryResult = runGit(["rev-parse", "--show-toplevel"]);
 if (repositoryResult.status !== 0) {
-  throw new Error(repositoryResult.stderr.trim() || "Git repository not found.");
+  throw new Error(
+    repositoryResult.stderr.trim() || "Git repository not found.",
+  );
 }
 
 const repositoryRoot = repositoryResult.stdout.trim();
@@ -114,7 +116,9 @@ for (const files of chunk(prettierPaths, 100)) {
 for (const files of chunk(stagedFiles, 100)) {
   const addResult = runGit(["add", "--", ...files], repositoryRoot);
   if (addResult.status !== 0) {
-    throw new Error(addResult.stderr.trim() || "Could not restage formatted files.");
+    throw new Error(
+      addResult.stderr.trim() || "Could not restage formatted files.",
+    );
   }
 }
 
