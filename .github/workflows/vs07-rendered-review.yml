@@ -1,4 +1,4 @@
-name: VS-07 Rendered Review
+name: VS-08 Rendered Review
 
 on:
   pull_request:
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   rendered-review:
-    name: Plan journey rendered review
+    name: Inventory hold rendered review
     runs-on: ${{ github.event.pull_request.number == 41 && 'self-hosted' || 'ubuntu-latest' }}
     timeout-minutes: 20
     env:
@@ -51,14 +51,14 @@ jobs:
       - name: Install rendered review browsers and dependencies
         run: pnpm --dir apps/web exec playwright install --with-deps chromium webkit
 
-      - name: Run VS-07 rendered acceptance
+      - name: Run VS-08 rendered acceptance
         run: pnpm --dir apps/web exec playwright test e2e/plan-journey.spec.ts
 
       - name: Upload rendered evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: vs07-rendered-review
+          name: vs08-rendered-review
           if-no-files-found: warn
           path: |
             apps/web/test-results

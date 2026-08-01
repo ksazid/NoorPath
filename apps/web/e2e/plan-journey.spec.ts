@@ -6,6 +6,8 @@ import {
 } from "./helpers";
 
 const departureId = "3c9d522a-9481-4b79-9486-64cf997bfe31";
+const quoteId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const holdId = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
 
 const packageDetails = {
   departureId,
@@ -67,7 +69,7 @@ const travellers = [
 ];
 
 const quote = {
-  quoteId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  quoteId,
   departureId,
   priceVersionId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
   occupancy: "double",
@@ -87,7 +89,29 @@ const quote = {
   availabilityReserved: false,
 };
 
+const activeHold = {
+  holdId,
+  quoteId,
+  departureId,
+  occupancy: "double",
+  quantity: 1,
+  status: "active",
+  createdAtUtc: "2099-07-31T06:00:00Z",
+  expiresAtUtc: "2099-07-31T06:15:00Z",
+  terminalAtUtc: null,
+  availabilityReserved: true,
+};
+
+const releasedHold = {
+  ...activeHold,
+  status: "released",
+  terminalAtUtc: "2099-07-31T06:05:00Z",
+  availabilityReserved: false,
+};
+
 async function mockPlanApis(page: Page) {
+  let currentHold = activeHold;
+
   await page.route(`**/api/v1/departures/${departureId}`, (route) =>
     route.fulfill({ json: packageDetails }),
   );
@@ -99,6 +123,22 @@ async function mockPlanApis(page: Page) {
   });
   await page.route(`**/api/v1/departures/${departureId}/quotes`, (route) =>
     route.fulfill({ json: quote }),
+  );
+  await page.route(`**/api/v1/quotes/${quoteId}/holds`, async (route) => {
+    expect(route.request().method()).toBe("POST");
+    expect(route.request().headers()["idempotency-key"]).toMatch(/^hold-/);
+    await route.fulfill({ status: 201, json: currentHold });
+  });
+  await page.route(`**/api/v1/inventory-holds/${holdId}`, (route) =>
+    route.fulfill({ json: currentHold }),
+  );
+  await page.route(
+    `**/api/v1/inventory-holds/${holdId}/release`,
+    async (route) => {
+      expect(route.request().method()).toBe("POST");
+      currentHold = releasedHold;
+      await route.fulfill({ json: currentHold });
+    },
   );
 }
 
@@ -127,37 +167,80 @@ async function completeQuote(page: Page) {
     page.getByRole("heading", { name: "Payment schedule" }),
   ).toBeVisible();
   await expect(page.getByText("Instalment 1")).toBeVisible();
-  await expect(page.getByText("No place is reserved yet.")).toBeVisible();
+  await expect(page.getByText("Availability is not held yet.")).toBeVisible();
+  await expect(
+    page.getByText(/No booking or payment is created\./),
+  ).toBeVisible();
 }
 
-test("VS-07 renders the authoritative traveller quote flow accessibly", async ({
+async function secureAvailability(page: Page) {
+  await page.getByRole("button", { name: "Secure availability" }).click();
+  await expect(page.getByText("Availability secured")).toBeVisible();
+  await expect(
+    page.getByText("Booking and payment have not started."),
+  ).toBeVisible();
+  await expect(page.locator(".inventory-hold-countdown > small")).toHaveText(
+    "Time remaining on this hold",
+  );
+  await expect(
+    page.getByRole("button", { name: "Release and edit plan" }),
+  ).toBeVisible();
+  await expect(
+    page.locator('input[name="occupancy"][value="double"]'),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("checkbox", { name: /Amina Khan/ }),
+  ).toBeDisabled();
+}
+
+test("VS-08 renders the authoritative quote and active inventory hold accessibly", async ({
   page,
 }, testInfo) => {
   await mockPlanApis(page);
   await completeQuote(page);
+  await secureAvailability(page);
 
   await expectNoHorizontalOverflow(page);
   await expectMinimumTargets(page);
   await expectNoA11yViolations(page);
 
-  const focusTarget =
-    testInfo.project.name === "mobile-390"
-      ? page.getByRole("link", { name: "Explore packages", exact: true })
-      : page.getByRole("link", { name: "Package", exact: true });
+  const focusTarget = page.getByRole("button", {
+    name: "Release and edit plan",
+  });
   await focusTarget.focus();
-  const focused = page.locator(":focus");
-  await expect(focused).toBeVisible();
+  await expect(focusTarget).toBeVisible();
   expect(
-    await focused.evaluate((element) => getComputedStyle(element).outlineStyle),
+    await focusTarget.evaluate(
+      (element) => getComputedStyle(element).outlineStyle,
+    ),
   ).not.toBe("none");
 
   await page.screenshot({
-    path: `test-results/vs07-plan-${testInfo.project.name}.png`,
+    path: `test-results/vs08-active-hold-${testInfo.project.name}.png`,
+    fullPage: true,
+  });
+
+  await focusTarget.click();
+  await expect(page.getByText("Availability released")).toBeVisible();
+  await expect(
+    page.getByText(
+      "You can now change the room or traveller selection safely.",
+    ),
+  ).toBeVisible();
+  await expect(
+    page.locator('input[name="occupancy"][value="double"]'),
+  ).toBeEnabled();
+
+  await expectNoHorizontalOverflow(page);
+  await expectNoA11yViolations(page);
+
+  await page.screenshot({
+    path: `test-results/vs08-released-hold-${testInfo.project.name}.png`,
     fullPage: true,
   });
 });
 
-test("VS-07 remains usable at 360px, 200% text and reduced motion", async ({
+test("VS-08 remains usable at 360px, 200% text and reduced motion", async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile-390", "360px gate runs once");
@@ -165,6 +248,7 @@ test("VS-07 remains usable at 360px, 200% text and reduced motion", async ({
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.setViewportSize({ width: 360, height: 800 });
   await completeQuote(page);
+  await secureAvailability(page);
 
   await expectNoHorizontalOverflow(page);
   await expectMinimumTargets(page);
@@ -174,10 +258,13 @@ test("VS-07 remains usable at 360px, 200% text and reduced motion", async ({
     document.documentElement.style.fontSize = "200%";
   });
   await expectNoHorizontalOverflow(page);
-  await expect(page.getByText("₹2,20,000")).toBeVisible();
+  await expect(page.getByText("Availability secured")).toBeVisible();
+  await expect(
+    page.getByText("Booking and payment have not started."),
+  ).toBeVisible();
 
   await page.screenshot({
-    path: "test-results/vs07-plan-mobile-360-text-200.png",
+    path: "test-results/vs08-active-hold-mobile-360-text-200.png",
     fullPage: true,
   });
 });

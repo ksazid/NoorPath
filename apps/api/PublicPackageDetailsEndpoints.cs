@@ -21,6 +21,7 @@ public static class PublicPackageDetailsEndpoints
         OperatorsDbContext operators,
         PricingDbContext pricing,
         InventoryDbContext inventory,
+        TimeProvider timeProvider,
         ILogger<Program> log,
         CancellationToken cancellationToken)
     {
@@ -98,9 +99,14 @@ public static class PublicPackageDetailsEndpoints
         var pools = await inventory.Pools.AsNoTracking()
             .Where(item => item.InventoryConfigurationId == inventoryConfiguration.Id)
             .ToListAsync(cancellationToken);
+        var availableByPool = await InventoryAvailability.GetAvailableQuantitiesAsync(
+            inventory,
+            pools,
+            timeProvider.GetUtcNow(),
+            cancellationToken);
         var availabilityByOccupancy = pools.ToDictionary(
             item => OccupancyKey(item.Occupancy.ToString()),
-            item => item.Capacity,
+            item => availableByPool.GetValueOrDefault(item.Id),
             StringComparer.Ordinal);
 
         var occupancies = publishedPrices

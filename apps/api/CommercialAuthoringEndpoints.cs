@@ -1,3 +1,4 @@
+using System.Data;
 using Microsoft.EntityFrameworkCore;
 using NoorPath.Catalogue;
 using NoorPath.Catalogue.Infrastructure;
@@ -25,6 +26,7 @@ public static class CommercialAuthoringEndpoints
         CatalogueDbContext catalogue,
         PricingDbContext pricing,
         InventoryDbContext inventory,
+        TimeProvider timeProvider,
         CancellationToken cancellationToken)
     {
         var authorization = await ResolveOperatorAsync(http, operators, cancellationToken);
@@ -59,8 +61,19 @@ public static class CommercialAuthoringEndpoints
                 .Where(x => x.InventoryConfigurationId == inventoryConfiguration.Id)
                 .OrderBy(x => x.Occupancy)
                 .ToListAsync(cancellationToken);
+        var availableByPool = await InventoryAvailability.GetAvailableQuantitiesAsync(
+            inventory,
+            inventoryRows,
+            timeProvider.GetUtcNow(),
+            cancellationToken);
 
-        return Results.Ok(ToCommercialResponse(departureId, pricePlan, priceRows, inventoryConfiguration, inventoryRows));
+        return Results.Ok(ToCommercialResponse(
+            departureId,
+            pricePlan,
+            priceRows,
+            inventoryConfiguration,
+            inventoryRows,
+            availableByPool));
     }
 
     private static async Task<IResult> SavePricingAsync(
@@ -183,6 +196,7 @@ public static class CommercialAuthoringEndpoints
         IOperatorAccess operators,
         CatalogueDbContext catalogue,
         InventoryDbContext inventory,
+        TimeProvider timeProvider,
         ILogger<Program> log,
         CancellationToken cancellationToken)
     {
@@ -200,18 +214,25 @@ public static class CommercialAuthoringEndpoints
         if (!TryBuildInventory(request, out var draft, out var errors))
             return Results.ValidationProblem(errors, statusCode: 422, title: "Review inventory details");
 
+        var now = timeProvider.GetUtcNow();
+        var action = "updated";
+
+        await using var transaction = await inventory.Database.BeginTransactionAsync(
+            IsolationLevel.ReadCommitted,
+            cancellationToken);
+
         var configuration = await inventory.Configurations
             .SingleOrDefaultAsync(
                 x => x.DepartureId == departureId && x.OperatorId == authorization.Access.OperatorId,
                 cancellationToken);
 
-        var now = DateTimeOffset.UtcNow;
-        var action = "updated";
-
         if (configuration is null)
         {
             if (request.ExpectedVersion != 0)
+            {
+                await transaction.RollbackAsync(cancellationToken);
                 return StaleInventoryVersion(http);
+            }
 
             configuration = new InventoryConfigurationRecord
             {
@@ -223,28 +244,79 @@ public static class CommercialAuthoringEndpoints
                 UpdatedAtUtc = now
             };
             inventory.Configurations.Add(configuration);
+            inventory.Pools.AddRange(draft!.Details.Pools.Select(item => new InventoryPoolRecord
+            {
+                Id = Guid.NewGuid(),
+                InventoryConfigurationId = configuration.Id,
+                Occupancy = item.Occupancy,
+                Capacity = item.Capacity
+            }));
             action = "created";
         }
         else
         {
             if (configuration.Version != request.ExpectedVersion)
+            {
+                await transaction.RollbackAsync(cancellationToken);
                 return StaleInventoryVersion(http);
+            }
 
-            var existing = await inventory.Pools
-                .Where(x => x.InventoryConfigurationId == configuration.Id)
+            var existingPools = await inventory.Pools
+                .FromSqlInterpolated($"SELECT * FROM inventory.inventory_pools WHERE \"InventoryConfigurationId\" = {configuration.Id} FOR UPDATE")
                 .ToListAsync(cancellationToken);
-            inventory.Pools.RemoveRange(existing);
+            await InventoryAvailability.MaterializeExpiredAsync(
+                inventory,
+                now,
+                cancellationToken);
+
+            var requestedByOccupancy = draft!.Details.Pools.ToDictionary(item => item.Occupancy);
+
+            foreach (var existingPool in existingPools)
+            {
+                var committedQuantity = await InventoryAvailability.GetCommittedQuantityAsync(
+                    inventory,
+                    existingPool.Id,
+                    now,
+                    cancellationToken);
+                var requestedCapacity = requestedByOccupancy.TryGetValue(
+                    existingPool.Occupancy,
+                    out var requestedPool)
+                    ? requestedPool.Capacity
+                    : 0;
+
+                if (requestedCapacity < committedQuantity)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    return CapacityBelowCommitments(http, existingPool.Occupancy, committedQuantity);
+                }
+
+                if (requestedPool is not null)
+                {
+                    existingPool.Capacity = requestedPool.Capacity;
+                    requestedByOccupancy.Remove(existingPool.Occupancy);
+                    continue;
+                }
+
+                var hasHoldHistory = await inventory.Holds.AsNoTracking()
+                    .AnyAsync(item => item.InventoryPoolId == existingPool.Id, cancellationToken);
+                if (hasHoldHistory)
+                    existingPool.Capacity = 0;
+                else
+                    inventory.Pools.Remove(existingPool);
+            }
+
+            inventory.Pools.AddRange(requestedByOccupancy.Values.Select(item => new InventoryPoolRecord
+            {
+                Id = Guid.NewGuid(),
+                InventoryConfigurationId = configuration.Id,
+                Occupancy = item.Occupancy,
+                Capacity = item.Capacity
+            }));
+
             configuration.Version++;
             configuration.UpdatedAtUtc = now;
         }
 
-        inventory.Pools.AddRange(draft!.Details.Pools.Select(item => new InventoryPoolRecord
-        {
-            Id = Guid.NewGuid(),
-            InventoryConfigurationId = configuration.Id,
-            Occupancy = item.Occupancy,
-            Capacity = item.Capacity
-        }));
         inventory.Audits.Add(new InventoryAuditRecord
         {
             Id = Guid.NewGuid(),
@@ -252,7 +324,7 @@ public static class CommercialAuthoringEndpoints
             DepartureId = departureId,
             ActorAccountId = authorization.Principal!.AccountId.Value,
             CorrelationId = http.TraceIdentifier,
-            Reason = draft.Details.AdjustmentReason,
+            Reason = draft!.Details.AdjustmentReason,
             Action = action,
             Version = configuration.Version,
             Timestamp = now
@@ -261,11 +333,28 @@ public static class CommercialAuthoringEndpoints
         try
         {
             await inventory.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
         }
         catch (DbUpdateConcurrencyException)
         {
+            await transaction.RollbackAsync(cancellationToken);
             return StaleInventoryVersion(http);
         }
+        catch (DbUpdateException)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return StaleInventoryVersion(http);
+        }
+
+        var savedPools = await inventory.Pools.AsNoTracking()
+            .Where(item => item.InventoryConfigurationId == configuration.Id)
+            .OrderBy(item => item.Occupancy)
+            .ToListAsync(cancellationToken);
+        var availableByPool = await InventoryAvailability.GetAvailableQuantitiesAsync(
+            inventory,
+            savedPools,
+            timeProvider.GetUtcNow(),
+            cancellationToken);
 
         log.LogInformation(
             "Inventory configuration outcome={Outcome} operatorId={OperatorId} departureId={DepartureId} version={Version} correlationId={CorrelationId}",
@@ -279,11 +368,11 @@ public static class CommercialAuthoringEndpoints
         {
             departureId,
             version = configuration.Version,
-            pools = draft.Details.Pools.Select(item => new
+            pools = savedPools.Select(item => new
             {
                 occupancy = OccupancyKey(item.Occupancy),
                 capacity = item.Capacity,
-                availableQuantity = item.Capacity
+                availableQuantity = availableByPool.GetValueOrDefault(item.Id)
             })
         });
     }
@@ -383,7 +472,8 @@ public static class CommercialAuthoringEndpoints
         PricePlanRecord? pricePlan,
         IReadOnlyCollection<OccupancyPriceRecord> prices,
         InventoryConfigurationRecord? configuration,
-        IReadOnlyCollection<InventoryPoolRecord> pools)
+        IReadOnlyCollection<InventoryPoolRecord> pools,
+        IReadOnlyDictionary<Guid, int> availableByPool)
     {
         var priceByKey = prices.ToDictionary(x => OccupancyKey(x.Occupancy), StringComparer.OrdinalIgnoreCase);
         var poolByKey = pools.ToDictionary(x => OccupancyKey(x.Occupancy), StringComparer.OrdinalIgnoreCase);
@@ -409,15 +499,20 @@ public static class CommercialAuthoringEndpoints
                 {
                     occupancy = OccupancyKey(item.Occupancy),
                     capacity = item.Capacity,
-                    availableQuantity = item.Capacity
+                    availableQuantity = availableByPool.GetValueOrDefault(item.Id)
                 })
             },
-            readiness = keys.Select(key => new
+            readiness = keys.Select(key =>
             {
-                occupancy = key,
-                hasPrice = priceByKey.ContainsKey(key),
-                capacity = poolByKey.TryGetValue(key, out var pool) ? pool.Capacity : (int?)null,
-                ready = priceByKey.ContainsKey(key) && poolByKey.TryGetValue(key, out var inventoryPool) && inventoryPool.Capacity > 0
+                var hasPool = poolByKey.TryGetValue(key, out var pool);
+                var available = hasPool ? availableByPool.GetValueOrDefault(pool!.Id) : 0;
+                return new
+                {
+                    occupancy = key,
+                    hasPrice = priceByKey.ContainsKey(key),
+                    capacity = hasPool ? pool!.Capacity : (int?)null,
+                    ready = priceByKey.ContainsKey(key) && available > 0
+                };
             })
         };
     }
@@ -459,6 +554,15 @@ public static class CommercialAuthoringEndpoints
         title: "Inventory changed",
         detail: "Inventory changed. Reload the latest configuration before saving again.",
         extensions: ProblemExtensions(http, "stale_inventory_version"));
+
+    private static IResult CapacityBelowCommitments(
+        HttpContext http,
+        InventoryOccupancy occupancy,
+        int committedQuantity) => Results.Problem(
+        statusCode: 409,
+        title: "Capacity is below active commitments",
+        detail: $"{OccupancyKey(occupancy)} capacity cannot be lower than {committedQuantity} while availability is secured.",
+        extensions: ProblemExtensions(http, "capacity_below_commitments"));
 
     private static Dictionary<string, object?> ProblemExtensions(HttpContext http, string code) => new()
     {

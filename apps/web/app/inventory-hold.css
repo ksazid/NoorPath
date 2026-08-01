@@ -1,0 +1,180 @@
+.plan-selection-lock {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--public-gold);
+  border-radius: 0 7px 7px 0;
+  background: var(--public-ivory);
+  color: var(--public-muted);
+  font-size: 0.625rem;
+  line-height: 1.55;
+}
+
+.traveller-choice.disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.inventory-hold-state {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 11px;
+  align-items: start;
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid var(--public-line);
+  border-radius: 9px;
+  background: var(--public-ivory);
+}
+
+.inventory-hold-state > .public-icon {
+  width: 23px;
+  height: 23px;
+  color: var(--public-green-deep);
+}
+
+.inventory-hold-state > div {
+  min-width: 0;
+}
+
+.inventory-hold-state strong {
+  display: block;
+  color: var(--public-ink);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+}
+
+.inventory-hold-state p {
+  margin: 5px 0 0;
+  color: var(--public-muted);
+  font-size: 0.5625rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.inventory-hold-state.active {
+  border-color: rgba(23, 107, 80, 0.28);
+  background: rgba(241, 248, 244, 0.92);
+}
+
+.inventory-hold-state.active > .public-icon,
+.inventory-hold-state.active > div > strong {
+  color: var(--public-green-deep);
+}
+
+.inventory-hold-state.released,
+.inventory-hold-state.expired,
+.inventory-hold-state.unavailable,
+.inventory-hold-state.error {
+  border-color: rgba(160, 121, 42, 0.32);
+}
+
+.inventory-hold-countdown {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 3px 9px;
+  align-items: baseline;
+  margin-top: 10px;
+  padding: 10px 11px;
+  border: 1px solid rgba(23, 107, 80, 0.2);
+  border-radius: 7px;
+  background: var(--public-paper);
+}
+
+.inventory-hold-countdown > span:first-child {
+  color: var(--public-green-deep);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.25rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+}
+
+.inventory-hold-countdown small {
+  color: var(--public-muted);
+  font-size: 0.5625rem;
+}
+
+.inventory-hold-boundary {
+  font-weight: 700;
+}
+
+.inventory-hold-state button,
+.inventory-hold-state a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  padding: 0 15px;
+  border: 1px solid var(--public-green);
+  border-radius: 7px;
+  background: var(--public-green);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+}
+
+.inventory-hold-state .plan-primary-action {
+  width: 100%;
+}
+
+.inventory-hold-state .inventory-hold-release {
+  border-color: var(--public-line);
+  background: var(--public-paper);
+  color: var(--public-green-deep);
+}
+
+.inventory-hold-state button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.inventory-hold-state button:focus,
+.inventory-hold-state button:focus-visible,
+.inventory-hold-state a:focus,
+.inventory-hold-state a:focus-visible {
+  outline: 3px solid rgba(23, 107, 80, 0.32);
+  outline-offset: 2px;
+}
+
+.plan-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  border: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .inventory-hold-state {
+    grid-template-columns: 26px minmax(0, 1fr);
+    padding: 12px;
+  }
+
+  .inventory-hold-countdown {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .inventory-hold-state button,
+  .inventory-hold-state a {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inventory-hold-state,
+  .inventory-hold-state * {
+    scroll-behavior: auto;
+    transition: none !important;
+    animation: none !important;
+  }
+}

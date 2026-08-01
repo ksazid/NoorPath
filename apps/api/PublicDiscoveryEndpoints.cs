@@ -23,10 +23,11 @@ public static class PublicDiscoveryEndpoints
         OperatorsDbContext operators,
         PricingDbContext pricing,
         InventoryDbContext inventory,
+        TimeProvider timeProvider,
         ILogger<Program> log,
         CancellationToken cancellationToken)
     {
-        var startedAt = DateTimeOffset.UtcNow;
+        var startedAt = timeProvider.GetUtcNow();
 
         var candidates = await (
             from departure in catalogue.DepartureBatches.AsNoTracking()
@@ -105,11 +106,16 @@ public static class PublicDiscoveryEndpoints
         var inventoryConfigurationIds = inventoryConfigurations.Select(item => item.Id).ToArray();
 
         var pools = await inventory.Pools.AsNoTracking()
-            .Where(item => inventoryConfigurationIds.Contains(item.InventoryConfigurationId) && item.Capacity > 0)
+            .Where(item => inventoryConfigurationIds.Contains(item.InventoryConfigurationId))
             .ToListAsync(cancellationToken);
         var poolsByConfiguration = pools
             .GroupBy(item => item.InventoryConfigurationId)
             .ToDictionary(group => group.Key, group => group.ToArray());
+        var availableByPool = await InventoryAvailability.GetAvailableQuantitiesAsync(
+            inventory,
+            pools,
+            timeProvider.GetUtcNow(),
+            cancellationToken);
 
         var inclusionItems = await catalogue.PackageContentItems.AsNoTracking()
             .Where(item => packageVersionIds.Contains(item.PackageVersionId) && item.Kind == PackageContentKind.Inclusion)
@@ -151,7 +157,7 @@ public static class PublicDiscoveryEndpoints
 
             var availabilityByOccupancy = candidatePools.ToDictionary(
                 item => OccupancyKey(item.Occupancy.ToString()),
-                item => item.Capacity,
+                item => availableByPool.GetValueOrDefault(item.Id),
                 StringComparer.Ordinal);
 
             var saleablePrices = candidatePrices
@@ -175,7 +181,7 @@ public static class PublicDiscoveryEndpoints
             var occupancyAvailability = saleablePrices
                 .Select(item => item.Occupancy)
                 .Distinct(StringComparer.Ordinal)
-                .OrderBy(item => OccupancyOrder(item))
+                .OrderBy(OccupancyOrder)
                 .Select(item => new OccupancyAvailability(item, availabilityByOccupancy[item]))
                 .ToArray();
 
@@ -212,7 +218,7 @@ public static class PublicDiscoveryEndpoints
             "Public discovery outcome={Outcome} itemCount={ItemCount} durationMs={DurationMs} correlationId={CorrelationId}",
             "success",
             items.Count,
-            (DateTimeOffset.UtcNow - startedAt).TotalMilliseconds,
+            (timeProvider.GetUtcNow() - startedAt).TotalMilliseconds,
             http.TraceIdentifier);
 
         return Results.Ok(new DiscoveryResponse(items));
