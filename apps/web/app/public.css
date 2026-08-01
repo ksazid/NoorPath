@@ -24,6 +24,10 @@
   top: -5rem;
   left: 1rem;
   z-index: 100;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  box-sizing: border-box;
   padding: 0.75rem 1rem;
   background: var(--public-paper);
   color: var(--public-ink);
@@ -1384,6 +1388,25 @@
   .landing-service-strip {
     grid-template-columns: 1fr;
     padding: 28px 24px 58px;
+  }
+
+  .public-footer {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 28px 16px;
+  }
+
+  .public-footer-links {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .public-footer-links a {
+    min-width: 0;
+    justify-content: center;
+    overflow-wrap: anywhere;
+    text-align: center;
   }
 
   .package-main {
