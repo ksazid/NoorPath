@@ -1,0 +1,81 @@
+name: Rendered Slice Review
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  rendered-review:
+    name: Rendered slice review
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'certify')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      ASPNETCORE_ENVIRONMENT: Test
+      Authentication__Mode: Test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve slice rendered contract
+        id: slice
+        run: node scripts/slice.mjs resolve --branch "${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}" --optional --github-output
+      - name: Record non-rendered change
+        if: steps.slice.outputs.enabled != 'true'
+        run: echo "No rendered review is declared for ${{ steps.slice.outputs.slice_id }}."
+      - uses: actions/setup-node@v4
+        if: steps.slice.outputs.enabled == 'true'
+        with:
+          node-version-file: .node-version
+      - uses: actions/setup-dotnet@v5
+        if: steps.slice.outputs.enabled == 'true'
+        with:
+          global-json-file: global.json
+      - run: corepack enable
+        if: steps.slice.outputs.enabled == 'true'
+      - name: Resolve pnpm store path
+        if: steps.slice.outputs.enabled == 'true'
+        id: pnpm-store
+        shell: bash
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+      - name: Cache pnpm store
+        if: steps.slice.outputs.enabled == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+      - name: Cache Playwright browsers
+        if: steps.slice.outputs.enabled == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml', 'apps/web/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+      - run: pnpm install --frozen-lockfile
+        if: steps.slice.outputs.enabled == 'true'
+      - name: Install rendered review browsers and dependencies
+        if: steps.slice.outputs.enabled == 'true'
+        run: pnpm --dir apps/web exec playwright install --with-deps chromium webkit
+      - name: Run slice rendered acceptance
+        if: steps.slice.outputs.enabled == 'true'
+        run: pnpm --dir apps/web exec playwright test "${{ steps.slice.outputs.test_file }}"
+      - name: Upload rendered evidence
+        if: always() && steps.slice.outputs.enabled == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.slice.outputs.artifact_name }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            apps/web/test-results
+            apps/web/playwright-report
