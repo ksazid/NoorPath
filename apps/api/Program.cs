@@ -54,6 +54,17 @@ builder.Services.AddTransient<IPaymentProviderEventVerifier>(services =>
 builder.Services.AddNoorPathAuthentication(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
+if (builder.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    await scope.ServiceProvider.GetRequiredService<OperatorsDbContext>().Database.MigrateAsync();
+    await scope.ServiceProvider.GetRequiredService<CatalogueDbContext>().Database.MigrateAsync();
+    await scope.ServiceProvider.GetRequiredService<PricingDbContext>().Database.MigrateAsync();
+    await scope.ServiceProvider.GetRequiredService<InventoryDbContext>().Database.MigrateAsync();
+    await scope.ServiceProvider.GetRequiredService<TravellerDbContext>().Database.MigrateAsync();
+    await scope.ServiceProvider.GetRequiredService<BookingDbContext>().Database.MigrateAsync();
+    await scope.ServiceProvider.GetRequiredService<PaymentsDbContext>().Database.MigrateAsync();
+}
 app.Use(async (context, next) =>
 {
     context.Response.Headers["X-Correlation-ID"] = context.TraceIdentifier;
@@ -65,7 +76,10 @@ app.UseNoorPathAuthenticationErrors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapGet("/health/live", () => Results.Ok(new HealthResponse("Healthy")));
-app.MapGet("/health/ready", () => Results.Ok(new HealthResponse("Ready")));
+app.MapGet("/health/ready", async (OperatorsDbContext database, CancellationToken cancellationToken) =>
+    await database.Database.CanConnectAsync(cancellationToken)
+        ? Results.Ok(new HealthResponse("Ready"))
+        : Results.StatusCode(StatusCodes.Status503ServiceUnavailable));
 app.MapOperatorAccess();
 app.MapCatalogueAuthoring();
 app.MapCommercialAuthoring();
