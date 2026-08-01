@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Icon, PublicFooter, PublicHeader } from "../../../public-ui";
 
 type Journey = {
@@ -79,10 +79,7 @@ export default function JourneyPage() {
       setState({ kind: "error" });
     }
   }, [bookingId]);
-  useEffect(() => {
-    const timeout = window.setTimeout(() => void load(), 0);
-    return () => window.clearTimeout(timeout);
-  }, [load]);
+  useDeferredInitialLoad(load);
 
   return (
     <div className="journey-page">
