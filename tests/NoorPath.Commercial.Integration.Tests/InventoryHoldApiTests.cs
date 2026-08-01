@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using NoorPath.Catalogue.Infrastructure;
 using NoorPath.Inventory;
 using NoorPath.Inventory.Infrastructure;
 using Xunit;
@@ -164,6 +165,39 @@ public sealed class InventoryHoldApiTests
         Assert.Equal(
             "idempotency_conflict",
             await ReadProblemCodeAsync(conflict, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task A_valid_quote_survives_a_later_published_price_pointer()
+    {
+        using var app = await CommercialApi.CreateAsync(TestContext.Current.CancellationToken);
+        var departureId = await PublishDepartureAsync(
+            app,
+            doubleCapacity: 2,
+            TestContext.Current.CancellationToken);
+        using var customer = app.CreateOperatorClient("hold-price-version-customer");
+        var quoteId = await CreateDoubleQuoteAsync(
+            customer,
+            departureId,
+            TestContext.Current.CancellationToken);
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var catalogue = scope.ServiceProvider.GetRequiredService<CatalogueDbContext>();
+            var departure = await catalogue.DepartureBatches.SingleAsync(
+                item => item.Id == departureId,
+                TestContext.Current.CancellationToken);
+            departure.PublishedPriceVersionId = Guid.NewGuid();
+            await catalogue.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
+        var response = await SendHoldAsync(
+            customer,
+            quoteId,
+            "hold-price-version-0001",
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
     [Fact]
