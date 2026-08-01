@@ -1,12 +1,14 @@
 # VS-12 — Documents Implementation Checklist
 
-## Definition of Ready — blocking
+## Definition of Ready
 
-- [ ] Product Owner approves the versioned required-document policy source and snapshot behavior.
-- [ ] Legal/privacy and Product Owner approve the sensitive-document retention and deletion schedule.
-- [ ] Architecture/security approve the private object-storage, encryption, upload and short-lived access mechanism in an ADR.
-- [ ] Security approves the malware scanner, file constraints, quarantine lifecycle and fail-safe behavior in an ADR/threat-model update.
-- [ ] Do not start runtime implementation until all four decisions above are frozen.
+- [x] Product Owner approved policy `v1`: passport bio page and passport photo per traveller, snapshotted prospectively per eligible booking.
+- [x] Product Owner approved 30-day object deletion after return/cancellation and one-year non-sensitive audit retention.
+- [x] Product Owner approved private encrypted AWS S3, opaque keys and purpose-bound five-minute presigned PUT/GET URLs.
+- [x] Product Owner approved PDF/JPEG/PNG up to 10 MB, ClamAV quarantine and fail-closed scanner behaviour.
+- [x] Runtime implementation may begin against these frozen decisions.
+- [ ] Before production enablement, legal/privacy confirms retention and hold behaviour.
+- [ ] Before production enablement, security validates deployed S3, signing, quarantine and ClamAV controls with ADR/threat-model evidence.
 
 ## Development mode
 
