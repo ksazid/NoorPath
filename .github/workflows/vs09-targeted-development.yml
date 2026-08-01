@@ -1,0 +1,105 @@
+name: VS-09 Targeted Development
+
+on:
+  push:
+    branches: [agent/vs09-booking-payment]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  backend:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: noorpath_test
+          POSTGRES_USER: noorpath
+          POSTGRES_PASSWORD: ci-local-only-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U noorpath -d noorpath_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      ConnectionStrings__NoorPath: Host=localhost;Port=5432;Database=noorpath_test;Username=noorpath;Password=ci-local-only-password
+      NOORPATH_TEST_DB: Host=localhost;Port=5432;Database=noorpath_test;Username=noorpath;Password=ci-local-only-password
+      NOORPATH_BOOKING_TEST_DB: Host=localhost;Port=5432;Database=noorpath_booking_test;Username=noorpath;Password=ci-local-only-password
+      NOORPATH_PAYMENTS_TEST_DB: Host=localhost;Port=5432;Database=noorpath_payments_test;Username=noorpath;Password=ci-local-only-password
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/vs09-booking-payment
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - name: Install EF Core CLI
+        run: dotnet tool install --global dotnet-ef --version 10.0.10
+      - name: Restore and format backend
+        run: |
+          dotnet restore NoorPath.slnx
+          dotnet format NoorPath.slnx --no-restore
+      - name: Generate Booking migration
+        run: >-
+          dotnet ef migrations add VS09Booking
+          --project src/Modules/NoorPath.Booking.Infrastructure/NoorPath.Booking.Infrastructure.csproj
+          --startup-project apps/api/NoorPath.Api.csproj
+          --context BookingDbContext
+          --output-dir Migrations
+      - name: Generate Payments migration
+        run: >-
+          dotnet ef migrations add VS09Payments
+          --project src/Modules/NoorPath.Payments.Infrastructure/NoorPath.Payments.Infrastructure.csproj
+          --startup-project apps/api/NoorPath.Api.csproj
+          --context PaymentsDbContext
+          --output-dir Migrations
+      - name: Build complete solution
+        run: dotnet build NoorPath.slnx --configuration Release --no-restore
+      - name: Create VS-09 test databases
+        run: |
+          container="$(docker ps --filter 'publish=5432' --format '{{.ID}}' | head -n 1)"
+          docker exec "$container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_booking_test;'
+          docker exec "$container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_payments_test;'
+      - name: Validate Booking migration
+        run: >-
+          bash scripts/validate-module-migrations.sh
+          src/Modules/NoorPath.Booking.Infrastructure/NoorPath.Booking.Infrastructure.csproj
+          BookingDbContext
+          apps/api/NoorPath.Api.csproj
+          NOORPATH_BOOKING_TEST_DB
+      - name: Validate Payments migration
+        run: >-
+          bash scripts/validate-module-migrations.sh
+          src/Modules/NoorPath.Payments.Infrastructure/NoorPath.Payments.Infrastructure.csproj
+          PaymentsDbContext
+          apps/api/NoorPath.Api.csproj
+          NOORPATH_PAYMENTS_TEST_DB
+      - name: Run VS-09 domain tests
+        run: |
+          dotnet test tests/NoorPath.Booking.Tests/NoorPath.Booking.Tests.csproj --configuration Release --no-build
+          dotnet test tests/NoorPath.Payments.Tests/NoorPath.Payments.Tests.csproj --configuration Release --no-build
+      - name: Commit generated and formatted backend files
+        run: |
+          if git diff --quiet; then
+            echo "No generated or formatting changes required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            NoorPath.slnx \
+            apps/api \
+            delivery/modules.json \
+            src/Modules/NoorPath.Booking \
+            src/Modules/NoorPath.Booking.Infrastructure \
+            src/Modules/NoorPath.Payments \
+            src/Modules/NoorPath.Payments.Infrastructure \
+            tests/NoorPath.Booking.Tests \
+            tests/NoorPath.Payments.Tests
+          git commit -m "chore(vs09): format backend and add migrations"
+          git push origin HEAD:agent/vs09-booking-payment
