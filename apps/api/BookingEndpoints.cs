@@ -7,6 +7,7 @@ using NoorPath.Inventory;
 using NoorPath.Inventory.Infrastructure;
 using NoorPath.Pricing;
 using NoorPath.Pricing.Infrastructure;
+using NoorPath.Traveller.Infrastructure;
 
 public static class BookingEndpoints
 {
@@ -26,6 +27,7 @@ public static class BookingEndpoints
         BookingDbContext bookings,
         PricingDbContext pricing,
         InventoryDbContext inventory,
+        TravellerDbContext travellerProfiles,
         TimeProvider timeProvider,
         ILogger<Program> log,
         CancellationToken cancellationToken)
@@ -70,11 +72,23 @@ public static class BookingEndpoints
             return QuoteUnavailable(http);
         }
 
-        var travellerIds = await pricing.QuoteTravellers.AsNoTracking()
+        var quoteTravellers = await pricing.QuoteTravellers.AsNoTracking()
             .Where(item => item.QuoteId == quote.Id)
             .OrderBy(item => item.Position)
-            .Select(item => item.TravellerId)
+            .Select(item => new
+            {
+                item.TravellerId,
+                item.Position
+            })
             .ToArrayAsync(cancellationToken);
+        var travellerIds = quoteTravellers
+            .Select(item => item.TravellerId)
+            .ToArray();
+        var travellerById = await travellerProfiles.Travellers.AsNoTracking()
+            .Where(item =>
+                item.OwnerAccountId == accountId
+                && travellerIds.Contains(item.Id))
+            .ToDictionaryAsync(item => item.Id, cancellationToken);
         var instalments = await pricing.QuoteInstalments.AsNoTracking()
             .Where(item => item.QuoteId == quote.Id)
             .OrderBy(item => item.Sequence)
@@ -85,8 +99,10 @@ public static class BookingEndpoints
             .ToArrayAsync(cancellationToken);
 
         var occupancy = ToBookingOccupancy(quote.Occupancy);
-        if (travellerIds.Length != quote.TravellerCount
-            || travellerIds.Length != BookingPolicy.RequiredTravellerCount(occupancy))
+        if (quoteTravellers.Length != quote.TravellerCount
+            || quoteTravellers.Length != BookingPolicy.RequiredTravellerCount(occupancy)
+            || travellerById.Count != quoteTravellers.Length
+            || quoteTravellers.Any(item => !travellerById.ContainsKey(item.TravellerId)))
         {
             return QuoteUnavailable(http);
         }
@@ -100,7 +116,7 @@ public static class BookingEndpoints
             instalments);
         try
         {
-            BookingPolicy.ValidateSnapshot(snapshot, travellerIds.Length);
+            BookingPolicy.ValidateSnapshot(snapshot, quoteTravellers.Length);
         }
         catch (ArgumentException)
         {
@@ -153,7 +169,7 @@ public static class BookingEndpoints
             PriceVersionId = quote.PriceVersionId,
             InventoryHoldId = hold.Id,
             Occupancy = occupancy,
-            TravellerCount = travellerIds.Length,
+            TravellerCount = quoteTravellers.Length,
             Currency = quote.Currency,
             UnitPrice = quote.UnitPrice,
             Total = quote.Total,
@@ -168,14 +184,19 @@ public static class BookingEndpoints
         };
 
         bookings.Bookings.Add(booking);
-        bookings.Travellers.AddRange(travellerIds.Select((travellerId, index) =>
-            new BookingTravellerRecord
+        bookings.Travellers.AddRange(quoteTravellers.Select(quoteTraveller =>
+        {
+            var traveller = travellerById[quoteTraveller.TravellerId];
+            return new BookingTravellerRecord
             {
                 Id = Guid.NewGuid(),
                 BookingId = booking.Id,
-                TravellerId = travellerId,
-                Position = index + 1
-            }));
+                TravellerId = traveller.Id,
+                Position = quoteTraveller.Position,
+                FullName = traveller.FullName,
+                DateOfBirth = traveller.DateOfBirth
+            };
+        }));
         bookings.Instalments.AddRange(instalments.Select(instalment =>
             new BookingInstalmentRecord
             {
@@ -208,7 +229,8 @@ public static class BookingEndpoints
                 occupancy = booking.Occupancy.ToString().ToLowerInvariant(),
                 booking.Currency,
                 booking.Total,
-                booking.DueNow
+                booking.DueNow,
+                travellerIds
             }),
             State = "Pending",
             CreatedAtUtc = now
@@ -301,7 +323,9 @@ public static class BookingEndpoints
             .Select(item => new
             {
                 item.TravellerId,
-                item.Position
+                item.Position,
+                item.FullName,
+                item.DateOfBirth
             })
             .ToArrayAsync(cancellationToken);
         var instalments = await bookings.Instalments.AsNoTracking()
