@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: noorpath-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health/ready
+    autoDeployTrigger: off
+    envVars:
+      - key: ASPNETCORE_URLS
+        value: http://0.0.0.0:10000
+      - key: ConnectionStrings__NoorPath
+        sync: false
+      - key: Database__MigrateOnStartup
+        value: "true"
+      - key: Authentication__Mode
+        value: Bearer
+      - key: Authentication__Authority
+        sync: false
+      - key: Authentication__Audience
+        sync: false

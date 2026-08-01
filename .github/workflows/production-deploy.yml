@@ -1,0 +1,36 @@
+name: Production deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      approved_sha:
+        description: Exact 40-character main commit SHA approved by the Product Owner
+        required: true
+        type: string
+
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify the approved commit is still main
+        env:
+          APPROVED_SHA: ${{ inputs.approved_sha }}
+        run: |
+          test "${#APPROVED_SHA}" -eq 40
+          test "$(git ls-remote https://github.com/${{ github.repository }} refs/heads/main | cut -f1)" = "$APPROVED_SHA"
+      - name: Trigger approved Render deployment
+        env:
+          DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: curl --fail --silent --show-error --request POST "$DEPLOY_HOOK"
+      - name: Trigger approved Vercel deployment
+        env:
+          DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: curl --fail --silent --show-error --request POST "$DEPLOY_HOOK"
