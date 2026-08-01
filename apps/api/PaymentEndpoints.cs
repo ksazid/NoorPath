@@ -59,6 +59,40 @@ public static class PaymentEndpoints
         if (booking is null)
             return Results.NotFound();
 
+        var idempotencyKeyHash = CheckoutIdempotency.Hash(idempotencyKey!);
+        var requestFingerprint = CheckoutIdempotency.Hash(
+            $"{accountId}\n{booking.BookingId:D}\n{booking.Currency}\n{booking.DueNow:0.00}");
+        var replayByKey = await payments.PaymentAttempts.AsNoTracking()
+            .SingleOrDefaultAsync(item =>
+                item.AccountId == accountId
+                && item.IdempotencyKeyHash == idempotencyKeyHash,
+                cancellationToken);
+        if (replayByKey is not null)
+        {
+            if (!string.Equals(
+                    replayByKey.RequestFingerprint,
+                    requestFingerprint,
+                    StringComparison.Ordinal))
+            {
+                return IdempotencyConflict(http);
+            }
+
+            if (replayByKey.State != PaymentAttemptState.Created)
+                return Results.Ok(ToResponse(replayByKey, razorpay.Value));
+        }
+
+        var preExistingForBooking = await payments.PaymentAttempts.AsNoTracking()
+            .Where(item => item.BookingId == booking.BookingId)
+            .Where(item => replayByKey == null || item.Id != replayByKey.Id)
+            .Where(item => item.State == PaymentAttemptState.Created
+                || item.State == PaymentAttemptState.ProviderPending
+                || item.State == PaymentAttemptState.RequiresAction
+                || item.State == PaymentAttemptState.Succeeded)
+            .OrderByDescending(item => item.CreatedAtUtc)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (preExistingForBooking is not null)
+            return ExistingPayment(http, preExistingForBooking.Id);
+
         if (booking.State == BookingState.PaymentSucceeded)
             return PaymentAlreadySettled(http);
         if (booking.State is not (
@@ -80,10 +114,6 @@ public static class PaymentEndpoints
             return Results.NotFound();
         if (hold.State != InventoryHoldState.Active || hold.ExpiresAtUtc <= now)
             return HoldNotActive(http);
-
-        var idempotencyKeyHash = CheckoutIdempotency.Hash(idempotencyKey!);
-        var requestFingerprint = CheckoutIdempotency.Hash(
-            $"{accountId}\n{booking.BookingId:D}\n{booking.Currency}\n{booking.DueNow:0.00}");
 
         PaymentAttemptRecord? attempt;
         var resumeProviderCreation = false;
