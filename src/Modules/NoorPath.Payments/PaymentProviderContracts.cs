@@ -20,6 +20,11 @@ public sealed record PaymentCheckoutSession(
     Uri CheckoutScriptUri,
     DateTimeOffset ExpiresAtUtc);
 
+public sealed record PaymentCheckoutCallback(
+    string ProviderSessionId,
+    string ProviderPaymentId,
+    string Signature);
+
 public sealed record PaymentProviderEvent(
     string Provider,
     string ProviderEventId,
@@ -38,6 +43,13 @@ public interface IPaymentProviderGateway
     Task<PaymentCheckoutSession> CreateCheckoutAsync(
         PaymentCheckoutRequest request,
         CancellationToken cancellationToken);
+}
+
+public interface IPaymentCheckoutCallbackVerifier
+{
+    string ProviderName { get; }
+
+    bool Verify(PaymentCheckoutCallback callback);
 }
 
 public interface IPaymentProviderEventVerifier
