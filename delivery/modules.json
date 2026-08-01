@@ -35,5 +35,12 @@
       "database": "noorpath_traveller_test",
       "environment": "NOORPATH_TRAVELLER_TEST_DB"
     }
+  ],
+  "extraDatabases": [
+    {
+      "name": "Commercial integration",
+      "database": "noorpath_commercial_test",
+      "environment": "NOORPATH_COMMERCIAL_TEST_DB"
+    }
   ]
 }
