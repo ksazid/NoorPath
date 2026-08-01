@@ -31,14 +31,22 @@ jobs:
           pnpm format
           pnpm slice:validate
           pnpm migrations:registry
-      - name: Commit formatted files
+      - name: Upload formatted workflow evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-delivery-workflows
+          retention-days: 1
+          path: |
+            .github/workflows/merge-gate.yml
+            .github/workflows/slice-governance.yml
+      - name: Commit non-workflow formatting
         run: |
-          if git diff --quiet; then
-            echo "No formatting changes required."
+          git add package.json delivery scripts
+          if git diff --cached --quiet; then
+            echo "No non-workflow formatting changes required."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json delivery scripts .github
           git commit -m "style(delivery): apply repository formatting"
           git push origin HEAD:eng/slice-delivery-factory
