@@ -9,6 +9,7 @@
   "scripts": {
     "build": "node -e \"JSON.parse(require('fs').readFileSync('tokens.json','utf8'))\"",
     "check": "node -e \"JSON.parse(require('fs').readFileSync('tokens.json','utf8'))\"",
+    "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "node -e \"JSON.parse(require('fs').readFileSync('tokens.json','utf8'))\""
   },
