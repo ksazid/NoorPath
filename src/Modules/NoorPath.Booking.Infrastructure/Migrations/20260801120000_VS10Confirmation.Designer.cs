@@ -12,6 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NoorPath.Booking.Infrastructure.Migrations
 {
     [DbContext(typeof(BookingDbContext))]
+    [Migration("20260801120000_VS10Confirmation")]
     partial class VS10Confirmation
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
