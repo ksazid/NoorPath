@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 namespace NoorPath.Documents.Infrastructure;
+
 public sealed class DocumentsDbContextFactory : IDesignTimeDbContextFactory<DocumentsDbContext>
 {
     public DocumentsDbContext CreateDbContext(string[] args)

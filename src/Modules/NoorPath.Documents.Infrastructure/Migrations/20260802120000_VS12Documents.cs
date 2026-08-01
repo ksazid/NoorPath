@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.Migrations;
 namespace NoorPath.Documents.Infrastructure.Migrations;
+
 [Migration("20260802120000_VS12Documents")]
 public sealed class VS12Documents : Migration
 {
@@ -15,5 +16,5 @@ CREATE TABLE documents.audit ("Id" uuid PRIMARY KEY, "SubmissionId" uuid NOT NUL
 CREATE INDEX "IX_audit_SubmissionId_OccurredAtUtc" ON documents.audit ("SubmissionId","OccurredAtUtc");
 """);
     }
-    protected override void Down(MigrationBuilder m) { m.DropTable("audit","documents"); m.DropTable("submissions","documents"); m.DropTable("requirements","documents"); }
+    protected override void Down(MigrationBuilder m) { m.DropTable("audit", "documents"); m.DropTable("submissions", "documents"); m.DropTable("requirements", "documents"); }
 }
