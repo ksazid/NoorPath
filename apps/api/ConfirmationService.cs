@@ -28,7 +28,10 @@ public sealed class ConfirmationService(
         {
             log.LogWarning(
                 "Confirmation rejected outcome={Outcome} bookingId={BookingId} paymentAttemptId={PaymentAttemptId} correlationId={CorrelationId}",
-                "invalid_payment_fact", bookingId, paymentAttemptId, correlationId);
+                "invalid_payment_fact",
+                bookingId,
+                paymentAttemptId,
+                correlationId);
             return null;
         }
 
@@ -77,16 +80,25 @@ public sealed class ConfirmationService(
             commitment = await inventory.Commitments
                 .SingleOrDefaultAsync(item => item.BookingId == booking.Id, cancellationToken);
 
-            if (commitment is null && hold is not null && hold.AccountId == booking.AccountId
-                && hold.QuoteId == booking.QuoteId && hold.State == InventoryHoldState.Active
+            if (
+                commitment is null
+                && hold is not null
+                && hold.AccountId == booking.AccountId
+                && hold.QuoteId == booking.QuoteId
+                && hold.State == InventoryHoldState.Active
                 && hold.ExpiresAtUtc > payment.SettledAtUtc)
             {
                 commitment = new InventoryCommitmentRecord
                 {
-                    Id = Guid.NewGuid(), HoldId = hold.Id, BookingId = booking.Id,
-                    PaymentAttemptId = paymentAttemptId, InventoryPoolId = hold.InventoryPoolId,
-                    AccountId = booking.AccountId, Quantity = hold.Quantity,
-                    CorrelationId = correlationId, CreatedAtUtc = timeProvider.GetUtcNow()
+                    Id = Guid.NewGuid(),
+                    HoldId = hold.Id,
+                    BookingId = booking.Id,
+                    PaymentAttemptId = paymentAttemptId,
+                    InventoryPoolId = hold.InventoryPoolId,
+                    AccountId = booking.AccountId,
+                    Quantity = hold.Quantity,
+                    CorrelationId = correlationId,
+                    CreatedAtUtc = timeProvider.GetUtcNow()
                 };
                 inventory.Commitments.Add(commitment);
                 hold.State = InventoryHoldState.Committed;
@@ -123,16 +135,27 @@ public sealed class ConfirmationService(
                 AddOutbox(booking, "BookingConfirmed", correlationId, commitment.Id.ToString("D"));
                 await bookings.SaveChangesAsync(cancellationToken);
             }
+
             await transaction.CommitAsync(cancellationToken);
         }
 
         log.LogInformation(
             "Confirmation outcome={Outcome} bookingId={BookingId} paymentAttemptId={PaymentAttemptId} inventoryCommitmentId={InventoryCommitmentId} correlationId={CorrelationId}",
-            booking.State, booking.Id, paymentAttemptId, commitment?.Id, correlationId);
+            booking.State,
+            booking.Id,
+            paymentAttemptId,
+            commitment?.Id,
+            correlationId);
         return booking.State;
     }
 
-    private async Task SetExceptionAsync(BookingRecord booking, string code, Guid paymentAttemptId, string correlationId, string causationId, CancellationToken cancellationToken)
+    private async Task SetExceptionAsync(
+        BookingRecord booking,
+        string code,
+        Guid paymentAttemptId,
+        string correlationId,
+        string causationId,
+        CancellationToken cancellationToken)
     {
         booking.State = BookingState.ConfirmationException;
         booking.SettledPaymentAttemptId ??= paymentAttemptId;
@@ -147,11 +170,25 @@ public sealed class ConfirmationService(
         var now = timeProvider.GetUtcNow();
         bookings.OutboxMessages.Add(new BookingOutboxRecord
         {
-            EventId = Guid.NewGuid(), EventType = eventType, EventVersion = 1,
-            OccurredAtUtc = now, AggregateType = "Booking", AggregateId = booking.Id,
-            AggregateVersion = 1, CorrelationId = correlationId, CausationId = causationId,
-            Payload = JsonSerializer.Serialize(new { bookingId = booking.Id, paymentAttemptId = booking.SettledPaymentAttemptId, inventoryCommitmentId = booking.InventoryCommitmentId, state = booking.State.ToString(), exceptionCode = booking.ConfirmationExceptionCode }),
-            State = "Pending", CreatedAtUtc = now
+            EventId = Guid.NewGuid(),
+            EventType = eventType,
+            EventVersion = 1,
+            OccurredAtUtc = now,
+            AggregateType = "Booking",
+            AggregateId = booking.Id,
+            AggregateVersion = 1,
+            CorrelationId = correlationId,
+            CausationId = causationId,
+            Payload = JsonSerializer.Serialize(new
+            {
+                bookingId = booking.Id,
+                paymentAttemptId = booking.SettledPaymentAttemptId,
+                inventoryCommitmentId = booking.InventoryCommitmentId,
+                state = booking.State.ToString(),
+                exceptionCode = booking.ConfirmationExceptionCode
+            }),
+            State = "Pending",
+            CreatedAtUtc = now
         });
     }
 }
