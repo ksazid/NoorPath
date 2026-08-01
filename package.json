@@ -14,6 +14,8 @@
     "slice:resolve": "node scripts/slice.mjs resolve",
     "slice:status": "node scripts/slice.mjs status",
     "slice:validate": "node scripts/slice.mjs validate",
-    "test": "pnpm --recursive test"
+    "test": "pnpm --recursive test",
+    "migrations:model": "node scripts/module-migrations.mjs validate-model",
+    "precert": "pnpm slice:validate && pnpm migrations:registry && pnpm format:check && pnpm check && pnpm test && pnpm build && dotnet restore NoorPath.slnx && dotnet format NoorPath.slnx --verify-no-changes --no-restore && dotnet build NoorPath.slnx --configuration Release --no-restore && pnpm migrations:model"
   }
 }

@@ -120,6 +120,26 @@ jobs:
               unresolvedThreads = 1;
             }
 
+            const exactHeadReady =
+              certify &&
+              ciPassed &&
+              renderedPassed &&
+              unresolvedThreads === 0 &&
+              poExactHead;
+
+            if (!pr.draft && !exactHeadReady) {
+              await github.graphql(
+                `mutation($id: ID!) {
+                  convertPullRequestToDraft(input: { pullRequestId: $id }) {
+                    pullRequest { isDraft }
+                  }
+                }`,
+                { id: pr.node_id },
+              );
+              pr.draft = true;
+              core.info('Returned PR to Draft because exact-head certification is incomplete.');
+            }
+
             let state = 'pending';
             let description = 'Awaiting explicit certification';
             if (certify) {

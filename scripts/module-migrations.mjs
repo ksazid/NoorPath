@@ -102,6 +102,20 @@ function createDatabases(container) {
   }
 }
 
+function validateMigrationModels() {
+  for (const module of modules) {
+    console.log(
+      `Validating ${module.name} migration metadata and model parity`,
+    );
+    run("bash", [
+      "scripts/validate-module-migrations.sh",
+      module.project,
+      module.context,
+      "apps/api/NoorPath.Api.csproj",
+    ]);
+  }
+}
+
 function validateMigrations() {
   const environment = registeredEnvironment();
   for (const module of modules) {
@@ -131,6 +145,7 @@ function runTests() {
 const [command = "validate-registry", argument] = process.argv.slice(2);
 if (command === "validate-registry") validateRegistry();
 else if (command === "create-databases") createDatabases(argument);
+else if (command === "validate-model") validateMigrationModels();
 else if (command === "validate") validateMigrations();
 else if (command === "test") runTests();
 else fail(`Unknown command '${command}'`);

@@ -1,13 +1,10 @@
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace NoorPath.Inventory.Infrastructure.Migrations;
 
-[DbContext(typeof(InventoryDbContext))]
-[Migration("20260801120001_VS10Commitments")]
-public sealed class VS10Commitments : Migration
+public partial class VS10Commitments : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
