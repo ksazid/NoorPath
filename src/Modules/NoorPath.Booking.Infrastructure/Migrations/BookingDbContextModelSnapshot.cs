@@ -109,6 +109,9 @@ namespace NoorPath.Booking.Infrastructure.Migrations
                     b.Property<Guid?>("SettledPaymentAttemptId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("SettledPaymentAttemptId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("State")
                         .IsRequired()
                         .HasMaxLength(20)
