@@ -34,8 +34,8 @@ internal static class CheckoutIdempotency
     public static Dictionary<string, object?> ProblemExtensions(
         HttpContext http,
         string code) => new()
-    {
-        ["code"] = code,
-        ["correlationId"] = http.TraceIdentifier
-    };
+        {
+            ["code"] = code,
+            ["correlationId"] = http.TraceIdentifier
+        };
 }

@@ -27,23 +27,23 @@ public static class PaymentPolicy
     public static bool CanTransition(
         PaymentAttemptState current,
         PaymentAttemptState next) => (current, next) switch
-    {
-        (PaymentAttemptState.Created, PaymentAttemptState.ProviderPending) => true,
-        (PaymentAttemptState.Created, PaymentAttemptState.RequiresAction) => true,
-        (PaymentAttemptState.Created, PaymentAttemptState.Failed) => true,
-        (PaymentAttemptState.Created, PaymentAttemptState.Cancelled) => true,
-        (PaymentAttemptState.ProviderPending, PaymentAttemptState.RequiresAction) => true,
-        (PaymentAttemptState.ProviderPending, PaymentAttemptState.Succeeded) => true,
-        (PaymentAttemptState.ProviderPending, PaymentAttemptState.Failed) => true,
-        (PaymentAttemptState.ProviderPending, PaymentAttemptState.Cancelled) => true,
-        (PaymentAttemptState.RequiresAction, PaymentAttemptState.ProviderPending) => true,
-        (PaymentAttemptState.RequiresAction, PaymentAttemptState.Succeeded) => true,
-        (PaymentAttemptState.RequiresAction, PaymentAttemptState.Failed) => true,
-        (PaymentAttemptState.RequiresAction, PaymentAttemptState.Cancelled) => true,
-        (PaymentAttemptState.Failed, PaymentAttemptState.ProviderPending) => true,
-        (PaymentAttemptState.Failed, PaymentAttemptState.RequiresAction) => true,
-        _ => current == next
-    };
+        {
+            (PaymentAttemptState.Created, PaymentAttemptState.ProviderPending) => true,
+            (PaymentAttemptState.Created, PaymentAttemptState.RequiresAction) => true,
+            (PaymentAttemptState.Created, PaymentAttemptState.Failed) => true,
+            (PaymentAttemptState.Created, PaymentAttemptState.Cancelled) => true,
+            (PaymentAttemptState.ProviderPending, PaymentAttemptState.RequiresAction) => true,
+            (PaymentAttemptState.ProviderPending, PaymentAttemptState.Succeeded) => true,
+            (PaymentAttemptState.ProviderPending, PaymentAttemptState.Failed) => true,
+            (PaymentAttemptState.ProviderPending, PaymentAttemptState.Cancelled) => true,
+            (PaymentAttemptState.RequiresAction, PaymentAttemptState.ProviderPending) => true,
+            (PaymentAttemptState.RequiresAction, PaymentAttemptState.Succeeded) => true,
+            (PaymentAttemptState.RequiresAction, PaymentAttemptState.Failed) => true,
+            (PaymentAttemptState.RequiresAction, PaymentAttemptState.Cancelled) => true,
+            (PaymentAttemptState.Failed, PaymentAttemptState.ProviderPending) => true,
+            (PaymentAttemptState.Failed, PaymentAttemptState.RequiresAction) => true,
+            _ => current == next
+        };
 
     public static ProviderEventOutcome EvaluateProviderEvent(
         PaymentAttemptState current,

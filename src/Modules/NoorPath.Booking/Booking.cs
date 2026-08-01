@@ -112,14 +112,14 @@ public static class BookingPolicy
     public static bool CanTransition(
         BookingState current,
         BookingState next) => (current, next) switch
-    {
-        (BookingState.PendingPayment, BookingState.PaymentInProgress) => true,
-        (BookingState.PendingPayment, BookingState.PaymentFailed) => true,
-        (BookingState.PendingPayment, BookingState.PaymentCancelled) => true,
-        (BookingState.PaymentInProgress, BookingState.PaymentSucceeded) => true,
-        (BookingState.PaymentInProgress, BookingState.PaymentFailed) => true,
-        (BookingState.PaymentInProgress, BookingState.PaymentCancelled) => true,
-        (BookingState.PaymentFailed, BookingState.PaymentInProgress) => true,
-        _ => current == next
-    };
+        {
+            (BookingState.PendingPayment, BookingState.PaymentInProgress) => true,
+            (BookingState.PendingPayment, BookingState.PaymentFailed) => true,
+            (BookingState.PendingPayment, BookingState.PaymentCancelled) => true,
+            (BookingState.PaymentInProgress, BookingState.PaymentSucceeded) => true,
+            (BookingState.PaymentInProgress, BookingState.PaymentFailed) => true,
+            (BookingState.PaymentInProgress, BookingState.PaymentCancelled) => true,
+            (BookingState.PaymentFailed, BookingState.PaymentInProgress) => true,
+            _ => current == next
+        };
 }

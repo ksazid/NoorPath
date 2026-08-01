@@ -643,20 +643,20 @@ public static class PaymentEndpoints
         string causationId,
         DateTimeOffset occurredAt,
         object payload) => new()
-    {
-        EventId = Guid.NewGuid(),
-        EventType = eventType,
-        EventVersion = 1,
-        OccurredAtUtc = occurredAt,
-        AggregateType = "PaymentAttempt",
-        AggregateId = attempt.Id,
-        AggregateVersion = 1,
-        CorrelationId = correlationId,
-        CausationId = causationId,
-        Payload = JsonSerializer.Serialize(payload),
-        State = "Pending",
-        CreatedAtUtc = occurredAt
-    };
+        {
+            EventId = Guid.NewGuid(),
+            EventType = eventType,
+            EventVersion = 1,
+            OccurredAtUtc = occurredAt,
+            AggregateType = "PaymentAttempt",
+            AggregateId = attempt.Id,
+            AggregateVersion = 1,
+            CorrelationId = correlationId,
+            CausationId = causationId,
+            Payload = JsonSerializer.Serialize(payload),
+            State = "Pending",
+            CreatedAtUtc = occurredAt
+        };
 
     private static object ToResponse(
         PaymentAttemptRecord attempt,
