@@ -36,6 +36,7 @@ public sealed class PaymentsDbContext(DbContextOptions<PaymentsDbContext> option
             entity.Property(x => x.FailureCode).HasMaxLength(80);
             entity.HasIndex(x => new { x.AccountId, x.IdempotencyKeyHash }).IsUnique();
             entity.HasIndex(x => x.ProviderSessionId).IsUnique();
+            entity.HasIndex(x => x.ProviderPaymentId).IsUnique();
             entity.HasIndex(x => new { x.BookingId, x.CreatedAtUtc });
             entity.HasIndex(x => new { x.State, x.UpdatedAtUtc });
         });
@@ -91,6 +92,7 @@ public sealed class PaymentAttemptRecord
     public string? FailureCode { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
+    public DateTimeOffset CheckoutExpiresAtUtc { get; set; }
     public DateTimeOffset? SettledAtUtc { get; set; }
 }
 
