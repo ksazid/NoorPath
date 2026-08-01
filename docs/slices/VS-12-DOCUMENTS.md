@@ -2,9 +2,9 @@
 
 ## Status
 
-**Definition-of-Ready blocked. Do not implement document persistence, upload, access or review yet.**
+**Definition of Ready approved for implementation on 2 August 2026.**
 
-The approved product and security baselines intentionally leave four decisions unresolved. Implementing VS-12 before they are approved would invent product, legal and security policy.
+The Product Owner approved the pilot policy below. Runtime implementation may proceed, but production document storage remains disabled until legal/privacy confirms the retention schedule and security validates the deployed S3 and ClamAV controls.
 
 ## Slice and requirements
 
@@ -63,16 +63,14 @@ The customer and operator experiences also cover loading, empty, offline, retrya
 - Unsafe or indeterminate files remain quarantined and inaccessible to reviewers.
 - Production documents are never copied to lower environments.
 
-## Definition-of-Ready blockers
+## Approved pilot policy
 
-The following approved decisions are required before implementation begins:
+1. **Required documents and versioning** — policy version `v1` requires a passport bio page and passport photo for each traveller. The applicable policy version and requirements are snapshotted when the booking becomes eligible; later policy versions affect only new snapshots and never silently rewrite existing bookings.
+2. **Retention and deletion** — encrypted document objects are deleted 30 days after journey return or booking cancellation, whichever applies. Non-sensitive audit metadata is retained for one year. A recorded legal/operational hold pauses deletion, and every deletion or hold transition is audited. Production enablement requires legal/privacy confirmation of this schedule.
+3. **Private storage and access** — use a private encrypted AWS S3 bucket with blocked public access and opaque non-enumerable object names. Customers upload directly through a purpose-bound presigned PUT URL and authorized users view through a purpose-bound presigned GET URL; both expire after five minutes. The API stores no permanent public URL and authorizes every request before signing.
+4. **Malware and file constraints** — accept PDF, JPEG and PNG files up to 10 MB. Verify declared type, signature and size, keep every upload quarantined, and scan with ClamAV. Scanner timeout, error or indeterminate results fail closed: the object remains quarantined and inaccessible to reviewers until a successful rescan or audited deletion.
 
-1. **Required-document policy source and versioning** — resolve Open MVP Policy Decision 12 and define which requirements apply to a booking/traveller without silently rewriting existing bookings.
-2. **Retention and deletion schedule** — resolve Open MVP Policy Decision 14, including operational hold/deletion behavior and audit evidence.
-3. **Private storage and access mechanism** — approve the provider, encryption/key ownership, object naming, upload flow and short-lived access mechanism.
-4. **Malware scanner and fail-safe behavior** — approve the scanner, supported file types and sizes, timeout/retry behavior, indeterminate-result handling and quarantine lifecycle.
-
-Record durable architecture/security choices in ADRs and obtain Product Owner/security approval. Once all four decisions are frozen, remove the blocked status and reconcile the manifest/checklist before touching runtime code.
+These decisions are frozen for VS-12 implementation. Provider configuration, threat-model evidence and legal/privacy confirmation remain production-enablement gates rather than reasons to invent different runtime behaviour.
 
 ## Acceptance criteria
 
@@ -87,4 +85,4 @@ The acceptance contract is recorded in `delivery/slices/VS-12.json`. Every crite
 
 ## Merge rule
 
-This specification may merge to record the next slice and its blockers. **No VS-12 runtime implementation may merge** until Definition of Ready is approved, every checklist gate passes on the exact final SHA, rendered evidence is reviewed and Product Owner acceptance is recorded.
+This specification may merge to record the approved implementation contract. **No VS-12 runtime implementation may merge** until every checklist gate passes on the exact final SHA, rendered evidence is reviewed and Product Owner acceptance is recorded. Production document storage must remain disabled until the production-enablement gates above are evidenced.
