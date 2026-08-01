@@ -1,0 +1,64 @@
+name: VS-09 Integration Check
+
+on:
+  pull_request:
+    branches: [main]
+    types: [edited]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  integration:
+    if: >-
+      github.head_ref == 'agent/vs09-booking-payment' &&
+      contains(github.event.pull_request.body, '<!-- run-vs09-integration -->')
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: noorpath_commercial_test
+          POSTGRES_USER: noorpath
+          POSTGRES_PASSWORD: ci-local-only-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U noorpath -d noorpath_commercial_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      ConnectionStrings__NoorPath: Host=localhost;Port=5432;Database=noorpath_commercial_test;Username=noorpath;Password=ci-local-only-password
+      NOORPATH_COMMERCIAL_TEST_DB: Host=localhost;Port=5432;Database=noorpath_commercial_test;Username=noorpath;Password=ci-local-only-password
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/vs09-booking-payment
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - name: Restore and format
+        run: |
+          dotnet restore NoorPath.slnx
+          dotnet format NoorPath.slnx --no-restore
+      - name: Build solution
+        run: dotnet build NoorPath.slnx --configuration Release --no-restore
+      - name: Run VS-09 API integration tests
+        run: >-
+          dotnet test tests/NoorPath.Commercial.Integration.Tests/NoorPath.Commercial.Integration.Tests.csproj
+          --configuration Release
+          --no-build
+          --filter FullyQualifiedName~BookingPaymentApiTests
+      - name: Commit formatting
+        run: |
+          if git diff --quiet; then
+            echo "No formatting changes required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/api src tests NoorPath.slnx delivery/modules.json
+          git commit -m "style(vs09): format booking-payment implementation"
+          git push origin HEAD:agent/vs09-booking-payment
