@@ -4,8 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace NoorPath.Booking.Infrastructure.Migrations;
 
-[Migration("20260801120000_VS10Confirmation")]
-public sealed partial class VS10Confirmation : Migration
+public partial class VS10Confirmation : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
