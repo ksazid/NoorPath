@@ -215,7 +215,7 @@ namespace NoorPath.Inventory.Infrastructure.Migrations
 
                             t.HasCheckConstraint("CK_inventory_holds_Quantity_Positive", "\"Quantity\" > 0");
 
-                            t.HasCheckConstraint("CK_inventory_holds_State", "\"State\" IN ('Active', 'Released', 'Expired')");
+                            t.HasCheckConstraint("CK_inventory_holds_State", "\"State\" IN ('Active', 'Released', 'Expired', 'Committed')");
                         });
                 });
 
