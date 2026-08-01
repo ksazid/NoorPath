@@ -20,17 +20,20 @@ jobs:
     environment: production
     runs-on: ubuntu-latest
     steps:
+      - name: Check out the current main commit
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
       - name: Verify the approved commit is still main
         env:
           APPROVED_SHA: ${{ inputs.approved_sha }}
         run: |
           test "${#APPROVED_SHA}" -eq 40
-          test "$(git ls-remote https://github.com/${{ github.repository }} refs/heads/main | cut -f1)" = "$APPROVED_SHA"
+          test "$(git rev-parse HEAD)" = "$APPROVED_SHA"
       - name: Trigger approved Render deployment
         env:
           DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-        run: curl --fail --silent --show-error --request POST "$DEPLOY_HOOK"
-      - name: Trigger approved Vercel deployment
-        env:
-          DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
-        run: curl --fail --silent --show-error --request POST "$DEPLOY_HOOK"
+        run: |
+          test -n "$DEPLOY_HOOK"
+          curl --fail --silent --show-error --request POST "$DEPLOY_HOOK"
