@@ -44,10 +44,9 @@ export async function expectNoHorizontalOverflow(page: Page) {
   const report = await page.evaluate(() => {
     const viewportWidth = document.documentElement.clientWidth;
     const documentWidth = document.documentElement.scrollWidth;
+    const allElements = document.querySelectorAll<HTMLElement>("body *");
 
-    const elements = Array.from(
-      document.querySelectorAll<HTMLElement>("body *"),
-    )
+    const elements = Array.from(allElements)
       .filter((element) => {
         const style = getComputedStyle(element);
         if (style.display === "none" || style.visibility === "hidden") {
@@ -60,18 +59,19 @@ export async function expectNoHorizontalOverflow(page: Page) {
       .slice(0, 20)
       .map((element) => {
         const box = element.getBoundingClientRect();
+        const classes = Array.from(element.classList);
+        const classNames = classes.map((name) => `.${name}`);
+        const rawText = element.textContent ?? "";
+        const text = rawText.trim().replace(/\s+/g, " ").slice(0, 120);
         const identity = [
           element.tagName.toLowerCase(),
           element.id ? `#${element.id}` : "",
-          ...Array.from(element.classList).map((name) => `.${name}`),
+          ...classNames,
         ].join("");
 
         return {
           element: identity,
-          text: element.textContent
-            ?.trim()
-            .replace(/\s+/g, " ")
-            .slice(0, 120),
+          text,
           left: Math.round(box.left * 100) / 100,
           right: Math.round(box.right * 100) / 100,
           width: Math.round(box.width * 100) / 100,
@@ -84,9 +84,8 @@ export async function expectNoHorizontalOverflow(page: Page) {
   });
 
   if (report.documentWidth > report.viewportWidth) {
-    throw new Error(
-      `Horizontal overflow detected:\n${JSON.stringify(report, null, 2)}`,
-    );
+    const details = JSON.stringify(report, null, 2);
+    throw new Error(`Horizontal overflow detected:\n${details}`);
   }
 }
 
