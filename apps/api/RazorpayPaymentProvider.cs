@@ -27,7 +27,8 @@ public sealed class RazorpayPaymentProvider(
     IPaymentCheckoutCallbackVerifier,
     IPaymentProviderEventVerifier
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions JsonOptions =
+        new(JsonSerializerDefaults.Web);
     private readonly RazorpayOptions _options = options.Value;
 
     public string ProviderName => "razorpay";
@@ -46,49 +47,75 @@ public sealed class RazorpayPaymentProvider(
         }
 
         var amountSubunits = ToSubunits(request.Amount);
-        var receipt = $"{request.BookingReference}-{request.PaymentAttemptId:N}";
-        if (receipt.Length > 40)
-            receipt = receipt[..40];
-
-        using var message = new HttpRequestMessage(HttpMethod.Post, "v1/orders");
-        message.Headers.Authorization = new AuthenticationHeaderValue(
-            "Basic",
-            Convert.ToBase64String(Encoding.UTF8.GetBytes(
-                $"{_options.KeyId}:{_options.KeySecret}")));
-        message.Content = JsonContent.Create(new
+        var receipt = request.ProviderIdempotencyKey.Trim();
+        if (receipt.Length is < 8 or > 40)
         {
-            amount = amountSubunits,
-            currency = request.Currency,
-            receipt,
-            notes = new Dictionary<string, string>
-            {
-                ["booking_id"] = request.BookingId.ToString("D"),
-                ["payment_attempt_id"] = request.PaymentAttemptId.ToString("D"),
-                ["correlation_id"] = request.CorrelationId
-            }
-        }, options: JsonOptions);
-
-        using var response = await client.SendAsync(message, cancellationToken);
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new PaymentProviderUnavailableException(
-                $"Razorpay order creation failed with HTTP {(int)response.StatusCode}.");
+            throw new ArgumentException(
+                "The provider idempotency key must contain 8 to 40 characters.",
+                nameof(request));
         }
 
-        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-        using var document = await JsonDocument.ParseAsync(
-            stream,
-            cancellationToken: cancellationToken);
-        var root = document.RootElement;
+        JsonElement? order = null;
+        int? failureStatus = null;
+
+        try
+        {
+            using var message = CreateAuthorizedRequest(HttpMethod.Post, "v1/orders");
+            message.Content = JsonContent.Create(new
+            {
+                amount = amountSubunits,
+                currency = request.Currency,
+                receipt,
+                notes = new Dictionary<string, string>
+                {
+                    ["booking_id"] = request.BookingId.ToString("D"),
+                    ["payment_attempt_id"] = request.PaymentAttemptId.ToString("D"),
+                    ["correlation_id"] = request.CorrelationId
+                }
+            }, options: JsonOptions);
+
+            using var response = await client.SendAsync(message, cancellationToken);
+            if (response.IsSuccessStatusCode)
+            {
+                order = await ReadRootAsync(response, cancellationToken);
+            }
+            else
+            {
+                failureStatus = (int)response.StatusCode;
+            }
+        }
+        catch (HttpRequestException)
+        {
+            // A deterministic receipt lets a retry recover an order that Razorpay
+            // accepted even when the original response was lost in transit.
+        }
+
+        order ??= await FindOrderByReceiptAsync(
+            receipt,
+            amountSubunits,
+            request.Currency,
+            cancellationToken);
+
+        if (order is null)
+        {
+            throw new PaymentProviderUnavailableException(
+                failureStatus is null
+                    ? "Razorpay order creation did not return a recoverable order."
+                    : $"Razorpay order creation failed with HTTP {failureStatus.Value}.");
+        }
+
+        var root = order.Value;
         var orderId = root.GetProperty("id").GetString();
         var status = root.GetProperty("status").GetString();
         var currency = root.GetProperty("currency").GetString();
         var returnedAmount = root.GetProperty("amount").GetInt64();
+        var returnedReceipt = root.GetProperty("receipt").GetString();
 
         if (string.IsNullOrWhiteSpace(orderId)
-            || !string.Equals(status, "created", StringComparison.Ordinal)
+            || status is not ("created" or "attempted" or "paid")
             || !string.Equals(currency, request.Currency, StringComparison.Ordinal)
-            || returnedAmount != amountSubunits)
+            || returnedAmount != amountSubunits
+            || !string.Equals(returnedReceipt, receipt, StringComparison.Ordinal))
         {
             throw new PaymentProviderUnavailableException(
                 "Razorpay returned an invalid or mismatched order response.");
@@ -145,7 +172,8 @@ public sealed class RazorpayPaymentProvider(
         if (!TryDecodeHex(signature, out var actual)
             || !CryptographicOperations.FixedTimeEquals(expected, actual))
         {
-            throw new CryptographicException("Razorpay webhook signature is invalid.");
+            throw new CryptographicException(
+                "Razorpay webhook signature is invalid.");
         }
 
         using var document = JsonDocument.Parse(payload);
@@ -185,6 +213,92 @@ public sealed class RazorpayPaymentProvider(
             payloadHash,
             _options.WebhookSecretId,
             occurredAt));
+    }
+
+    private async Task<JsonElement?> FindOrderByReceiptAsync(
+        string receipt,
+        long amountSubunits,
+        string currency,
+        CancellationToken cancellationToken)
+    {
+        using var request = CreateAuthorizedRequest(
+            HttpMethod.Get,
+            $"v1/orders?receipt={Uri.EscapeDataString(receipt)}&count=2");
+        using var response = await client.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        await using var stream = await response.Content.ReadAsStreamAsync(
+            cancellationToken);
+        using var document = await JsonDocument.ParseAsync(
+            stream,
+            cancellationToken: cancellationToken);
+        if (!document.RootElement.TryGetProperty("items", out var items)
+            || items.ValueKind != JsonValueKind.Array)
+        {
+            return null;
+        }
+
+        JsonElement? exact = null;
+        foreach (var item in items.EnumerateArray())
+        {
+            if (!item.TryGetProperty("receipt", out var returnedReceipt)
+                || !string.Equals(
+                    returnedReceipt.GetString(),
+                    receipt,
+                    StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (exact is not null)
+            {
+                throw new PaymentProviderUnavailableException(
+                    "Razorpay returned multiple orders for one unique receipt.");
+            }
+
+            exact = item.Clone();
+        }
+
+        if (exact is null)
+            return null;
+
+        var root = exact.Value;
+        if (root.GetProperty("amount").GetInt64() != amountSubunits
+            || !string.Equals(
+                root.GetProperty("currency").GetString(),
+                currency,
+                StringComparison.Ordinal))
+        {
+            throw new PaymentProviderUnavailableException(
+                "The recovered Razorpay order does not match the booking obligation.");
+        }
+
+        return exact;
+    }
+
+    private HttpRequestMessage CreateAuthorizedRequest(
+        HttpMethod method,
+        string uri)
+    {
+        var message = new HttpRequestMessage(method, uri);
+        message.Headers.Authorization = new AuthenticationHeaderValue(
+            "Basic",
+            Convert.ToBase64String(Encoding.UTF8.GetBytes(
+                $"{_options.KeyId}:{_options.KeySecret}")));
+        return message;
+    }
+
+    private static async Task<JsonElement> ReadRootAsync(
+        HttpResponseMessage response,
+        CancellationToken cancellationToken)
+    {
+        await using var stream = await response.Content.ReadAsStreamAsync(
+            cancellationToken);
+        using var document = await JsonDocument.ParseAsync(
+            stream,
+            cancellationToken: cancellationToken);
+        return document.RootElement.Clone();
     }
 
     private void EnsureConfigured(bool requireWebhook)
