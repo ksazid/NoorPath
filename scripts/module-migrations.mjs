@@ -31,7 +31,10 @@ function connectionFor(database) {
 
 function registeredEnvironment() {
   return Object.fromEntries(
-    databases.map((entry) => [entry.environment, connectionFor(entry.database)]),
+    databases.map((entry) => [
+      entry.environment,
+      connectionFor(entry.database),
+    ]),
   );
 }
 
@@ -69,7 +72,8 @@ function validateRegistry() {
 
   for (const module of modules) {
     for (const key of ["project", "context"]) {
-      if (!module[key]) fail(`Persistence module ${module.name} is missing ${key}`);
+      if (!module[key])
+        fail(`Persistence module ${module.name} is missing ${key}`);
     }
   }
 
