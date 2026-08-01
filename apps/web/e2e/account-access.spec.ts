@@ -5,7 +5,9 @@ import {
   expectNoHorizontalOverflow,
 } from "./helpers";
 
-test("sign in offers Google without collecting credentials", async ({ page }) => {
+test("sign in offers Google without collecting credentials", async ({
+  page,
+}) => {
   await page.goto("/auth/sign-in?returnUrl=/account");
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
