@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -13,13 +15,15 @@ concurrency:
 permissions:
   contents: read
   checks: write
+  pull-requests: write
 
 jobs:
   secrets:
     name: Secret scanning
-    runs-on: ${{ github.event.pull_request.number == 41 && 'self-hosted' || 'ubuntu-latest' }}
-    # Only run on push or on PRs from the same repository (skip fork PRs)
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    if: >-
+      (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'certify')) &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       checks: write
@@ -35,7 +39,8 @@ jobs:
 
   node:
     name: Node validation
-    runs-on: ${{ github.event.pull_request.number == 41 && 'self-hosted' || 'ubuntu-latest' }}
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'certify')
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -54,6 +59,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-
       - run: pnpm install --frozen-lockfile
+      - name: Validate slice manifests
+        run: pnpm slice:validate
       - name: Verify pre-commit formatting automation
         shell: bash
         run: |
@@ -82,7 +89,8 @@ jobs:
 
   dotnet:
     name: .NET validation
-    runs-on: ${{ github.event.pull_request.number == 41 && 'self-hosted' || 'ubuntu-latest' }}
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'certify')
+    runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:18-alpine
@@ -104,35 +112,31 @@ jobs:
       NOORPATH_COMMERCIAL_TEST_DB: Host=localhost;Port=5432;Database=noorpath_commercial_test;Username=noorpath;Password=ci-local-only-password
     steps:
       - uses: actions/checkout@v4
-
-      - name: Configure self-hosted .NET install directory
-        if: github.event.pull_request.number == 41
-        run: echo "DOTNET_INSTALL_DIR=$RUNNER_TEMP/.dotnet" >> "$GITHUB_ENV"
-
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
-
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('global.json', '**/*.csproj', '**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
       - name: Install EF Core CLI
         run: dotnet tool install --global dotnet-ef --version 10.0.10
-
       - run: dotnet restore NoorPath.slnx
       - run: dotnet format NoorPath.slnx --verify-no-changes --no-restore
       - run: dotnet build NoorPath.slnx --configuration Release --no-restore
-
       - name: Create module test databases
         shell: bash
         run: |
           set -euo pipefail
           postgres_container="$(docker ps --filter "publish=5432" --format '{{.ID}}' | head -n 1)"
           test -n "$postgres_container"
-          docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_catalogue_test;'
-          docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_operators_test;'
-          docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_pricing_test;'
-          docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_inventory_test;'
-          docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_traveller_test;'
-          docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test -c 'CREATE DATABASE noorpath_commercial_test;'
-
+          for database in catalogue operators pricing inventory traveller commercial; do
+            docker exec "$postgres_container" psql -v ON_ERROR_STOP=1 -U noorpath -d noorpath_test \
+              -c "CREATE DATABASE noorpath_${database}_test;"
+          done
       - name: Validate Catalogue migration state
         run: ./scripts/validate-catalogue-migrations.sh
       - name: Validate Operators migration state
@@ -143,12 +147,12 @@ jobs:
         run: bash ./scripts/validate-inventory-migrations.sh
       - name: Validate Traveller migration state
         run: bash ./scripts/validate-traveller-migrations.sh
-
       - run: dotnet test NoorPath.slnx --configuration Release --no-build
 
   postgres:
     name: PostgreSQL configuration
-    runs-on: ${{ github.event.pull_request.number == 41 && 'self-hosted' || 'ubuntu-latest' }}
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'certify')
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
       NOORPATH_DB_PASSWORD: ci-local-only-password
@@ -166,3 +170,74 @@ jobs:
       - name: Clean up PostgreSQL
         if: always()
         run: docker compose down --volumes --remove-orphans
+
+  certification-summary:
+    name: Certification summary
+    if: >-
+      always() &&
+      (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'certify'))
+    needs: [secrets, node, dotnet, postgres]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve slice
+        id: slice
+        run: node scripts/slice.mjs resolve --branch "${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}" --optional --github-output
+      - name: Require successful certification jobs
+        env:
+          SECRETS_RESULT: ${{ needs.secrets.result }}
+          NODE_RESULT: ${{ needs.node.result }}
+          DOTNET_RESULT: ${{ needs.dotnet.result }}
+          POSTGRES_RESULT: ${{ needs.postgres.result }}
+        run: |
+          set -euo pipefail
+          for result in "$SECRETS_RESULT" "$NODE_RESULT" "$DOTNET_RESULT" "$POSTGRES_RESULT"; do
+            test "$result" = "success"
+          done
+      - name: Write certification evidence
+        run: |
+          cat > certification-summary.md <<EOF
+          # NoorPath certification
+
+          - Slice: ${{ steps.slice.outputs.slice_id }}
+          - Exact SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          - Secret scanning: passed
+          - Node validation: passed
+          - .NET and migration validation: passed
+          - PostgreSQL configuration: passed
+          - Rendered review: required separately when enabled
+          - Product Owner acceptance: required through \`po-approved\`
+          EOF
+      - uses: actions/upload-artifact@v4
+        with:
+          name: certification-summary
+          path: certification-summary.md
+      - name: Update PR certification comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = '<!-- noorpath-certification -->';
+            const body = `${marker}\n## Automated certification\n\n- Slice: \`${{ steps.slice.outputs.slice_id }}\`\n- Exact SHA: \`${context.payload.pull_request.head.sha}\`\n- CI, migrations, PostgreSQL and secret scanning: **passed**\n- Rendered Slice Review: **required when enabled**\n- Product Owner acceptance: **requires \`po-approved\`**\n\nAny later commit invalidates this evidence and reruns certification while the \`certify\` label remains.`;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+            const existing = comments.find(comment => comment.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
