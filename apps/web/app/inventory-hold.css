@@ -133,7 +133,9 @@
   opacity: 0.55;
 }
 
+.inventory-hold-state button:focus,
 .inventory-hold-state button:focus-visible,
+.inventory-hold-state a:focus,
 .inventory-hold-state a:focus-visible {
   outline: 3px solid rgba(23, 107, 80, 0.32);
   outline-offset: 2px;
