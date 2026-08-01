@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Icon, PublicFooter, PublicHeader } from "../public-ui";
 
 type Journey = {
@@ -35,10 +35,7 @@ export default function JourneysPage() {
     }
   }, []);
 
-  useEffect(() => {
-    const timeout = window.setTimeout(() => void load(), 0);
-    return () => window.clearTimeout(timeout);
-  }, [load]);
+  useDeferredInitialLoad(load);
 
   return (
     <div className="journey-page">
