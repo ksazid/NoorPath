@@ -39,7 +39,7 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
-      - name: Apply exact payment replay ordering fix
+      - name: Apply payment replay and active-attempt ordering fix
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -52,10 +52,9 @@ jobs:
                       $"{accountId}\\n{booking.BookingId:D}\\n{booking.Currency}\\n{booking.DueNow:0.00}");
 
                   PaymentAttemptRecord? attempt;'''
-              replacement = '''        PaymentAttemptRecord? attempt;'''
               if duplicate not in text:
                   raise SystemExit("Unable to locate the existing payment fingerprint block")
-              text = text.replace(duplicate, replacement, 1)
+              text = text.replace(duplicate, '''        PaymentAttemptRecord? attempt;''', 1)
 
               anchor = '''        if (booking.State == BookingState.PaymentSucceeded)
                       return PaymentAlreadySettled(http);'''
@@ -80,6 +79,18 @@ jobs:
                       if (replayByKey.State != PaymentAttemptState.Created)
                           return Results.Ok(ToResponse(replayByKey, razorpay.Value));
                   }
+
+                  var preExistingForBooking = await payments.PaymentAttempts.AsNoTracking()
+                      .Where(item => item.BookingId == booking.BookingId)
+                      .Where(item => replayByKey == null || item.Id != replayByKey.Id)
+                      .Where(item => item.State == PaymentAttemptState.Created
+                          || item.State == PaymentAttemptState.ProviderPending
+                          || item.State == PaymentAttemptState.RequiresAction
+                          || item.State == PaymentAttemptState.Succeeded)
+                      .OrderByDescending(item => item.CreatedAtUtc)
+                      .FirstOrDefaultAsync(cancellationToken);
+                  if (preExistingForBooking is not null)
+                      return ExistingPayment(http, preExistingForBooking.Id);
 
           '''
               if anchor not in text:
@@ -122,5 +133,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add apps/api src tests NoorPath.slnx delivery/modules.json
-          git commit -m "fix(vs09): resolve payment replay before state gate"
+          git commit -m "fix(vs09): resolve payment attempts before state gates"
           git push origin HEAD:agent/vs09-booking-payment
