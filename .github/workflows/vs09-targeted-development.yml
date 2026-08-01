@@ -1,8 +1,9 @@
 name: VS-09 Targeted Development
 
 on:
-  push:
-    branches: [agent/vs09-booking-payment]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
 
 permissions:
@@ -10,7 +11,9 @@ permissions:
 
 jobs:
   backend:
-    if: github.actor != 'github-actions[bot]'
+    if: >-
+      github.actor != 'github-actions[bot]' &&
+      (github.event_name != 'pull_request' || github.head_ref == 'agent/vs09-booking-payment')
     runs-on: ubuntu-latest
     services:
       postgres:
