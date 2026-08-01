@@ -319,13 +319,16 @@ export default function PlanJourneyPage() {
     if (quoteState.kind !== "loaded" || quoteState.quote.expired) return;
     const remaining =
       new Date(quoteState.quote.expiresAtUtc).getTime() - Date.now();
-    const timer = window.setTimeout(() => {
-      setQuoteState((current) =>
-        current.kind === "loaded"
-          ? { kind: "loaded", quote: { ...current.quote, expired: true } }
-          : current,
-      );
-    }, Math.max(remaining, 0));
+    const timer = window.setTimeout(
+      () => {
+        setQuoteState((current) =>
+          current.kind === "loaded"
+            ? { kind: "loaded", quote: { ...current.quote, expired: true } }
+            : current,
+        );
+      },
+      Math.max(remaining, 0),
+    );
     return () => window.clearTimeout(timer);
   }, [quoteState]);
 
