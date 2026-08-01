@@ -93,6 +93,7 @@ app.MapInventoryHolds();
 app.MapBookings();
 app.MapPayments();
 app.MapConfirmations();
+app.MapMyJourney();
 app.Run();
 
 public partial class Program;
