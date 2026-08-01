@@ -3,6 +3,7 @@ name: Format Delivery Factory
 on:
   push:
     branches: [eng/slice-delivery-factory]
+  workflow_dispatch:
 
 permissions:
   contents: write
