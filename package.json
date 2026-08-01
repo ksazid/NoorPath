@@ -6,7 +6,7 @@
     "build": "pnpm --recursive build",
     "check": "pnpm --recursive check",
     "format": "pnpm --dir apps/web exec prettier --write \"../../package.json\" \"../../scripts/**/*.mjs\" \"../../.github/workflows/*.yml\" && pnpm --recursive format",
-    "format:check": "pnpm --dir apps/web exec prettier --check \"../../package.json\" \"../../scripts/**/*.mjs\" \"../../.github/workflows/*.yml\" && pnpm --recursive format:check",
+    "format:check": "pnpm format && git diff -- scripts/install-git-hooks.mjs scripts/pre-commit-format.mjs && git diff --exit-code",
     "hooks:install": "node scripts/install-git-hooks.mjs",
     "prepare": "node scripts/install-git-hooks.mjs",
     "test": "pnpm --recursive test"
