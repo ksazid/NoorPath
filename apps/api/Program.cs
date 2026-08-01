@@ -52,6 +52,7 @@ app.MapPublicDiscovery();
 app.MapPublicPackageDetails();
 app.MapTravellerQuotes();
 app.MapInventoryHolds();
+app.MapBookings();
 app.Run();
 
 public partial class Program;
