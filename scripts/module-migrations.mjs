@@ -104,7 +104,9 @@ function createDatabases(container) {
 
 function validateMigrationModels() {
   for (const module of modules) {
-    console.log(\n      `Validating ${module.name} migration metadata and model parity`,\n    );
+    console.log(
+      `Validating ${module.name} migration metadata and model parity`,
+    );
     run("bash", [
       "scripts/validate-module-migrations.sh",
       module.project,
