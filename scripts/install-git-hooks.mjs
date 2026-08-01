@@ -28,7 +28,9 @@ const gitDirectoryResult = runGit(
 );
 
 if (gitDirectoryResult.status !== 0) {
-  throw new Error(gitDirectoryResult.stderr.trim() || "Git directory not found.");
+  throw new Error(
+    gitDirectoryResult.stderr.trim() || "Git directory not found.",
+  );
 }
 
 const hooksDirectory = join(gitDirectoryResult.stdout.trim(), "noorpath-hooks");
