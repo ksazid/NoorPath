@@ -16,7 +16,7 @@ export async function GET() {
   }
 
   try {
-    const { accessToken } = await auth0.getAccessToken();
+    const { token: accessToken } = await auth0.getAccessToken();
     if (!accessToken) {
       return NextResponse.json(
         { code: "not_authenticated", message: "Sign in required." },
