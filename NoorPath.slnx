@@ -4,12 +4,16 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/NoorPath.BuildingBlocks/NoorPath.BuildingBlocks.csproj" />
+    <Project Path="src/Modules/NoorPath.Booking/NoorPath.Booking.csproj" />
+    <Project Path="src/Modules/NoorPath.Booking.Infrastructure/NoorPath.Booking.Infrastructure.csproj" />
     <Project Path="src/Modules/NoorPath.Catalogue/NoorPath.Catalogue.csproj" />
     <Project Path="src/Modules/NoorPath.Catalogue.Infrastructure/NoorPath.Catalogue.Infrastructure.csproj" />
     <Project Path="src/Modules/NoorPath.Inventory/NoorPath.Inventory.csproj" />
     <Project Path="src/Modules/NoorPath.Inventory.Infrastructure/NoorPath.Inventory.Infrastructure.csproj" />
     <Project Path="src/Modules/NoorPath.Operators/NoorPath.Operators.csproj" />
     <Project Path="src/Modules/NoorPath.Operators.Infrastructure/NoorPath.Operators.Infrastructure.csproj" />
+    <Project Path="src/Modules/NoorPath.Payments/NoorPath.Payments.csproj" />
+    <Project Path="src/Modules/NoorPath.Payments.Infrastructure/NoorPath.Payments.Infrastructure.csproj" />
     <Project Path="src/Modules/NoorPath.Pricing/NoorPath.Pricing.csproj" />
     <Project Path="src/Modules/NoorPath.Pricing.Infrastructure/NoorPath.Pricing.Infrastructure.csproj" />
     <Project Path="src/Modules/NoorPath.Traveller/NoorPath.Traveller.csproj" />
@@ -17,12 +21,14 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/NoorPath.Architecture.Tests/NoorPath.Architecture.Tests.csproj" />
+    <Project Path="tests/NoorPath.Booking.Tests/NoorPath.Booking.Tests.csproj" />
     <Project Path="tests/NoorPath.Catalogue.Tests/NoorPath.Catalogue.Tests.csproj" />
     <Project Path="tests/NoorPath.Catalogue.Integration.Tests/NoorPath.Catalogue.Integration.Tests.csproj" />
     <Project Path="tests/NoorPath.Commercial.Integration.Tests/NoorPath.Commercial.Integration.Tests.csproj" />
     <Project Path="tests/NoorPath.Inventory.Tests/NoorPath.Inventory.Tests.csproj" />
     <Project Path="tests/NoorPath.Operators.Tests/NoorPath.Operators.Tests.csproj" />
     <Project Path="tests/NoorPath.Operators.Integration.Tests/NoorPath.Operators.Integration.Tests.csproj" />
+    <Project Path="tests/NoorPath.Payments.Tests/NoorPath.Payments.Tests.csproj" />
     <Project Path="tests/NoorPath.Pricing.Tests/NoorPath.Pricing.Tests.csproj" />
     <Project Path="tests/NoorPath.Traveller.Tests/NoorPath.Traveller.Tests.csproj" />
   </Folder>
