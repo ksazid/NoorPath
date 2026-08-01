@@ -1,17 +1,21 @@
 using Microsoft.EntityFrameworkCore;
+using NoorPath.Booking.Infrastructure;
 using NoorPath.BuildingBlocks;
 using NoorPath.Catalogue.Infrastructure;
 using NoorPath.Inventory;
 using NoorPath.Inventory.Infrastructure;
 using NoorPath.Operators;
 using NoorPath.Operators.Infrastructure;
+using NoorPath.Payments.Infrastructure;
 using NoorPath.Pricing.Infrastructure;
 using NoorPath.Traveller.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("NoorPath") ?? throw new InvalidOperationException("ConnectionStrings:NoorPath is required.");
+builder.Services.AddDbContext<BookingDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(BookingDbContext).Assembly.FullName)));
 builder.Services.AddDbContext<CatalogueDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(CatalogueDbContext).Assembly.FullName)));
 builder.Services.AddDbContext<OperatorsDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(OperatorsDbContext).Assembly.FullName)));
+builder.Services.AddDbContext<PaymentsDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(PaymentsDbContext).Assembly.FullName)));
 builder.Services.AddDbContext<PricingDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(PricingDbContext).Assembly.FullName)));
 builder.Services.AddDbContext<InventoryDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(InventoryDbContext).Assembly.FullName)));
 builder.Services.AddDbContext<TravellerDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(TravellerDbContext).Assembly.FullName)));
