@@ -58,7 +58,7 @@
   ],
   "rendered": {
     "enabled": true,
-    "testFile": "apps/web/e2e/account-access.spec.ts"
+    "testFile": "e2e/account-access.spec.ts"
   },
   "specPath": "docs/slices/VS-02R-AUTHENTICATION-ACCOUNT-SHELL.md",
   "checklistPath": "docs/slices/VS-02R-IMPLEMENTATION-CHECKLIST.md"
