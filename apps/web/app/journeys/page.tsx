@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useState } from "react";
+import { useDeferredInitialLoad } from "../../lib/use-deferred-initial-load";
 import { Icon, PublicFooter, PublicHeader } from "../public-ui";
 
 type Journey = {
