@@ -1,3 +1,4 @@
+using System.Data;
 using Microsoft.EntityFrameworkCore;
 using NoorPath.Booking;
 
@@ -39,16 +40,30 @@ public sealed class BookingCheckoutService(
         string causationId,
         CancellationToken cancellationToken)
     {
+        await using var transaction = await bookings.Database.BeginTransactionAsync(
+            IsolationLevel.ReadCommitted,
+            cancellationToken);
         var booking = await bookings.Bookings
-            .SingleOrDefaultAsync(item => item.Id == bookingId, cancellationToken);
+            .FromSqlInterpolated(
+                $"SELECT * FROM booking.bookings WHERE \"Id\" = {bookingId} FOR UPDATE")
+            .SingleOrDefaultAsync(cancellationToken);
         if (booking is null)
+        {
+            await transaction.RollbackAsync(cancellationToken);
             return false;
-
-        if (!BookingPolicy.CanTransition(booking.State, next))
-            return booking.State == next;
+        }
 
         if (booking.State == next)
+        {
+            await transaction.CommitAsync(cancellationToken);
             return true;
+        }
+
+        if (!BookingPolicy.CanTransition(booking.State, next))
+        {
+            await transaction.CommitAsync(cancellationToken);
+            return false;
+        }
 
         var now = timeProvider.GetUtcNow();
         booking.State = next;
@@ -84,13 +99,17 @@ public sealed class BookingCheckoutService(
         try
         {
             await bookings.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             return true;
         }
-        catch (DbUpdateConcurrencyException)
+        catch (DbUpdateException)
         {
+            await transaction.RollbackAsync(cancellationToken);
             bookings.ChangeTracker.Clear();
             return await bookings.Bookings.AsNoTracking()
-                .AnyAsync(item => item.Id == bookingId && item.State == next, cancellationToken);
+                .AnyAsync(
+                    item => item.Id == bookingId && item.State == next,
+                    cancellationToken);
         }
     }
 }
