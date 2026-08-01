@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using NoorPath.BuildingBlocks;
 using NoorPath.Catalogue.Infrastructure;
+using NoorPath.Inventory;
 using NoorPath.Inventory.Infrastructure;
 using NoorPath.Operators;
 using NoorPath.Operators.Infrastructure;
@@ -16,6 +17,13 @@ builder.Services.AddDbContext<InventoryDbContext>(options => options.UseNpgsql(c
 builder.Services.AddDbContext<TravellerDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(TravellerDbContext).Assembly.FullName)));
 builder.Services.AddScoped<IOperatorAccess>(services => services.GetRequiredService<OperatorsDbContext>());
 builder.Services.AddScoped<IOperatorPublicationEligibility>(services => services.GetRequiredService<OperatorsDbContext>());
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddOptions<InventoryHoldOptions>()
+    .Bind(builder.Configuration.GetSection("InventoryHold"))
+    .Validate(
+        options => options.Lifetime > TimeSpan.Zero && options.Lifetime <= TimeSpan.FromMinutes(30),
+        "InventoryHold:Lifetime must be greater than zero and no longer than 30 minutes.")
+    .ValidateOnStart();
 builder.Services.AddNoorPathAuthentication(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
@@ -39,6 +47,7 @@ app.MapPublicationReview();
 app.MapPublicDiscovery();
 app.MapPublicPackageDetails();
 app.MapTravellerQuotes();
+app.MapInventoryHolds();
 app.Run();
 
 public partial class Program;
