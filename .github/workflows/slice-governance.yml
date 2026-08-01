@@ -11,6 +11,7 @@ concurrency:
 
 permissions:
   contents: read
+  issues: write
   pull-requests: read
 
 jobs:
@@ -19,6 +20,36 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Ensure certification labels exist
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const desired = [
+              {
+                name: 'certify',
+                color: '1f6feb',
+                description: 'Run full exact-head slice certification',
+              },
+              {
+                name: 'po-approved',
+                color: '0e8a16',
+                description: 'Product Owner accepted the exact certified SHA',
+              },
+            ];
+            const labels = await github.paginate(github.rest.issues.listLabelsForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100,
+            });
+            for (const label of desired) {
+              if (!labels.some((existing) => existing.name === label.name)) {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ...label,
+                });
+              }
+            }
       - name: Validate manifests and required planning files
         run: node scripts/slice.mjs validate
       - name: Resolve current slice
@@ -33,14 +64,18 @@ jobs:
         with:
           script: |
             const pr = context.payload.pull_request;
-            const labels = pr.labels.map(label => label.name);
+            const labels = pr.labels.map((label) => label.name);
             const isSlice = process.env.SLICE_ID !== 'NONE';
 
             if (!labels.includes('certify') && !pr.draft && isSlice) {
-              core.setFailed('Product slice PRs must remain Draft until the certify label is applied.');
+              core.setFailed(
+                'Product slice PRs must remain Draft until the certify label is applied.',
+              );
             }
             if (labels.includes('po-approved') && !labels.includes('certify')) {
-              core.setFailed('po-approved requires the certify label and exact-head certification.');
+              core.setFailed(
+                'po-approved requires the certify label and exact-head certification.',
+              );
             }
             if (!isSlice) return;
 
@@ -52,7 +87,7 @@ jobs:
               process.env.SPEC_PATH,
               process.env.CHECKLIST_PATH,
             ];
-            const missing = required.filter(value => !body.includes(value));
+            const missing = required.filter((value) => !body.includes(value));
             if (missing.length > 0) {
               core.setFailed(`PR body is missing: ${missing.join(', ')}`);
             }
