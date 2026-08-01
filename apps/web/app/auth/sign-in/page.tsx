@@ -24,12 +24,6 @@ export default async function SignInPage({ searchParams }: Props) {
         <div className="auth-actions">
           <a
             className="auth-primary"
-            href={`/api/auth/sign-in?method=phone&returnUrl=${encodeURIComponent(returnUrl)}`}
-          >
-            Continue with phone OTP
-          </a>
-          <a
-            className="auth-secondary"
             href={`/api/auth/sign-in?method=google&returnUrl=${encodeURIComponent(returnUrl)}`}
           >
             <span aria-hidden="true" className="google-mark">
@@ -37,11 +31,13 @@ export default async function SignInPage({ searchParams }: Props) {
             </span>
             Continue with Google
           </a>
+          <p className="auth-help">
+            Phone OTP will be enabled after the SMS provider is configured.
+          </p>
         </div>
         <p className="auth-help">
-          Phone codes and Google authentication are completed securely by the
-          configured identity service. Codes and provider tokens are never
-          stored by NoorPath.
+          Google authentication is completed on Auth0 Universal Login. Provider
+          tokens are never exposed to NoorPath browser code.
         </p>
       </section>
       <p className="auth-support">
