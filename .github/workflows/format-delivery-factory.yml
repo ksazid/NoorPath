@@ -1,0 +1,38 @@
+name: Format Delivery Factory
+
+on:
+  push:
+    branches: [eng/slice-delivery-factory]
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: eng/slice-delivery-factory
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Format and validate delivery foundation
+        run: |
+          pnpm format
+          pnpm slice:validate
+          pnpm migrations:registry
+      - name: Commit formatted files
+        run: |
+          if git diff --quiet; then
+            echo "No formatting changes required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json delivery scripts .github
+          git commit -m "style(delivery): apply repository formatting"
+          git push origin HEAD:eng/slice-delivery-factory
