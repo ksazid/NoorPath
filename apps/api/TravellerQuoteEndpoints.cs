@@ -111,10 +111,11 @@ public static class TravellerQuoteEndpoints
         PricingDbContext pricing,
         InventoryDbContext inventory,
         TravellerDbContext travellers,
+        TimeProvider timeProvider,
         ILogger<Program> log,
         CancellationToken cancellationToken)
     {
-        var startedAt = DateTimeOffset.UtcNow;
+        var startedAt = timeProvider.GetUtcNow();
         var principal = http.User.GetCurrentPrincipal();
         if (principal is null)
             return NotAuthenticated(http);
@@ -191,13 +192,20 @@ public static class TravellerQuoteEndpoints
             return QuoteUnavailable(http);
 
         var inventoryOccupancy = ToInventoryOccupancy(occupancy);
-        var available = await inventory.Pools.AsNoTracking()
-            .AnyAsync(item =>
+        var pool = await inventory.Pools.AsNoTracking()
+            .SingleOrDefaultAsync(item =>
                 item.InventoryConfigurationId == inventoryConfiguration.Id &&
-                item.Occupancy == inventoryOccupancy &&
-                item.Capacity > 0,
+                item.Occupancy == inventoryOccupancy,
                 cancellationToken);
-        if (!available)
+        if (pool is null)
+            return QuoteUnavailable(http);
+
+        var availableByPool = await InventoryAvailability.GetAvailableQuantitiesAsync(
+            inventory,
+            [pool],
+            timeProvider.GetUtcNow(),
+            cancellationToken);
+        if (availableByPool.GetValueOrDefault(pool.Id) < 1)
             return QuoteUnavailable(http);
 
         var selectedTravellers = await travellers.Travellers.AsNoTracking()
@@ -215,7 +223,7 @@ public static class TravellerQuoteEndpoints
                 "travellerIds",
                 "VS-07 currently supports adult travellers aged 18 or older on departure day.");
 
-        var now = DateTimeOffset.UtcNow;
+        var now = timeProvider.GetUtcNow();
         var total = decimal.Round(
             publishedPrice.Amount * travellerIds.Length,
             2,
@@ -272,7 +280,7 @@ public static class TravellerQuoteEndpoints
             OccupancyKey(occupancy),
             travellerIds.Length,
             priceVersion.Id,
-            (DateTimeOffset.UtcNow - startedAt).TotalMilliseconds,
+            (timeProvider.GetUtcNow() - startedAt).TotalMilliseconds,
             http.TraceIdentifier);
 
         return Results.Created(
@@ -284,6 +292,7 @@ public static class TravellerQuoteEndpoints
         Guid quoteId,
         HttpContext http,
         PricingDbContext pricing,
+        TimeProvider timeProvider,
         CancellationToken cancellationToken)
     {
         var principal = http.User.GetCurrentPrincipal();
@@ -307,7 +316,7 @@ public static class TravellerQuoteEndpoints
         return Results.Ok(ToQuoteResponse(
             quote,
             instalments,
-            expired: DateTimeOffset.UtcNow >= quote.ExpiresAtUtc));
+            expired: timeProvider.GetUtcNow() >= quote.ExpiresAtUtc));
     }
 
     private static object ToQuoteResponse(
