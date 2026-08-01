@@ -54,6 +54,27 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-
       - run: pnpm install --frozen-lockfile
+      - name: Verify pre-commit formatting automation
+        shell: bash
+        run: |
+          set -euo pipefail
+          CI= pnpm hooks:install
+
+          smoke_file="apps/web/.prettier-hook-smoke.mjs"
+          cleanup() {
+            git reset -- "$smoke_file" >/dev/null 2>&1 || true
+            rm -f "$smoke_file"
+          }
+          trap cleanup EXIT
+
+          printf 'const value={nested:true}\n' > "$smoke_file"
+          git add "$smoke_file"
+
+          hooks_path="$(git config core.hooksPath)"
+          "$hooks_path/pre-commit"
+
+          grep -Fx 'const value = { nested: true };' "$smoke_file"
+          git diff --cached --name-only -- "$smoke_file" | grep -Fx "$smoke_file"
       - run: pnpm format:check
       - run: pnpm check
       - run: pnpm test
