@@ -1,0 +1,82 @@
+name: VS-08 Regression Test Apply
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  apply-regression-test:
+    if: github.event.pull_request.number == 44 && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Add quoted price version regression test
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("tests/NoorPath.Commercial.Integration.Tests/InventoryHoldApiTests.cs")
+          content = path.read_text()
+
+          import_anchor = "using Microsoft.Extensions.DependencyInjection;\n"
+          imports = "using NoorPath.Catalogue.Infrastructure;\n"
+          if imports not in content:
+              content = content.replace(import_anchor, import_anchor + imports, 1)
+
+          marker = """    [Fact]
+    public async Task Capacity_one_allows_exactly_one_hold_under_concurrent_customers()
+"""
+          test = """    [Fact]
+    public async Task A_valid_quote_survives_a_later_published_price_pointer()
+    {
+        using var app = await CommercialApi.CreateAsync(TestContext.Current.CancellationToken);
+        var departureId = await PublishDepartureAsync(
+            app,
+            doubleCapacity: 2,
+            TestContext.Current.CancellationToken);
+        using var customer = app.CreateOperatorClient("hold-price-version-customer");
+        var quoteId = await CreateDoubleQuoteAsync(
+            customer,
+            departureId,
+            TestContext.Current.CancellationToken);
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var catalogue = scope.ServiceProvider.GetRequiredService<CatalogueDbContext>();
+            var departure = await catalogue.DepartureBatches.SingleAsync(
+                item => item.Id == departureId,
+                TestContext.Current.CancellationToken);
+            departure.PublishedPriceVersionId = Guid.NewGuid();
+            await catalogue.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
+        var response = await SendHoldAsync(
+            customer,
+            quoteId,
+            "hold-price-version-0001",
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+    }
+
+"""
+          if "A_valid_quote_survives_a_later_published_price_pointer" not in content:
+              if marker not in content:
+                  raise SystemExit("Expected capacity-one test marker was not found.")
+              content = content.replace(marker, test + marker, 1)
+
+          path.write_text(content)
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- tests/NoorPath.Commercial.Integration.Tests/InventoryHoldApiTests.cs
+          git commit -m "test(inventory): preserve valid quoted price version"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
