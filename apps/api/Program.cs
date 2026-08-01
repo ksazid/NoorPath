@@ -81,6 +81,7 @@ app.MapGet("/health/ready", async (OperatorsDbContext database, CancellationToke
         ? Results.Ok(new HealthResponse("Ready"))
         : Results.StatusCode(StatusCodes.Status503ServiceUnavailable));
 app.MapOperatorAccess();
+app.MapAccountAccess();
 app.MapCatalogueAuthoring();
 app.MapCommercialAuthoring();
 app.MapPaymentPlanAuthoring();

@@ -15,6 +15,7 @@ import "./plan.css";
 import "./plan-hardening.css";
 import "./inventory-hold.css";
 import "./booking-payment.css";
+import "./account.css";
 
 export const metadata: Metadata = {
   title: "NoorPath",

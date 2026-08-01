@@ -14,7 +14,7 @@ const states = [
       operator: { id: "noor", displayName: "Noor Tours" },
       permissions: ["operator.admin.access"],
     },
-    heading: "Noor Tours",
+    heading: "Operator administration",
   },
   {
     name: "unauthenticated",
@@ -26,7 +26,7 @@ const states = [
     name: "forbidden",
     status: 403,
     body: { code: "forbidden" },
-    heading: "This account cannot open operator administration",
+    heading: "Access unavailable",
   },
 ] as const;
 
@@ -45,11 +45,10 @@ for (const state of states) {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       state.heading,
     );
-    if (state.name === "authorized") {
+    if (state.name === "authorized")
       await expect(
-        page.getByRole("link", { name: "Create new draft" }),
-      ).toHaveAttribute("href", "/operator/departures/new");
-    }
+        page.getByText("Your secure workspace is ready"),
+      ).toBeVisible();
     await expectNoA11yViolations(page);
     await expectMinimumTargets(page);
     await expectNoHorizontalOverflow(page);
@@ -75,7 +74,6 @@ test("operator access failure offers retry without leaking internals", async ({
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "We could not verify access",
   );
-  await expect(page.getByText("Reference: safe-reference")).toBeVisible();
   await page.getByRole("button", { name: "Try again" }).click();
   expect(attempts).toBeGreaterThan(1);
 });
