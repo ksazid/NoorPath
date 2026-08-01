@@ -38,6 +38,7 @@ export async function GET() {
         "content-type":
           response.headers.get("content-type") ?? "application/json",
         "cache-control": "no-store",
+        vary: "Cookie",
       },
     });
   } catch {
