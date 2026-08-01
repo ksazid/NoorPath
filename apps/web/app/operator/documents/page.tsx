@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { PublicHeader, PublicFooter } from "../../public-ui";
 type Item = {
   id: string;
@@ -46,9 +46,7 @@ export default function ReviewPage() {
       setState({ kind: "error" });
     }
   }, []);
-  useEffect(() => {
-    void load();
-  }, [load]);
+  useDeferredInitialLoad(load);
   async function review(
     i: Item,
     decision: "Approve" | "RequestCorrection" | "Reject",
