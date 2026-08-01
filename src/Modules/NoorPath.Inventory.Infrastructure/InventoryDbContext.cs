@@ -9,6 +9,7 @@ public sealed class InventoryDbContext(DbContextOptions<InventoryDbContext> opti
     public DbSet<InventoryPoolRecord> Pools => Set<InventoryPoolRecord>();
     public DbSet<InventoryAuditRecord> Audits => Set<InventoryAuditRecord>();
     public DbSet<InventoryHoldRecord> Holds => Set<InventoryHoldRecord>();
+    public DbSet<InventoryCommitmentRecord> Commitments => Set<InventoryCommitmentRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) => Configure(modelBuilder);
 
@@ -65,7 +66,7 @@ public sealed class InventoryDbContext(DbContextOptions<InventoryDbContext> opti
                     "\"ExpiresAtUtc\" > \"CreatedAtUtc\"");
                 table.HasCheckConstraint(
                     "CK_inventory_holds_State",
-                    "\"State\" IN ('Active', 'Released', 'Expired')");
+                    "\"State\" IN ('Active', 'Released', 'Expired', 'Committed')");
             });
             entity.HasKey(x => x.Id);
             entity.Property(x => x.OperatorId).HasMaxLength(80);
@@ -90,7 +91,34 @@ public sealed class InventoryDbContext(DbContextOptions<InventoryDbContext> opti
                 .HasForeignKey(x => x.InventoryPoolId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+
+        modelBuilder.Entity<InventoryCommitmentRecord>(entity =>
+        {
+            entity.ToTable("inventory_commitments", table =>
+                table.HasCheckConstraint("CK_inventory_commitments_Quantity_Positive", "\"Quantity\" > 0"));
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.AccountId).HasMaxLength(120);
+            entity.Property(x => x.CorrelationId).HasMaxLength(100);
+            entity.HasIndex(x => x.HoldId).IsUnique();
+            entity.HasIndex(x => x.BookingId).IsUnique();
+            entity.HasIndex(x => new { x.InventoryPoolId, x.CreatedAtUtc });
+            entity.HasOne<InventoryPoolRecord>().WithMany().HasForeignKey(x => x.InventoryPoolId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<InventoryHoldRecord>().WithMany().HasForeignKey(x => x.HoldId).OnDelete(DeleteBehavior.Restrict);
+        });
     }
+}
+
+public sealed class InventoryCommitmentRecord
+{
+    public Guid Id { get; set; }
+    public Guid HoldId { get; set; }
+    public Guid BookingId { get; set; }
+    public Guid PaymentAttemptId { get; set; }
+    public Guid InventoryPoolId { get; set; }
+    public required string AccountId { get; set; }
+    public int Quantity { get; set; }
+    public required string CorrelationId { get; set; }
+    public DateTimeOffset CreatedAtUtc { get; set; }
 }
 
 public sealed class InventoryConfigurationRecord

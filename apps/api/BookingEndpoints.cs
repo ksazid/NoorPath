@@ -355,6 +355,14 @@ public static class BookingEndpoints
             booking.DueNow,
             booking.Remaining,
             state = booking.State.ToString(),
+            booking.SettledPaymentAttemptId,
+            booking.InventoryCommitmentId,
+            booking.ConfirmedAtUtc,
+            confirmationException = booking.ConfirmationExceptionCode is null ? null : new
+            {
+                code = booking.ConfirmationExceptionCode,
+                message = "Payment was received, but confirmation needs NoorPath support. Do not pay again."
+            },
             travellers,
             instalments,
             booking.CreatedAtUtc,

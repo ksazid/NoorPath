@@ -18,8 +18,8 @@ public static class InventoryAvailability
         var heldByPool = await inventory.Holds.AsNoTracking()
             .Where(hold =>
                 poolIds.Contains(hold.InventoryPoolId) &&
-                hold.State == InventoryHoldState.Active &&
-                hold.ExpiresAtUtc > nowUtc)
+                ((hold.State == InventoryHoldState.Active && hold.ExpiresAtUtc > nowUtc) ||
+                 hold.State == InventoryHoldState.Committed))
             .GroupBy(hold => hold.InventoryPoolId)
             .Select(group => new
             {
@@ -41,8 +41,8 @@ public static class InventoryAvailability
         await inventory.Holds.AsNoTracking()
             .Where(hold =>
                 hold.InventoryPoolId == poolId &&
-                hold.State == InventoryHoldState.Active &&
-                hold.ExpiresAtUtc > nowUtc)
+                ((hold.State == InventoryHoldState.Active && hold.ExpiresAtUtc > nowUtc) ||
+                 hold.State == InventoryHoldState.Committed))
             .SumAsync(hold => (int?)hold.Quantity, cancellationToken) ?? 0;
 
     public static Task<int> MaterializeExpiredAsync(

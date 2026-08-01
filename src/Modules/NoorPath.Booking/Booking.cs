@@ -6,7 +6,11 @@ public enum BookingState
     PaymentInProgress,
     PaymentSucceeded,
     PaymentFailed,
-    PaymentCancelled
+    PaymentCancelled,
+    PendingConfirmation,
+    Confirming,
+    Confirmed,
+    ConfirmationException
 }
 
 public enum BookingOccupancy
@@ -120,6 +124,12 @@ public static class BookingPolicy
             (BookingState.PaymentInProgress, BookingState.PaymentFailed) => true,
             (BookingState.PaymentInProgress, BookingState.PaymentCancelled) => true,
             (BookingState.PaymentFailed, BookingState.PaymentInProgress) => true,
+            (BookingState.PaymentSucceeded, BookingState.PendingConfirmation) => true,
+            (BookingState.PendingConfirmation, BookingState.Confirming) => true,
+            (BookingState.Confirming, BookingState.Confirmed) => true,
+            (BookingState.Confirming, BookingState.ConfirmationException) => true,
+            (BookingState.PendingConfirmation, BookingState.ConfirmationException) => true,
+            (BookingState.ConfirmationException, BookingState.Confirming) => true,
             _ => current == next
         };
 }

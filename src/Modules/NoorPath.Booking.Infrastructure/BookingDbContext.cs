@@ -45,6 +45,7 @@ public sealed class BookingDbContext(DbContextOptions<BookingDbContext> options)
             entity.Property(x => x.IdempotencyKeyHash).HasMaxLength(64);
             entity.Property(x => x.RequestFingerprint).HasMaxLength(64);
             entity.Property(x => x.CorrelationId).HasMaxLength(100);
+            entity.Property(x => x.ConfirmationExceptionCode).HasMaxLength(80);
             entity.HasIndex(x => x.Reference).IsUnique();
             entity.HasIndex(x => new { x.AccountId, x.IdempotencyKeyHash }).IsUnique();
             entity.HasIndex(x => x.InventoryHoldId).IsUnique();
@@ -119,6 +120,10 @@ public sealed class BookingRecord
     public required string CorrelationId { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
+    public Guid? SettledPaymentAttemptId { get; set; }
+    public Guid? InventoryCommitmentId { get; set; }
+    public DateTimeOffset? ConfirmedAtUtc { get; set; }
+    public string? ConfirmationExceptionCode { get; set; }
 }
 
 public sealed class BookingTravellerRecord

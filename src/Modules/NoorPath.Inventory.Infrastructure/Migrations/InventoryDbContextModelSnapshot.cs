@@ -70,6 +70,24 @@ namespace NoorPath.Inventory.Infrastructure.Migrations
                     b.ToTable("inventory_audits", "inventory");
                 });
 
+            modelBuilder.Entity("NoorPath.Inventory.Infrastructure.InventoryCommitmentRecord", b =>
+                {
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                    b.Property<string>("AccountId").IsRequired().HasMaxLength(120).HasColumnType("character varying(120)");
+                    b.Property<Guid>("BookingId").HasColumnType("uuid");
+                    b.Property<string>("CorrelationId").IsRequired().HasMaxLength(100).HasColumnType("character varying(100)");
+                    b.Property<DateTimeOffset>("CreatedAtUtc").HasColumnType("timestamp with time zone");
+                    b.Property<Guid>("HoldId").HasColumnType("uuid");
+                    b.Property<Guid>("InventoryPoolId").HasColumnType("uuid");
+                    b.Property<Guid>("PaymentAttemptId").HasColumnType("uuid");
+                    b.Property<int>("Quantity").HasColumnType("integer");
+                    b.HasKey("Id");
+                    b.HasIndex("BookingId").IsUnique();
+                    b.HasIndex("HoldId").IsUnique();
+                    b.HasIndex("InventoryPoolId", "CreatedAtUtc");
+                    b.ToTable("inventory_commitments", "inventory", t => t.HasCheckConstraint("CK_inventory_commitments_Quantity_Positive", "\"Quantity\" > 0"));
+                });
+
             modelBuilder.Entity("NoorPath.Inventory.Infrastructure.InventoryConfigurationRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -102,6 +120,12 @@ namespace NoorPath.Inventory.Infrastructure.Migrations
                     b.HasIndex("OperatorId");
 
                     b.ToTable("inventory_configurations", "inventory");
+                });
+
+            modelBuilder.Entity("NoorPath.Inventory.Infrastructure.InventoryCommitmentRecord", b =>
+                {
+                    b.HasOne("NoorPath.Inventory.Infrastructure.InventoryHoldRecord", null).WithMany().HasForeignKey("HoldId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+                    b.HasOne("NoorPath.Inventory.Infrastructure.InventoryPoolRecord", null).WithMany().HasForeignKey("InventoryPoolId").OnDelete(DeleteBehavior.Restrict).IsRequired();
                 });
 
             modelBuilder.Entity("NoorPath.Inventory.Infrastructure.InventoryHoldRecord", b =>
