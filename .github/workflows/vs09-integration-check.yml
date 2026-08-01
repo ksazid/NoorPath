@@ -46,11 +46,25 @@ jobs:
       - name: Build solution
         run: dotnet build NoorPath.slnx --configuration Release --no-restore
       - name: Run VS-09 API integration tests
-        run: >-
-          dotnet test tests/NoorPath.Commercial.Integration.Tests/NoorPath.Commercial.Integration.Tests.csproj
-          --configuration Release
-          --no-build
-          --filter FullyQualifiedName~BookingPaymentApiTests
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p test-results/vs09
+          dotnet test tests/NoorPath.Commercial.Integration.Tests/NoorPath.Commercial.Integration.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --filter FullyQualifiedName~BookingPaymentApiTests \
+            --logger "trx;LogFileName=vs09-integration.trx" \
+            --results-directory test-results/vs09 \
+            --logger "console;verbosity=detailed" 2>&1 | tee test-results/vs09/console.log
+      - name: Upload integration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vs09-integration-diagnostics
+          retention-days: 1
+          if-no-files-found: error
+          path: test-results/vs09
       - name: Commit formatting
         run: |
           if git diff --quiet; then
