@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useState } from "react";
+import { useDeferredInitialLoad } from "../../../../lib/use-deferred-initial-load";
 import { Icon, PublicFooter, PublicHeader } from "../../../public-ui";
 
 type Journey = {
