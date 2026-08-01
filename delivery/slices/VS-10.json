@@ -1,0 +1,60 @@
+{
+  "id": "VS-10",
+  "title": "Confirmation",
+  "slug": "confirmation",
+  "outcome": "A successfully settled payment and valid inventory commitment produce one confirmed booking, with an explicit recoverable exception path whenever confirmation cannot safely complete.",
+  "actor": "NoorPath confirmation orchestration reacting to authenticated payment settlement, with customer and operator visibility.",
+  "dependsOn": ["VS-09"],
+  "modules": [
+    "Booking owns confirmation state and the confirmed commercial record.",
+    "Payments owns the authoritative settled-payment event.",
+    "Inventory owns conversion from temporary hold to durable commitment.",
+    "Outbox delivery carries cross-module facts without shared-table writes."
+  ],
+  "routes": [
+    "Payment state -> Confirmation processing",
+    "Confirmation processing -> Confirmed booking",
+    "Confirmation processing -> Confirmation exception",
+    "Confirmed booking -> My Journey",
+    "Confirmation exception -> Safe customer status and operator recovery queue"
+  ],
+  "acceptance": [
+    "One authenticated PaymentSettled fact starts confirmation exactly once for the matching booking.",
+    "The active hold converts to one durable inventory commitment without overselling.",
+    "Booking confirmation is idempotent across event replay, worker restart and duplicate delivery.",
+    "A confirmed booking receives an immutable confirmation timestamp and retains the original commercial snapshot.",
+    "Payment settlement with an invalid or unavailable inventory transition creates a visible ConfirmationException rather than silently confirming or losing money.",
+    "Retries resume from durable state and never create a second commitment or second confirmation.",
+    "Out-of-order, foreign or mismatched payment facts are rejected and auditable.",
+    "Customer messaging distinguishes payment received, confirmation processing, confirmed and action-required states.",
+    "Operators receive only approved recovery commands; no direct state editing or cross-module database bypass is introduced.",
+    "Telemetry correlates booking, payment settlement, inventory commitment, outbox message and confirmation outcome."
+  ],
+  "exclusions": [
+    "Document upload, visa processing and detailed travel readiness.",
+    "Refund execution, chargeback handling and manual financial settlement.",
+    "Supplier-side airline or hotel confirmation integrations.",
+    "General-purpose workflow engine or distributed saga framework.",
+    "Customer support CRM and unrestricted operator database editing."
+  ],
+  "qualityGates": [
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "migration",
+    "security",
+    "accessibility",
+    "rendered-regression",
+    "journey-linking",
+    "telemetry",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "e2e/confirmation.spec.ts"
+  },
+  "specPath": "docs/slices/VS-10-CONFIRMATION.md",
+  "checklistPath": "docs/slices/VS-10-IMPLEMENTATION-CHECKLIST.md"
+}
