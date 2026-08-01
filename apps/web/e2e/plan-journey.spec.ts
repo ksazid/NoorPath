@@ -132,11 +132,14 @@ async function mockPlanApis(page: Page) {
   await page.route(`**/api/v1/inventory-holds/${holdId}`, (route) =>
     route.fulfill({ json: currentHold }),
   );
-  await page.route(`**/api/v1/inventory-holds/${holdId}/release`, async (route) => {
-    expect(route.request().method()).toBe("POST");
-    currentHold = releasedHold;
-    await route.fulfill({ json: currentHold });
-  });
+  await page.route(
+    `**/api/v1/inventory-holds/${holdId}/release`,
+    async (route) => {
+      expect(route.request().method()).toBe("POST");
+      currentHold = releasedHold;
+      await route.fulfill({ json: currentHold });
+    },
+  );
 }
 
 async function completeQuote(page: Page) {
@@ -183,7 +186,9 @@ async function secureAvailability(page: Page) {
   await expect(
     page.locator('input[name="occupancy"][value="double"]'),
   ).toBeDisabled();
-  await expect(page.getByRole("checkbox", { name: /Amina Khan/ })).toBeDisabled();
+  await expect(
+    page.getByRole("checkbox", { name: /Amina Khan/ }),
+  ).toBeDisabled();
 }
 
 test("VS-08 renders the authoritative quote and active inventory hold accessibly", async ({
@@ -216,7 +221,9 @@ test("VS-08 renders the authoritative quote and active inventory hold accessibly
   await focusTarget.click();
   await expect(page.getByText("Availability released")).toBeVisible();
   await expect(
-    page.getByText("You can now change the room or traveller selection safely."),
+    page.getByText(
+      "You can now change the room or traveller selection safely.",
+    ),
   ).toBeVisible();
   await expect(
     page.locator('input[name="occupancy"][value="double"]'),
