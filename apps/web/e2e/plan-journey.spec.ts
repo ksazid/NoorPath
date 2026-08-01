@@ -169,7 +169,7 @@ async function completeQuote(page: Page) {
   await expect(page.getByText("Instalment 1")).toBeVisible();
   await expect(page.getByText("Availability is not held yet.")).toBeVisible();
   await expect(
-    page.getByText("No booking or payment is created."),
+    page.getByText(/No booking or payment is created\./),
   ).toBeVisible();
 }
 
