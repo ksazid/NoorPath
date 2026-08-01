@@ -6,7 +6,15 @@ on:
     types: [completed]
   pull_request_target:
     branches: [main]
-    types: [labeled, unlabeled, synchronize, ready_for_review, reopened, converted_to_draft]
+    types:
+      [
+        labeled,
+        unlabeled,
+        synchronize,
+        ready_for_review,
+        reopened,
+        converted_to_draft,
+      ]
 
 permissions:
   actions: read
