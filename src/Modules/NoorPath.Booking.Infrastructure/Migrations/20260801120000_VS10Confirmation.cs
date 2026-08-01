@@ -1,11 +1,9 @@
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace NoorPath.Booking.Infrastructure.Migrations;
 
-[DbContext(typeof(BookingDbContext))]
 [Migration("20260801120000_VS10Confirmation")]
 public sealed partial class VS10Confirmation : Migration
 {
