@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { PublicFooter, PublicHeader } from "../../../public-ui";
 type Requirement = {
   id: string;
@@ -48,9 +48,7 @@ export default function DocumentsPage() {
       setState({ kind: "error" });
     }
   }, [bookingId]);
-  useEffect(() => {
-    void load();
-  }, [load]);
+  useDeferredInitialLoad(load);
   async function upload(req: Requirement, file: File) {
     setMessage(`Preparing ${file.name}…`);
     try {
