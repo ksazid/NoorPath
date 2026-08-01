@@ -4,8 +4,8 @@ Status: Implementation; Product Owner acceptance pending
 
 ## Outcome
 
-Customers can start phone OTP or Google authentication through a configured
-hosted identity service. Authenticated customers, operator users, and NoorPath
+Customers can start Google authentication through Auth0 Universal Login. Phone
+OTP remains unavailable until an SMS provider is configured. Authenticated customers, operator users, and NoorPath
 platform administrators receive distinct protected shells. API authorization
 remains provider-neutral and denies access by default.
 
@@ -19,7 +19,7 @@ No stable approved PRD requirement ID was found; none is invented here.
 
 ## Included
 
-- a provider-neutral hosted sign-in hand-off for phone OTP and Google;
+- Auth0 Universal Login with Google sign-in;
 - same-origin return URL validation;
 - customer, operator, and platform-administrator protected shells;
 - explicit unauthenticated, forbidden, loading, retryable-error, and authorized states;
@@ -28,11 +28,10 @@ No stable approved PRD requirement ID was found; none is invented here.
 
 ## Security boundary
 
-NoorPath does not collect a phone number, OTP, password, provider token, or
-identity-provider secret in the web application. `NOORPATH_AUTH_SIGN_IN_URL`
-selects the hosted identity adapter. The adapter owns authentication and must
-return a secure browser session accepted by the configured API authentication
-boundary. Application authorization continues to use normalized `AccountId`.
+NoorPath does not collect a password, provider token, or identity-provider
+secret in browser code. Auth0 owns Google authentication and returns an
+encrypted server-side web session. The Next.js BFF attaches the API access token
+server-side; the browser never receives it. Application authorization continues to use normalized `AccountId`.
 
 Platform shell access uses
 `Authorization:PlatformAdministratorAccountIds`; it is separate from operator
