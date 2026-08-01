@@ -4,9 +4,7 @@
   "slug": "authentication-account-shell",
   "outcome": "A customer can authenticate with Google through Auth0 Universal Login, while authenticated Customer Accounts, Operator Users and NoorPath Platform Administrators enter only their authorized protected shell. Phone OTP remains deferred until an SMS provider is configured.",
   "actor": "Customer Account, Operator User and explicitly authorized NoorPath Platform Administrator.",
-  "dependsOn": [
-    "VS-01"
-  ],
+  "dependsOn": ["VS-01"],
   "modules": [
     "Identity owns authentication subject normalization and authenticated AccountId.",
     "Operators owns operator membership, operator scope and operator permissions.",
