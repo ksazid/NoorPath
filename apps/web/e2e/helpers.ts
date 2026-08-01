@@ -45,7 +45,9 @@ export async function expectNoHorizontalOverflow(page: Page) {
     const viewportWidth = document.documentElement.clientWidth;
     const documentWidth = document.documentElement.scrollWidth;
 
-    const elements = Array.from(document.querySelectorAll<HTMLElement>("body *"))
+    const elements = Array.from(
+      document.querySelectorAll<HTMLElement>("body *"),
+    )
       .filter((element) => {
         const style = getComputedStyle(element);
         if (style.display === "none" || style.visibility === "hidden") {
@@ -66,7 +68,10 @@ export async function expectNoHorizontalOverflow(page: Page) {
 
         return {
           element: identity,
-          text: element.textContent?.trim().replace(/\s+/g, " ").slice(0, 120),
+          text: element.textContent
+            ?.trim()
+            .replace(/\s+/g, " ")
+            .slice(0, 120),
           left: Math.round(box.left * 100) / 100,
           right: Math.round(box.right * 100) / 100,
           width: Math.round(box.width * 100) / 100,
