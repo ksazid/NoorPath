@@ -1,0 +1,65 @@
+{
+  "id": "VS-02R",
+  "title": "Customer Phone OTP, Google Login and Protected Account Shell",
+  "slug": "authentication-account-shell",
+  "outcome": "A customer can begin hosted phone OTP or Google authentication, while authenticated Customer Accounts, Operator Users and NoorPath Platform Administrators enter only their authorized protected shell.",
+  "actor": "Customer Account, Operator User and explicitly authorized NoorPath Platform Administrator.",
+  "dependsOn": ["VS-01"],
+  "modules": [
+    "Identity owns authentication subject normalization and authenticated AccountId.",
+    "Operators owns operator membership, operator scope and operator permissions.",
+    "The web application owns the provider-neutral hosted sign-in hand-off and protected shell experience.",
+    "Platform administration uses an explicit deny-by-default privileged account allow-list with production MFA."
+  ],
+  "routes": [
+    "Public page -> Sign in",
+    "Sign in -> Hosted phone OTP or Google authentication",
+    "Authenticated Customer Account -> My NoorPath",
+    "Authenticated Operator User -> Operator workspace",
+    "Authorized NoorPath Platform Administrator -> NoorPath administration",
+    "Unauthorized or forbidden principal -> Safe access state"
+  ],
+  "acceptance": [
+    "The sign-in screen offers phone OTP and Google without collecting passwords, OTP values or provider tokens in NoorPath frontend code.",
+    "Only phone and google authentication methods can be handed to the configured hosted identity adapter.",
+    "Return paths are same-origin and external or protocol-relative redirects are rejected.",
+    "Missing authentication configuration fails safely without exposing secrets or accepting a principal.",
+    "Authenticated principals are normalized to one internal AccountId independent of authentication provider.",
+    "Customer Account access requires authentication and cannot grant operator or platform authority.",
+    "Operator User access remains derived server-side from active operator membership, approved operator state and explicit permission.",
+    "NoorPath Platform Administrator access is deny-by-default and limited to explicitly configured privileged AccountIds.",
+    "Production privileged identities require MFA through the selected identity provider.",
+    "Customer, operator and platform shells expose loading, unauthenticated, forbidden, retryable-error and authorized states.",
+    "Protected shells preserve existing customer discovery, operator authoring and platform publication-review entry points.",
+    "Authentication failures, tokens, OTP values, secrets and sensitive principal claims are not logged.",
+    "Responsive, keyboard, minimum-target, reflow, reduced-motion and WCAG checks pass at approved viewports.",
+    "A real provider tenant, callback/session exchange and production credentials are required before production acceptance."
+  ],
+  "exclusions": [
+    "Building a custom OTP service or storing OTP values in NoorPath.",
+    "Provider tenant provisioning, SMS provider procurement and Google credential creation.",
+    "Account recovery, account linking and self-service role administration.",
+    "Operator onboarding or platform-administrator lifecycle management.",
+    "Production deployment before provider integration, certification and Product Owner approval."
+  ],
+  "qualityGates": [
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "security",
+    "accessibility",
+    "rendered-regression",
+    "responsive",
+    "authentication",
+    "authorization",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "apps/web/e2e/account-access.spec.ts"
+  },
+  "specPath": "docs/slices/VS-02R-AUTHENTICATION-ACCOUNT-SHELL.md",
+  "checklistPath": "docs/slices/VS-02R-IMPLEMENTATION-CHECKLIST.md"
+}
