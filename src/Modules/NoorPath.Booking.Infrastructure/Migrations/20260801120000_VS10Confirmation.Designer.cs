@@ -301,6 +301,7 @@ namespace NoorPath.Booking.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
-#pragma warning restore 612, 618        }
+#pragma warning restore 612, 618
+        }
     }
 }
