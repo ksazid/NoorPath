@@ -217,7 +217,13 @@ function Dashboard({ journey: j }: { journey: Journey }) {
           <div>
             <Icon name="identification-card" />
             <h3>Documents</h3>
-            <p>Coming next. Upload and review are not available yet.</p>
+            <p>
+              Upload each traveller&apos;s required passport documents and
+              follow their review status.
+            </p>
+            <Link href={`/bookings/${j.bookingId}/documents`}>
+              Manage documents
+            </Link>
           </div>
           <div>
             <Icon name="file-text" />

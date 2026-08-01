@@ -8,6 +8,7 @@ public enum MembershipStatus { Active, Inactive }
 public static class OperatorPermissions
 {
     public const string AdminAccess = "operator.admin.access";
+    public const string DocumentReview = "operator.documents.review";
 }
 
 public sealed record OperatorAccess(
