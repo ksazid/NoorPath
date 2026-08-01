@@ -94,18 +94,20 @@ cancellation.
   migrations sequentially before the API accepts traffic. Add the existing
   payment and authorisation settings from `.env.example` when those production
   capabilities are enabled.
-- Set `NOORPATH_API_URL` in Vercel to the public Render API origin. Vercel Git
-  deployments remain disabled in `apps/web/vercel.json`.
+- Frontend deployment is intentionally paused. When Vercel usage is available,
+  set `NOORPATH_API_URL` to the public Render API origin and request a separate
+  Product Owner-approved frontend deployment.
 - Configure the GitHub `production` environment with the Product Owner as a
-  required reviewer and add environment secrets `RENDER_DEPLOY_HOOK_URL` and
-  `VERCEL_DEPLOY_HOOK_URL`. Each hook must deploy `main`.
+  required reviewer and add the environment secret `RENDER_DEPLOY_HOOK_URL`.
+  The hook must deploy `main`.
 
 Production is deployed only by manually running **Production deployment** from
 GitHub Actions with the exact 40-character `main` commit SHA reviewed by the
 Product Owner. The job pauses for the Product Owner's GitHub environment
-approval, then verifies that `main` still matches that SHA before invoking the
-native Render and Vercel deploy hooks. A mismatch stops the job without calling
-either hook. Slice pull requests and merges to `main` cannot deploy. Do not
+approval, then uses an authenticated checkout to verify that `main` still
+matches that SHA before invoking the native Render deployment hook. A mismatch
+stops the job without calling the hook. Slice pull requests and merges to
+`main` cannot deploy. Do not
 approve or run this workflow until the release is certified.
 
 ## Working agreement
