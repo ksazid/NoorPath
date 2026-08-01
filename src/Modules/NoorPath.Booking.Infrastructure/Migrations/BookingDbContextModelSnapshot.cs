@@ -106,9 +106,6 @@ namespace NoorPath.Booking.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("ProcessedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("SettledPaymentAttemptId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("State")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -199,6 +196,9 @@ namespace NoorPath.Booking.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
+
+                    b.Property<Guid?>("SettledPaymentAttemptId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("State")
                         .IsRequired()
