@@ -7,20 +7,24 @@ public sealed record PaymentCheckoutRequest(
     string AccountId,
     string Currency,
     decimal Amount,
-    Uri ReturnUri,
+    DateTimeOffset ExpiresAtUtc,
     string ProviderIdempotencyKey,
     string CorrelationId);
 
 public sealed record PaymentCheckoutSession(
     string Provider,
     string ProviderSessionId,
-    Uri CheckoutUri,
+    string PublicKeyId,
+    long AmountSubunits,
+    string Currency,
+    Uri CheckoutScriptUri,
     DateTimeOffset ExpiresAtUtc);
 
 public sealed record PaymentProviderEvent(
     string Provider,
     string ProviderEventId,
     string ProviderSessionId,
+    string? ProviderPaymentId,
     string EventType,
     PaymentAttemptState RequestedState,
     string PayloadHash,
