@@ -11,6 +11,16 @@ using NoorPath.Visa.Infrastructure;
 
 public static class OperationalSupportEndpoints
 {
+    private sealed record SupportItem(
+        Guid BookingId,
+        string BookingReference,
+        string Category,
+        string Title,
+        string Code,
+        DateTimeOffset UpdatedAtUtc,
+        string ActionLabel,
+        string? ActionTarget);
+
     public static void MapOperationalSupport(this WebApplication app)
     {
         var support = app.MapGroup("/api/v1/operator/support").RequireAuthorization();
@@ -86,15 +96,15 @@ public static class OperationalSupportEndpoints
             .Where(item => bookingIds.Contains(item.BookingId))
             .ToArrayAsync(cancellationToken);
 
-        var items = new List<object>();
+        var items = new List<SupportItem>();
         foreach (var booking in bookingRows)
         {
             if (booking.State == BookingState.ConfirmationException)
-                items.Add(Item(booking.Id, booking.Reference, "confirmation", "Confirmation needs recovery", booking.ConfirmationExceptionCode ?? "confirmation_exception", booking.UpdatedAtUtc, "Retry confirmation", $"/api/v1/operator/bookings/{booking.Id:D}/confirmation/retry"));
+                items.Add(new(booking.Id, booking.Reference, "confirmation", "Confirmation needs recovery", booking.ConfirmationExceptionCode ?? "confirmation_exception", booking.UpdatedAtUtc, "Retry confirmation", $"/api/v1/operator/bookings/{booking.Id:D}/confirmation/retry"));
 
             var latestPayment = paymentRows.FirstOrDefault(item => item.BookingId == booking.Id);
             if (latestPayment?.State is PaymentAttemptState.Failed or PaymentAttemptState.RequiresAction)
-                items.Add(Item(booking.Id, booking.Reference, "payment", latestPayment.State == PaymentAttemptState.Failed ? "Payment failed" : "Payment requires action", latestPayment.FailureCode ?? latestPayment.State.ToString(), latestPayment.UpdatedAtUtc, "Review payment", null));
+                items.Add(new(booking.Id, booking.Reference, "payment", latestPayment.State == PaymentAttemptState.Failed ? "Payment failed" : "Payment requires action", latestPayment.FailureCode ?? latestPayment.State.ToString(), latestPayment.UpdatedAtUtc, "Review payment", null));
 
             foreach (var requirement in requirements.Where(item => item.BookingId == booking.Id))
             {
@@ -102,23 +112,20 @@ public static class OperationalSupportEndpoints
                 if (latest is null)
                     continue;
                 if (latest.State == SubmissionState.Rejected || latest.MalwareStatus != MalwareStatus.Clean)
-                    items.Add(Item(booking.Id, booking.Reference, "documents", latest.State == SubmissionState.Rejected ? "Document correction required" : "Document safety review required", latest.State == SubmissionState.Rejected ? "document_rejected" : "document_not_safe", latest.CreatedAtUtc, "Open document review", "/operator/documents"));
+                    items.Add(new(booking.Id, booking.Reference, "documents", latest.State == SubmissionState.Rejected ? "Document correction required" : "Document safety review required", latest.State == SubmissionState.Rejected ? "document_rejected" : "document_not_safe", latest.CreatedAtUtc, "Open document review", "/operator/documents"));
             }
 
             foreach (var visaCase in visaRows.Where(item => item.BookingId == booking.Id && item.Status is VisaStatus.ActionRequired or VisaStatus.Rejected))
-                items.Add(Item(booking.Id, booking.Reference, "visa", visaCase.Status == VisaStatus.ActionRequired ? "Visa action required" : "Visa rejected", visaCase.Status.ToString(), visaCase.UpdatedAtUtc, "Open visa case", "/operator/visa"));
+                items.Add(new(booking.Id, booking.Reference, "visa", visaCase.Status == VisaStatus.ActionRequired ? "Visa action required" : "Visa rejected", visaCase.Status.ToString(), visaCase.UpdatedAtUtc, "Open visa case", "/operator/visa"));
         }
 
         if (!string.IsNullOrWhiteSpace(category))
-            items = items.Where(item => string.Equals((string)item.GetType().GetProperty("category")!.GetValue(item)!, category.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+            items = items.Where(item => string.Equals(item.Category, category.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
 
         http.RequestServices.GetRequiredService<ILogger<Program>>()
             .LogInformation("Operational support queue outcome=success operatorId={OperatorId} count={Count} correlationId={CorrelationId}", access.OperatorId, items.Count, http.TraceIdentifier);
-        return Results.Ok(new { items = items.OrderBy(item => (DateTimeOffset)item.GetType().GetProperty("updatedAtUtc")!.GetValue(item)!).ToArray() });
+        return Results.Ok(new { items = items.OrderBy(item => item.UpdatedAtUtc).ToArray() });
     }
-
-    private static object Item(Guid bookingId, string bookingReference, string category, string title, string code, DateTimeOffset updatedAtUtc, string actionLabel, string? actionTarget) =>
-        new { bookingId, bookingReference, category, title, code, updatedAtUtc, actionLabel, actionTarget };
 
     private static async Task<IResult> Detail(
         Guid bookingId,
@@ -162,15 +169,16 @@ public static class OperationalSupportEndpoints
             .Select(item => new { item.TravellerId, status = item.Status.ToString(), item.CustomerAction, item.Version, item.UpdatedAtUtc })
             .ToArrayAsync(cancellationToken);
 
+        object[] allowedActions = booking.State == BookingState.ConfirmationException
+            ? new object[] { new { code = "retry_confirmation", label = "Retry confirmation", target = $"/api/v1/operator/bookings/{booking.Id:D}/confirmation/retry" } }
+            : Array.Empty<object>();
         return Results.Ok(new
         {
             booking = new { booking.Id, booking.Reference, state = booking.State.ToString(), booking.ConfirmationExceptionCode, booking.UpdatedAtUtc },
             payment,
             documents = documentSummary,
             visa = visaSummary,
-            allowedActions = booking.State == BookingState.ConfirmationException
-                ? new[] { new { code = "retry_confirmation", label = "Retry confirmation", target = $"/api/v1/operator/bookings/{booking.Id:D}/confirmation/retry" } }
-                : Array.Empty<object>()
+            allowedActions
         });
     }
 }
