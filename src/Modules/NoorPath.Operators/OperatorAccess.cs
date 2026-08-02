@@ -9,6 +9,7 @@ public static class OperatorPermissions
 {
     public const string AdminAccess = "operator.admin.access";
     public const string DocumentReview = "operator.documents.review";
+    public const string VisaProcessing = "operator.visa.process";
 }
 
 public sealed record OperatorAccess(
