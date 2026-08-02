@@ -1,6 +1,8 @@
 using NoorPath.Visa;
 using Xunit;
+
 namespace NoorPath.Visa.Tests;
+
 public sealed class VisaPolicyTests
 {
     [Fact] public void Lifecycle_is_explicit() { Assert.Contains(VisaStatus.AwaitingDocuments, VisaPolicy.AllowedNext(VisaStatus.NotStarted)); Assert.Empty(VisaPolicy.AllowedNext(VisaStatus.Approved)); Assert.Empty(VisaPolicy.AllowedNext(VisaStatus.Rejected)); }
