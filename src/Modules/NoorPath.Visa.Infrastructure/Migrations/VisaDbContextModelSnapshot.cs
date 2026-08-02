@@ -5,6 +5,7 @@ using NoorPath.Visa.Infrastructure;
 
 #nullable disable
 namespace NoorPath.Visa.Infrastructure.Migrations;
+
 [DbContext(typeof(VisaDbContext))]
 partial class VisaDbContextModelSnapshot : ModelSnapshot
 {
