@@ -1,0 +1,69 @@
+{
+  "id": "VS-15",
+  "title": "Family Booking & Mahram Linking",
+  "slug": "family-booking-mahram-linking",
+  "outcome": "An authenticated customer can build one account-owned family travel party, link travellers through explicit Mahram relationships where required, and carry the validated party into quote, booking and journey workflows without duplicating travellers or weakening privacy boundaries.",
+  "actor": "Authenticated NoorPath customer managing travellers owned by their account.",
+  "dependsOn": ["VS-02R", "VS-07", "VS-09", "VS-11"],
+  "modules": [
+    "Travellers owns account-scoped traveller identity, profile facts and duplicate prevention.",
+    "Family Booking owns family-party composition and relationship declarations.",
+    "Booking consumes an immutable validated party snapshot and does not rewrite traveller or relationship records.",
+    "Pricing consumes traveller composition and occupancy inputs without inventing Mahram eligibility.",
+    "Documents and Visa consume traveller identifiers and approved relationship projections only.",
+    "Accounts owns authentication and account isolation."
+  ],
+  "routes": [
+    "Account -> Family travellers",
+    "Family travellers -> Add or edit traveller",
+    "Family travellers -> Link Mahram relationship",
+    "Family travellers -> Validate travel party",
+    "Validated family party -> Quote and booking",
+    "My Journey -> Family and Mahram summary"
+  ],
+  "acceptance": [
+    "Customers can create, edit and archive account-owned travellers without accessing another account's travellers.",
+    "A family party can contain one or more existing account-owned travellers and rejects duplicate membership.",
+    "Mahram links are explicit directed relationships between two travellers in the same account and family party.",
+    "The relationship type and supporting declaration are recorded without making NoorPath the legal or religious authority for eligibility.",
+    "Self-links, duplicate active links, cross-account links and links to archived travellers are rejected.",
+    "Party validation identifies missing or invalid Mahram links according to the approved configurable policy and returns clear corrective guidance.",
+    "Policy evaluation is versioned so a booking retains the exact rule version and validated relationship snapshot used at checkout.",
+    "Concurrent edits use optimistic concurrency and return recoverable stale feedback.",
+    "Quote and booking creation accept only an account-owned, currently valid party and copy an immutable traveller and relationship snapshot.",
+    "My Journey shows the booked family composition and customer-safe Mahram summary without exposing sensitive document data.",
+    "Every create, update, archive, link, unlink and validation action is auditable using opaque identifiers and privacy-safe telemetry.",
+    "Loading, empty, validation-required, stale, permission-denied, not-found and service-error states are complete and accessible.",
+    "Customer surfaces extend the approved NoorPath visual language and pass keyboard, focus, reflow, target-size, reduced-motion and WCAG checks."
+  ],
+  "exclusions": [
+    "Automated religious rulings or guarantees that a relationship is legally or religiously sufficient.",
+    "Document-based kinship verification, OCR or government-registry integration.",
+    "Cross-account traveller sharing, invitations or delegated family management.",
+    "Child or infant pricing changes beyond passing authoritative traveller facts to Pricing.",
+    "Room allocation, seat assignment, visa-provider integration or operator overrides.",
+    "Editing traveller or Mahram facts after booking in a way that mutates the immutable booking snapshot."
+  ],
+  "qualityGates": [
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "migration",
+    "security",
+    "accessibility",
+    "rendered-regression",
+    "journey-linking",
+    "concurrency",
+    "audit",
+    "telemetry",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "e2e/family-booking-mahram.spec.ts"
+  },
+  "specPath": "docs/slices/VS-15-FAMILY-BOOKING-MAHRAM-LINKING.md",
+  "checklistPath": "docs/slices/VS-15-IMPLEMENTATION-CHECKLIST.md"
+}
