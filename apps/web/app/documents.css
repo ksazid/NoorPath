@@ -41,6 +41,10 @@
   font-weight: 800;
   cursor: pointer;
 }
+.support-actions button {
+  background: #123f32;
+  color: #ffffff;
+}
 .document-status {
   font-weight: 800;
 }
