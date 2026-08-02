@@ -20,9 +20,25 @@ jobs:
     if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'certify')
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: noorpath_rendered_test
+          POSTGRES_USER: noorpath
+          POSTGRES_PASSWORD: ci-local-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U noorpath -d noorpath_rendered_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
       ASPNETCORE_ENVIRONMENT: Test
       Authentication__Mode: Test
+      ConnectionStrings__NoorPath: Host=127.0.0.1;Port=5432;Database=noorpath_rendered_test;Username=noorpath;Password=ci-local-only-password
+      Database__MigrateOnStartup: true
     steps:
       - uses: actions/checkout@v4
       - name: Resolve slice rendered contract
