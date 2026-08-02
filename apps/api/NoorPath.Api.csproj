@@ -17,6 +17,8 @@
     <ProjectReference Include="../../src/Modules/NoorPath.Traveller.Infrastructure/NoorPath.Traveller.Infrastructure.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Documents/NoorPath.Documents.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Documents.Infrastructure/NoorPath.Documents.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Modules/NoorPath.Visa/NoorPath.Visa.csproj" />
+    <ProjectReference Include="../../src/Modules/NoorPath.Visa.Infrastructure/NoorPath.Visa.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">

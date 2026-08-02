@@ -48,6 +48,13 @@
       "context": "TravellerDbContext",
       "database": "noorpath_traveller_test",
       "environment": "NOORPATH_TRAVELLER_TEST_DB"
+    },
+    {
+      "name": "Visa",
+      "project": "src/Modules/NoorPath.Visa.Infrastructure/NoorPath.Visa.Infrastructure.csproj",
+      "context": "VisaDbContext",
+      "database": "noorpath_visa_test",
+      "environment": "NOORPATH_VISA_TEST_DB"
     }
   ],
   "extraDatabases": [
