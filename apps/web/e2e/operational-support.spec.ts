@@ -1,5 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { expectNoA11yViolations, expectNoHorizontalOverflow } from "./helpers";
+import {
+  expectNoA11yViolations,
+  expectNoHorizontalOverflow,
+} from "./helpers";
 
 test("operator reviews an exception-first support case", async ({ page }) => {
   await page.route("**/api/v1/operator/support?*", (route) =>
