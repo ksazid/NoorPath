@@ -4,7 +4,7 @@
   "slug": "family-booking-mahram-linking",
   "outcome": "An authenticated customer can build one account-owned family travel party, link travellers through explicit Mahram relationships where required, and carry the validated party into quote, booking and journey workflows without duplicating travellers or weakening privacy boundaries.",
   "actor": "Authenticated NoorPath customer managing travellers owned by their account.",
-  "dependsOn": ["VS-02R", "VS-07", "VS-09", "VS-11"],
+  "dependsOn": ["VS-02", "VS-07", "VS-09", "VS-11"],
   "modules": [
     "Travellers owns account-scoped traveller identity, profile facts and duplicate prevention.",
     "Family Booking owns family-party composition and relationship declarations.",
