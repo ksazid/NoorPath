@@ -12,6 +12,9 @@ using NoorPath.Payments;
 using NoorPath.Payments.Infrastructure;
 using NoorPath.Pricing.Infrastructure;
 using NoorPath.Traveller.Infrastructure;
+using NoorPath.Documents;
+using NoorPath.Documents.Infrastructure;
+using Amazon.S3;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("NoorPath") ?? throw new InvalidOperationException("ConnectionStrings:NoorPath is required.");
@@ -22,6 +25,17 @@ builder.Services.AddDbContext<PaymentsDbContext>(options => options.UseNpgsql(co
 builder.Services.AddDbContext<PricingDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(PricingDbContext).Assembly.FullName)));
 builder.Services.AddDbContext<InventoryDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(InventoryDbContext).Assembly.FullName)));
 builder.Services.AddDbContext<TravellerDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(TravellerDbContext).Assembly.FullName)));
+builder.Services.AddDbContext<DocumentsDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(DocumentsDbContext).Assembly.FullName)));
+builder.Services.AddOptions<DocumentStorageOptions>().Bind(builder.Configuration.GetSection(DocumentStorageOptions.SectionName));
+var documentsEnabled = builder.Configuration.GetValue<bool>("Documents:ProductionEnabled");
+if (documentsEnabled)
+{
+    builder.Services.AddSingleton<IAmazonS3>(_ => new AmazonS3Client());
+    builder.Services.AddScoped<IPrivateDocumentStorage, S3DocumentStorage>();
+    builder.Services.AddHostedService<DocumentRetentionWorker>();
+}
+else builder.Services.AddScoped<IPrivateDocumentStorage, DisabledDocumentStorage>();
+builder.Services.AddScoped<IMalwareScanner, ClamAvScanner>();
 builder.Services.AddScoped<IBookingCheckoutService, BookingCheckoutService>();
 builder.Services.AddScoped<ConfirmationService>();
 builder.Services.AddScoped<IOperatorAccess>(services => services.GetRequiredService<OperatorsDbContext>());
@@ -64,6 +78,7 @@ if (builder.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
     await scope.ServiceProvider.GetRequiredService<TravellerDbContext>().Database.MigrateAsync();
     await scope.ServiceProvider.GetRequiredService<BookingDbContext>().Database.MigrateAsync();
     await scope.ServiceProvider.GetRequiredService<PaymentsDbContext>().Database.MigrateAsync();
+    await scope.ServiceProvider.GetRequiredService<DocumentsDbContext>().Database.MigrateAsync();
 }
 app.Use(async (context, next) =>
 {
@@ -94,6 +109,7 @@ app.MapBookings();
 app.MapPayments();
 app.MapConfirmations();
 app.MapMyJourney();
+app.MapDocuments();
 app.Run();
 
 public partial class Program;

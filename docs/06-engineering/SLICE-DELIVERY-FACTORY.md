@@ -75,6 +75,10 @@ A hosted preview is useful but must not create a second implementation branch or
 - Rendered Playwright reports remain the reproducible fallback for Product Owner review.
 - Production is never targeted by a slice preview workflow.
 
+## Client-side initial loading pattern
+
+Client pages that load data on mount must reuse `useDeferredInitialLoad` from `apps/web/lib/use-deferred-initial-load.ts`. Do not call a state-changing loader directly inside `useEffect`; the shared hook defers the load, provides timer cleanup and keeps `react-hooks/set-state-in-effect` enabled.
+
 ## Required labels
 
 - `certify`: run full exact-head certification. Remove during further implementation.

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useDeferredInitialLoad } from "../../../../lib/use-deferred-initial-load";
 import { Icon, PublicFooter, PublicHeader } from "../../../public-ui";
 
 type Journey = {
@@ -79,10 +80,7 @@ export default function JourneyPage() {
       setState({ kind: "error" });
     }
   }, [bookingId]);
-  useEffect(() => {
-    const timeout = window.setTimeout(() => void load(), 0);
-    return () => window.clearTimeout(timeout);
-  }, [load]);
+  useDeferredInitialLoad(load);
 
   return (
     <div className="journey-page">
@@ -217,7 +215,13 @@ function Dashboard({ journey: j }: { journey: Journey }) {
           <div>
             <Icon name="identification-card" />
             <h3>Documents</h3>
-            <p>Coming next. Upload and review are not available yet.</p>
+            <p>
+              Upload each traveller&apos;s required passport documents and
+              follow their review status.
+            </p>
+            <Link href={`/bookings/${j.bookingId}/documents`}>
+              Manage documents
+            </Link>
           </div>
           <div>
             <Icon name="file-text" />
