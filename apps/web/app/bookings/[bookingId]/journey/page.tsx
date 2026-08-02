@@ -226,7 +226,11 @@ function Dashboard({ journey: j }: { journey: Journey }) {
           <div>
             <Icon name="file-text" />
             <h3>Visa</h3>
-            <p>Coming next. No visa status has been assigned.</p>
+            <p>
+              See each traveller&apos;s current visa progress and any action
+              needed.
+            </p>
+            <Link href={`/bookings/${j.bookingId}/visa`}>View visa status</Link>
           </div>
         </div>
       </section>

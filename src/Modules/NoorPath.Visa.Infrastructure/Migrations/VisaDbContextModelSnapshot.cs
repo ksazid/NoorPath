@@ -1,0 +1,19 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
+using NoorPath.Visa.Infrastructure;
+
+#nullable disable
+namespace NoorPath.Visa.Infrastructure.Migrations;
+
+[DbContext(typeof(VisaDbContext))]
+partial class VisaDbContextModelSnapshot : ModelSnapshot
+{
+    protected override void BuildModel(ModelBuilder modelBuilder)
+    {
+        modelBuilder.HasAnnotation("ProductVersion", "10.0.10").HasAnnotation("Relational:MaxIdentifierLength", 63);
+        NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+        modelBuilder.Entity("NoorPath.Visa.Infrastructure.VisaCaseRecord", b => { b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid"); b.Property<Guid>("BookingId").HasColumnType("uuid"); b.Property<DateTimeOffset>("CreatedAtUtc").HasColumnType("timestamp with time zone"); b.Property<string>("CustomerAction").HasMaxLength(500).HasColumnType("character varying(500)"); b.Property<string>("OperatorId").IsRequired().HasMaxLength(80).HasColumnType("character varying(80)"); b.Property<string>("Status").IsRequired().HasMaxLength(32).HasColumnType("character varying(32)"); b.Property<Guid>("TravellerId").HasColumnType("uuid"); b.Property<DateTimeOffset>("UpdatedAtUtc").HasColumnType("timestamp with time zone"); b.Property<int>("Version").IsConcurrencyToken().HasColumnType("integer"); b.HasKey("Id"); b.HasIndex("BookingId", "TravellerId").IsUnique(); b.HasIndex("OperatorId", "Status", "UpdatedAtUtc"); b.ToTable("cases", "visa"); });
+        modelBuilder.Entity("NoorPath.Visa.Infrastructure.VisaTransitionRecord", b => { b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid"); b.Property<string>("ActorId").IsRequired().HasMaxLength(120).HasColumnType("character varying(120)"); b.Property<Guid>("CaseId").HasColumnType("uuid"); b.Property<string>("NewStatus").IsRequired().HasMaxLength(32).HasColumnType("character varying(32)"); b.Property<DateTimeOffset>("OccurredAtUtc").HasColumnType("timestamp with time zone"); b.Property<string>("PreviousStatus").IsRequired().HasMaxLength(32).HasColumnType("character varying(32)"); b.Property<string>("Reason").HasMaxLength(500).HasColumnType("character varying(500)"); b.Property<int>("Version").HasColumnType("integer"); b.HasKey("Id"); b.HasIndex("CaseId", "OccurredAtUtc"); b.ToTable("transitions", "visa"); });
+    }
+}

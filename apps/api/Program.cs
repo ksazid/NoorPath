@@ -15,6 +15,7 @@ using NoorPath.Traveller.Infrastructure;
 using NoorPath.Documents;
 using NoorPath.Documents.Infrastructure;
 using Amazon.S3;
+using NoorPath.Visa.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("NoorPath") ?? throw new InvalidOperationException("ConnectionStrings:NoorPath is required.");
@@ -26,6 +27,7 @@ builder.Services.AddDbContext<PricingDbContext>(options => options.UseNpgsql(con
 builder.Services.AddDbContext<InventoryDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(InventoryDbContext).Assembly.FullName)));
 builder.Services.AddDbContext<TravellerDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(TravellerDbContext).Assembly.FullName)));
 builder.Services.AddDbContext<DocumentsDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(DocumentsDbContext).Assembly.FullName)));
+builder.Services.AddDbContext<VisaDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(VisaDbContext).Assembly.FullName)));
 builder.Services.AddOptions<DocumentStorageOptions>().Bind(builder.Configuration.GetSection(DocumentStorageOptions.SectionName));
 var documentsEnabled = builder.Configuration.GetValue<bool>("Documents:ProductionEnabled");
 if (documentsEnabled)
@@ -79,6 +81,7 @@ if (builder.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
     await scope.ServiceProvider.GetRequiredService<BookingDbContext>().Database.MigrateAsync();
     await scope.ServiceProvider.GetRequiredService<PaymentsDbContext>().Database.MigrateAsync();
     await scope.ServiceProvider.GetRequiredService<DocumentsDbContext>().Database.MigrateAsync();
+    await scope.ServiceProvider.GetRequiredService<VisaDbContext>().Database.MigrateAsync();
 }
 app.Use(async (context, next) =>
 {
@@ -110,6 +113,7 @@ app.MapPayments();
 app.MapConfirmations();
 app.MapMyJourney();
 app.MapDocuments();
+app.MapVisa();
 app.Run();
 
 public partial class Program;
