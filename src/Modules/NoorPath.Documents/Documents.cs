@@ -17,8 +17,10 @@ public static class DocumentPolicy
     public static bool SignatureMatches(string contentType, ReadOnlySpan<byte> bytes) => contentType.ToLowerInvariant() switch
     {
         "application/pdf" => bytes.StartsWith("%PDF-"u8),
-        "image/jpeg" => bytes.StartsWith([0xff, 0xd8, 0xff]),
-        "image/png" => bytes.StartsWith([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+        "image/jpeg" => bytes.StartsWith(new byte[] { 0xff, 0xd8, 0xff }),
+        "image/png" => bytes.StartsWith(
+                 new byte[] { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a }
+        ),
         _ => false
     };
 
