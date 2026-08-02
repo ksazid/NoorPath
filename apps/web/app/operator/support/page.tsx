@@ -196,9 +196,7 @@ export default function OperationalSupportPage() {
           {state.kind === "error" ? (
             <section className="journey-state">
               <h2>Support queue temporarily unavailable</h2>
-              <button onClick={() => void load(search, category)}>
-                Retry
-              </button>
+              <button onClick={() => void load(search, category)}>Retry</button>
             </section>
           ) : null}
         </div>
@@ -235,15 +233,12 @@ export default function OperationalSupportPage() {
             className="journey-panel"
             aria-labelledby="support-case-title"
           >
-            <p className="public-eyebrow">
-              Booking {detail.booking.reference}
-            </p>
-            <h2 id="support-case-title">
-              Case state: {detail.booking.state}
-            </h2>
+            <p className="public-eyebrow">Booking {detail.booking.reference}</p>
+            <h2 id="support-case-title">Case state: {detail.booking.state}</h2>
             {detail.booking.confirmationExceptionCode ? (
               <p>
-                Confirmation exception: {detail.booking.confirmationExceptionCode}
+                Confirmation exception:{" "}
+                {detail.booking.confirmationExceptionCode}
               </p>
             ) : null}
 
