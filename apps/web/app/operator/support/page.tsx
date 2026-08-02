@@ -106,11 +106,11 @@ export default function OperationalSupportPage() {
         headers: headers(),
       },
     );
-    if (response.ok) {
-      setDetail((await response.json()) as Detail);
-    } else {
-      setMessage("The support case could not be loaded. Refresh and try again.");
-    }
+    if (response.ok) setDetail((await response.json()) as Detail);
+    else
+      setMessage(
+        "The support case could not be loaded. Refresh and try again.",
+      );
   }
 
   async function runAction(action: Detail["allowedActions"][number]) {
@@ -196,7 +196,9 @@ export default function OperationalSupportPage() {
           {state.kind === "error" ? (
             <section className="journey-state">
               <h2>Support queue temporarily unavailable</h2>
-              <button onClick={() => void load(search, category)}>Retry</button>
+              <button onClick={() => void load(search, category)}>
+                Retry
+              </button>
             </section>
           ) : null}
         </div>
