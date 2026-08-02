@@ -45,7 +45,10 @@ type Detail = {
 const headers = (json = false): HeadersInit => ({
   ...(json && { "Content-Type": "application/json" }),
   ...(process.env.NEXT_PUBLIC_NOORPATH_TEST_IDENTITY
-    ? { "X-NoorPath-Test-Identity": process.env.NEXT_PUBLIC_NOORPATH_TEST_IDENTITY }
+    ? {
+        "X-NoorPath-Test-Identity":
+          process.env.NEXT_PUBLIC_NOORPATH_TEST_IDENTITY,
+      }
     : {}),
 });
 
@@ -95,18 +98,26 @@ export default function OperationalSupportPage() {
 
   async function openCase(item: SupportItem) {
     setMessage("");
-    const response = await fetch(`/api/v1/operator/support/bookings/${item.bookingId}`, {
-      credentials: "include",
-      cache: "no-store",
-      headers: headers(),
-    });
-    if (response.ok) setDetail((await response.json()) as Detail);
-    else setMessage("The support case could not be loaded. Refresh and try again.");
+    const response = await fetch(
+      `/api/v1/operator/support/bookings/${item.bookingId}`,
+      {
+        credentials: "include",
+        cache: "no-store",
+        headers: headers(),
+      },
+    );
+    if (response.ok) {
+      setDetail((await response.json()) as Detail);
+    } else {
+      setMessage("The support case could not be loaded. Refresh and try again.");
+    }
   }
 
   async function runAction(action: Detail["allowedActions"][number]) {
     if (action.code !== "retry_confirmation" || !detail) return;
-    const reason = window.prompt("Record the operational reason for retrying confirmation");
+    const reason = window.prompt(
+      "Record the operational reason for retrying confirmation",
+    );
     if (!reason) return;
     const response = await fetch(action.target, {
       method: "POST",
@@ -115,7 +126,9 @@ export default function OperationalSupportPage() {
       body: JSON.stringify({ reason }),
     });
     if (response.status === 409) {
-      setMessage("The booking changed and can no longer be recovered from this state.");
+      setMessage(
+        "The booking changed and can no longer be recovered from this state.",
+      );
       await openCase({ bookingId: detail.booking.id } as SupportItem);
       return;
     }
@@ -140,10 +153,14 @@ export default function OperationalSupportPage() {
         <p className="public-eyebrow">Exception-first operations</p>
         <h1>Operational support</h1>
         <p className="journey-intro">
-          Find booking exceptions, review module-owned facts, and use only governed recovery actions.
+          Find booking exceptions, review module-owned facts, and use only
+          governed recovery actions.
         </p>
 
-        <form className="journey-panel" onSubmit={(event) => void submit(event)}>
+        <form
+          className="journey-panel"
+          onSubmit={(event) => void submit(event)}
+        >
           <label>
             Booking reference
             <input
@@ -154,7 +171,10 @@ export default function OperationalSupportPage() {
           </label>
           <label>
             Exception category
-            <select value={category} onChange={(event) => setCategory(event.target.value)}>
+            <select
+              value={category}
+              onChange={(event) => setCategory(event.target.value)}
+            >
               <option value="">All categories</option>
               <option value="confirmation">Confirmation</option>
               <option value="payment">Payment</option>
@@ -167,8 +187,12 @@ export default function OperationalSupportPage() {
 
         <div aria-live="polite">
           {message ? <p>{message}</p> : null}
-          {state.kind === "loading" ? <p>Loading operational exceptions…</p> : null}
-          {state.kind === "denied" ? <p>You do not have operational support permission.</p> : null}
+          {state.kind === "loading" ? (
+            <p>Loading operational exceptions…</p>
+          ) : null}
+          {state.kind === "denied" ? (
+            <p>You do not have operational support permission.</p>
+          ) : null}
           {state.kind === "error" ? (
             <section className="journey-state">
               <h2>Support queue temporarily unavailable</h2>
@@ -187,7 +211,10 @@ export default function OperationalSupportPage() {
         {state.kind === "ready" ? (
           <div className="documents-list">
             {state.items.map((item) => (
-              <article className="documents-card" key={`${item.category}-${item.bookingId}-${item.code}`}>
+              <article
+                className="documents-card"
+                key={`${item.category}-${item.bookingId}-${item.code}`}
+              >
                 <p className="public-eyebrow">{item.category}</p>
                 <h2>{item.title}</h2>
                 <p>Booking {item.bookingReference}</p>
@@ -202,15 +229,28 @@ export default function OperationalSupportPage() {
         ) : null}
 
         {detail ? (
-          <section className="journey-panel" aria-labelledby="support-case-title">
-            <p className="public-eyebrow">Booking {detail.booking.reference}</p>
-            <h2 id="support-case-title">Case state: {detail.booking.state}</h2>
+          <section
+            className="journey-panel"
+            aria-labelledby="support-case-title"
+          >
+            <p className="public-eyebrow">
+              Booking {detail.booking.reference}
+            </p>
+            <h2 id="support-case-title">
+              Case state: {detail.booking.state}
+            </h2>
             {detail.booking.confirmationExceptionCode ? (
-              <p>Confirmation exception: {detail.booking.confirmationExceptionCode}</p>
+              <p>
+                Confirmation exception: {detail.booking.confirmationExceptionCode}
+              </p>
             ) : null}
 
             <h3>Payment</h3>
-            <p>{detail.payment ? `${detail.payment.state}${detail.payment.failureCode ? ` — ${detail.payment.failureCode}` : ""}` : "No payment attempt recorded."}</p>
+            <p>
+              {detail.payment
+                ? `${detail.payment.state}${detail.payment.failureCode ? ` — ${detail.payment.failureCode}` : ""}`
+                : "No payment attempt recorded."}
+            </p>
 
             <h3>Documents</h3>
             {detail.documents.length ? (
@@ -218,11 +258,15 @@ export default function OperationalSupportPage() {
                 {detail.documents.map((document) => (
                   <li key={`${document.kind}-${document.version ?? "missing"}`}>
                     <span>{document.kind}</span>
-                    <span>{document.state} · {document.malwareStatus}</span>
+                    <span>
+                      {document.state} · {document.malwareStatus}
+                    </span>
                   </li>
                 ))}
               </ul>
-            ) : <p>No document requirements recorded.</p>}
+            ) : (
+              <p>No document requirements recorded.</p>
+            )}
 
             <h3>Visa</h3>
             {detail.visa.length ? (
@@ -234,11 +278,19 @@ export default function OperationalSupportPage() {
                   </li>
                 ))}
               </ul>
-            ) : <p>No visa cases recorded.</p>}
+            ) : (
+              <p>No visa cases recorded.</p>
+            )}
 
-            <div className="document-row" aria-label="Approved recovery actions">
+            <div
+              className="document-row support-actions"
+              aria-label="Approved recovery actions"
+            >
               {detail.allowedActions.map((action) => (
-                <button key={action.code} onClick={() => void runAction(action)}>
+                <button
+                  key={action.code}
+                  onClick={() => void runAction(action)}
+                >
                   {action.label}
                 </button>
               ))}
