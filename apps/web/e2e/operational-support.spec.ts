@@ -1,5 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { expectNoA11yViolations, expectNoHorizontalOverflow } from "./helpers";
+import {
+  expectNoA11yViolations,
+  expectNoHorizontalOverflow,
+} from "./helpers";
 
 test("operator reviews an exception-first support case", async ({ page }) => {
   await page.route("**/api/v1/operator/support?*", (route) =>
@@ -31,9 +34,26 @@ test("operator reviews an exception-first support case", async ({ page }) => {
           confirmationExceptionCode: "inventory_commit_failed",
           updatedAtUtc: "2026-08-02T05:00:00Z",
         },
-        payment: { state: "Succeeded", updatedAtUtc: "2026-08-02T04:59:00Z" },
-        documents: [{ kind: "Passport", state: "Approved", malwareStatus: "Clean", version: 2 }],
-        visa: [{ travellerId: "t1", status: "ActionRequired", version: 3, updatedAtUtc: "2026-08-02T05:00:00Z" }],
+        payment: {
+          state: "Succeeded",
+          updatedAtUtc: "2026-08-02T04:59:00Z",
+        },
+        documents: [
+          {
+            kind: "Passport",
+            state: "Approved",
+            malwareStatus: "Safe",
+            version: 2,
+          },
+        ],
+        visa: [
+          {
+            travellerId: "t1",
+            status: "ActionRequired",
+            version: 3,
+            updatedAtUtc: "2026-08-02T05:00:00Z",
+          },
+        ],
         allowedActions: [
           {
             code: "retry_confirmation",
@@ -47,11 +67,17 @@ test("operator reviews an exception-first support case", async ({ page }) => {
   );
 
   await page.goto("/operator/support");
-  await expect(page.getByRole("heading", { name: "Operational support" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Operational support" }),
+  ).toBeVisible();
   await expect(page.getByText("Confirmation needs recovery")).toBeVisible();
   await page.getByRole("button", { name: "Review case" }).click();
-  await expect(page.getByText("Case state: ConfirmationException")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Retry confirmation" })).toBeVisible();
+  await expect(
+    page.getByText("Case state: ConfirmationException"),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Retry confirmation" }),
+  ).toBeVisible();
   await expectNoA11yViolations(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await expectNoHorizontalOverflow(page);
@@ -62,6 +88,8 @@ test("operator support renders permission denial", async ({ page }) => {
     route.fulfill({ status: 403 }),
   );
   await page.goto("/operator/support");
-  await expect(page.getByText("You do not have operational support permission.")).toBeVisible();
+  await expect(
+    page.getByText("You do not have operational support permission."),
+  ).toBeVisible();
   await expectNoA11yViolations(page);
 });
