@@ -114,6 +114,7 @@ app.MapConfirmations();
 app.MapMyJourney();
 app.MapDocuments();
 app.MapVisa();
+app.MapOperationalSupport();
 app.Run();
 
 public partial class Program;

@@ -2,7 +2,7 @@ namespace NoorPath.Documents;
 
 public enum DocumentKind { PassportBioPage, PassportPhoto }
 public enum SubmissionState { Quarantined, UnderReview, Approved, CorrectionRequired, Rejected, Superseded, Deleted }
-public enum MalwareStatus { Pending, Safe, Unsafe, Indeterminate }
+public enum MalwareStatus { Pending, Safe, Unsafe, Indeterminate, Clean = Safe }
 public enum ReviewDecision { Approve, RequestCorrection, Reject }
 
 public static class DocumentPolicy
