@@ -1,12 +1,9 @@
 using System;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 namespace NoorPath.Visa.Infrastructure.Migrations;
 
-[DbContext(typeof(VisaDbContext))]
-[Migration("20260802160000_VS13VisaProcessing")]
 public partial class VS13VisaProcessing : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
