@@ -234,9 +234,7 @@ export default function OperationalSupportPage() {
             aria-labelledby="support-case-title"
           >
             <p className="public-eyebrow">Booking {detail.booking.reference}</p>
-            <h2 id="support-case-title">
-              Case state: {detail.booking.state}
-            </h2>
+            <h2 id="support-case-title">Case state: {detail.booking.state}</h2>
             {detail.booking.confirmationExceptionCode ? (
               <p>
                 Confirmation exception:{" "}
