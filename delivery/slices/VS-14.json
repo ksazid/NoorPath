@@ -1,0 +1,64 @@
+{
+  "id": "VS-14",
+  "title": "Operational Support",
+  "slug": "operational-support",
+  "outcome": "Authorized operations staff can find, understand and safely resolve MVP booking exceptions across booking, payment, documents and visa without bypassing the owning module's rules.",
+  "actor": "Authorized Operator Operations Staff acting within an active operator membership and explicit support permissions.",
+  "dependsOn": ["VS-01", "VS-10", "VS-12", "VS-13"],
+  "modules": [
+    "Operational Support owns the exception queue, cross-module support projection, assignment and support activity timeline.",
+    "Booking owns booking state and exposes only approved recovery commands and support projections.",
+    "Payments owns payment state, reconciliation evidence and approved retry or reconciliation commands.",
+    "Documents owns review state, correction requests and private-file access boundaries.",
+    "Visa owns visa case state and governed lifecycle transitions.",
+    "Operators owns membership, operator scope and support permissions."
+  ],
+  "routes": [
+    "Operator workspace -> Exception queue",
+    "Exception queue -> Search and filters",
+    "Exception -> Cross-module case summary",
+    "Exception -> Approved module-owned action",
+    "Exception -> Audited support timeline"
+  ],
+  "acceptance": [
+    "Authorized staff can search by booking reference and filter an exception-first queue without receiving unrestricted database-style access.",
+    "Every result is scoped to the operator membership of the current staff member; foreign operator resources return safe not-found responses.",
+    "The case view composes truthful projections from Booking, Payments, Documents and Visa while preserving each module's ownership.",
+    "Only explicitly approved support commands are available, and every command is validated by the owning module's current state and invariants.",
+    "No support action directly edits another module's tables or bypasses its state machine.",
+    "Stale versions and concurrent actions are rejected with recoverable feedback and no loss of audit history.",
+    "Every support action records operator, action, target module, reason, timestamp, outcome and correlation identifier without sensitive customer or document content.",
+    "The queue prioritizes actionable exceptions and exposes age, severity and owning module without leaking payment credentials, passport data, private document keys or visa references.",
+    "Loading, empty, permission-denied, not-found, stale, partial-projection, action-failed and resolved states are complete.",
+    "Operator surfaces preserve the approved NoorPath visual language and pass keyboard, focus, target-size, reflow, reduced-motion and WCAG checks.",
+    "Telemetry records safe queue latency, exception counts, command outcomes and projection failures using opaque identifiers only."
+  ],
+  "exclusions": [
+    "Full CRM, ticketing, customer messaging or contact-centre platform.",
+    "Unrestricted SQL-like search, generic record editing or arbitrary status mutation.",
+    "New payment-provider, document-storage or visa-provider integrations.",
+    "Bulk mutation, automated consequential decisions or silent exception resolution.",
+    "Customer-facing support chat, email, SMS, WhatsApp or push notifications.",
+    "Family or Mahram booking rules unless separately registered and approved."
+  ],
+  "qualityGates": [
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "security",
+    "accessibility",
+    "rendered-regression",
+    "concurrency",
+    "audit",
+    "telemetry",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "e2e/operational-support.spec.ts"
+  },
+  "specPath": "docs/slices/VS-14-OPERATIONAL-SUPPORT.md",
+  "checklistPath": "docs/slices/VS-14-IMPLEMENTATION-CHECKLIST.md"
+}
