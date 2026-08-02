@@ -1,0 +1,63 @@
+{
+  "id": "VS-13",
+  "title": "Visa Processing Tracker",
+  "slug": "visa-processing-tracker",
+  "outcome": "An authorized operator can manage each confirmed traveller's visa case through an explicit lifecycle while the booking owner sees only truthful, customer-safe status and required actions.",
+  "actor": "Authenticated booking owner and authorized Operator Operations Staff acting within the booking's operator scope.",
+  "dependsOn": ["VS-01", "VS-11"],
+  "modules": [
+    "Visa owns visa cases, state transitions, customer-safe action, operator notes and append-oriented status history.",
+    "Traveller supplies stable traveller identifiers without duplicating identity or passport data.",
+    "Booking supplies confirmed booking ownership and operator scope.",
+    "Documents supplies document-readiness projection only; Visa does not read or expose private document content."
+  ],
+  "routes": [
+    "My Journey -> Traveller visa status",
+    "Authorized operator workspace -> Visa processing queue",
+    "Visa case -> Governed status transition",
+    "Action required -> Customer-safe guidance",
+    "Visa case history -> Audited operational timeline"
+  ],
+  "acceptance": [
+    "One visa case exists per traveller on an eligible confirmed booking and remains scoped to its booking operator.",
+    "The lifecycle is NotStarted, AwaitingDocuments, ReadyToSubmit, Submitted, Processing and a terminal or actionable outcome of Approved, ActionRequired or Rejected.",
+    "Only authorized Operator Operations Staff can transition a case, and direct arbitrary status editing is rejected.",
+    "Every transition records previous state, new state, actor, timestamp, concurrency version and an operator reason where required.",
+    "Booking owners can view only account-owned bookings and receive safe not-found responses for foreign identifiers.",
+    "Customers see simplified truthful status, last-updated time and safe required action without internal notes, government references, document content or sensitive operational data.",
+    "Visa approval is recorded operator evidence, never inferred from document approval, payment, elapsed time or UI state.",
+    "Document readiness may permit ReadyToSubmit but never automatically submits, approves or rejects a visa case.",
+    "Stale concurrent transitions are rejected without losing history.",
+    "Loading, empty, unavailable, permission-denied, stale, action-required, rejected, approved and recoverable-error states are complete.",
+    "Customer and operator surfaces preserve NoorPath visual language and pass keyboard, focus, target-size, reflow, reduced-motion and WCAG checks.",
+    "Telemetry records safe transition outcomes, queue latency and projection failures without traveller identity, passport or visa-reference data."
+  ],
+  "exclusions": [
+    "Government, embassy, consulate or external visa-provider API integration.",
+    "Automated submission, approval, rejection, eligibility scoring or legal advice.",
+    "Uploading or duplicating passport and visa evidence; private files remain Documents-owned.",
+    "Email, SMS, WhatsApp or push notifications; owned by VS-17.",
+    "Family/Mahram rules; owned by VS-14.",
+    "Generic CRM, unrestricted admin editing or bulk status mutation."
+  ],
+  "qualityGates": [
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "migration",
+    "security",
+    "accessibility",
+    "rendered-regression",
+    "journey-linking",
+    "telemetry",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "e2e/visa-processing.spec.ts"
+  },
+  "specPath": "docs/slices/VS-13-VISA-PROCESSING-TRACKER.md",
+  "checklistPath": "docs/slices/VS-13-IMPLEMENTATION-CHECKLIST.md"
+}
