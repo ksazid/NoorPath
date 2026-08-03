@@ -85,7 +85,12 @@
   background: #f7e9e5;
   color: #7c2d1f;
 }
-.button:disabled,
+.button:disabled {
+  cursor: not-allowed;
+  background: #355a4e;
+  color: white;
+  opacity: 1;
+}
 .secondary:disabled,
 .danger:disabled {
   cursor: not-allowed;
