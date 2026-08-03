@@ -129,7 +129,9 @@ test("customer receives recoverable stale-version guidance", async ({
   const validateButton = page.getByRole("button", { name: "Validate party" });
   await expect(validateButton).toBeVisible();
   await validateButton.click();
-  await expect(page.getByRole("alert")).toContainText(
-    "This family party was updated elsewhere",
-  );
+  await expect(
+    page.getByRole("alert").filter({
+      hasText: "This family party was updated elsewhere",
+    }),
+  ).toContainText("This family party was updated elsewhere");
 });
