@@ -1,0 +1,45 @@
+name: VS-15 generate migration
+
+on:
+  push:
+    branches:
+      - codex/vs15-family-booking-mahram-runtime
+    paths:
+      - .github/workflows/vs15-generate-migration.yml
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/vs15-family-booking-mahram-runtime
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - run: dotnet tool install --global dotnet-ef --version 10.0.10
+      - run: dotnet restore NoorPath.slnx
+      - name: Generate clean EF migration
+        shell: bash
+        run: |
+          rm -f src/Modules/NoorPath.FamilyBooking.Infrastructure/Migrations/*.cs
+          dotnet ef migrations add VS15FamilyBooking \
+            --project src/Modules/NoorPath.FamilyBooking.Infrastructure/NoorPath.FamilyBooking.Infrastructure.csproj \
+            --context FamilyBookingDbContext \
+            --output-dir Migrations
+          dotnet format NoorPath.slnx --no-restore
+          dotnet ef migrations has-pending-model-changes \
+            --project src/Modules/NoorPath.FamilyBooking.Infrastructure/NoorPath.FamilyBooking.Infrastructure.csproj \
+            --context FamilyBookingDbContext
+      - name: Commit generated migration
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/Modules/NoorPath.FamilyBooking.Infrastructure/Migrations
+          git commit -m "Generate VS-15 Family Booking migration"
+          git push origin HEAD:codex/vs15-family-booking-mahram-runtime
