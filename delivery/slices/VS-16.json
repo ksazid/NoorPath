@@ -1,0 +1,86 @@
+{
+  "id": "VS-16",
+  "title": "Cancellation & Refunds",
+  "slug": "cancellation-refunds",
+  "outcome": "An authenticated booking owner can request cancellation of an eligible confirmed booking, receive a versioned and explainable refund entitlement, and track the governed cancellation and refund outcome without erasing booking, payment, inventory or audit history.",
+  "actor": "Authenticated NoorPath booking owner, with authorized operator staff handling governed review and exceptions.",
+  "dependsOn": ["VS-09", "VS-10", "VS-11", "VS-14"],
+  "modules": [
+    "Booking owns cancellation request state, booking lifecycle transitions and the immutable cancellation-policy snapshot used for the decision.",
+    "Payments owns refund authorization, provider execution, append-only refund ledger entries and reconciliation state.",
+    "Inventory owns release of committed inventory exactly once after an approved booking cancellation.",
+    "My Journey consumes customer-safe cancellation and refund projections without deriving financial truth in the web layer.",
+    "Operational Support composes cancellation exceptions but may act only through Booking- and Payments-owned commands.",
+    "Accounts owns authentication and booking-owner isolation; Operator Access owns permission and operator-scope enforcement."
+  ],
+  "routes": [
+    "My Journey -> Booking -> Cancellation policy",
+    "My Journey -> Booking -> Request cancellation",
+    "My Journey -> Booking -> Cancellation and refund status",
+    "Operator workspace -> Cancellation review queue",
+    "Operator workspace -> Cancellation case -> Approve or reject",
+    "Operational Support -> Cancellation or refund exception"
+  ],
+  "acceptance": [
+    "The booking owner can view the versioned cancellation policy and an explainable estimated entitlement before submitting a request.",
+    "Only an account-owned eligible booking can be requested for cancellation; foreign-account resources return safe not-found responses.",
+    "Cancellation requests are idempotent and reject duplicate active requests or invalid booking states.",
+    "The entitlement calculation carries explicit currency, policy version, calculation inputs, fee components and the maximum refundable amount derived from authoritative settled-payment facts.",
+    "The web client never invents a fee, refund amount, balance or cancellation outcome.",
+    "Cancellation request, approval, booking cancellation, inventory release, refund authorization, provider execution and refund settlement remain explicit separate states.",
+    "An approved cancellation changes booking state without deleting the booking, commercial snapshot, travellers, payments, documents, visa cases or audit evidence.",
+    "Committed inventory is released exactly once through the Inventory-owned command after the approved booking cancellation transition.",
+    "Refunds create append-only financial records and never edit or erase original settled payments.",
+    "Provider retries, callbacks and reconciliation are idempotent and cannot create duplicate refund facts.",
+    "Operator decisions require permission, operator scope, reason, expected version and an auditable actor/timestamp/outcome.",
+    "The booking owner can see requested, under-review, approved, rejected, refund-pending, partially-refunded, refunded and failed/recovery-required states using customer-safe language.",
+    "Operational exceptions are recoverable through explicit module-owned commands rather than direct state editing.",
+    "Logs and telemetry use opaque identifiers and exclude payment payloads, traveller data, document data, tokens and provider secrets.",
+    "Loading, unavailable, ineligible, stale, duplicate, permission-denied, provider-delayed and recoverable-error states are complete and accessible.",
+    "Customer and operator surfaces extend the approved NoorPath visual language and pass keyboard, focus, reflow, target-size, reduced-motion and WCAG checks."
+  ],
+  "policyDecisionsRequired": [
+    "The cancellation windows and fee schedule relative to departure date/time, including the governing timezone.",
+    "Whether the MVP policy differs by operator, departure or package, and who may publish a policy version.",
+    "Which paid components are refundable, non-refundable or capped, including provider fees and already-incurred supplier costs.",
+    "Whether customer requests always require operator approval or may auto-approve in explicitly safe windows.",
+    "The allowed cancellation cutoff and treatment after material fulfilment milestones such as ticketing, visa submission or visa decision.",
+    "The customer-facing refund processing expectation and escalation threshold.",
+    "The policy for operator-initiated cancellation, including whether it uses a separate entitlement rule."
+  ],
+  "exclusions": [
+    "Partial cancellation of selected travellers within a booking.",
+    "Changing occupancy or substituting travellers as part of cancellation.",
+    "Chargebacks, disputes, card-network arbitration or fraud case management.",
+    "Unrestricted operator editing of refund amounts or historical payment facts.",
+    "Automated supplier recovery, airline refund, hotel refund or insurance integrations.",
+    "Cancellation of draft quotes, expired inventory holds or unconfirmed checkout attempts already handled by their owning slices.",
+    "Promotional credits, vouchers, loyalty points or goodwill compensation.",
+    "Production refund execution before provider credentials, legal policy and Product Owner approval are complete."
+  ],
+  "qualityGates": [
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "migration",
+    "security",
+    "authorization",
+    "idempotency",
+    "concurrency",
+    "financial-reconciliation",
+    "audit",
+    "telemetry",
+    "accessibility",
+    "rendered-regression",
+    "journey-linking",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "e2e/cancellation-refunds.spec.ts"
+  },
+  "specPath": "docs/slices/VS-16-CANCELLATION-REFUNDS.md",
+  "checklistPath": "docs/slices/VS-16-IMPLEMENTATION-CHECKLIST.md"
+}
