@@ -28,19 +28,19 @@
     "Multi-region operation and speculative scaling infrastructure"
   ],
   "thresholds": {
-    "p95ApiLatencyMs": null,
-    "maximumErrorRatePercent": null,
-    "maximumConcurrentCheckouts": null
+    "p95ApiLatencyMs": 1500,
+    "maximumErrorRatePercent": 1,
+    "maximumConcurrentCheckouts": 10
   },
   "recovery": {
-    "rpoMinutes": null,
-    "rtoMinutes": null,
-    "backupRetentionDays": null,
-    "restoreOwner": null
+    "rpoMinutes": 60,
+    "rtoMinutes": 120,
+    "backupRetentionDays": 7,
+    "restoreOwner": "Release Operator"
   },
   "monitoring": {
-    "alertOwner": null,
-    "escalationTarget": null,
+    "alertOwner": "Release Operator",
+    "escalationTarget": "Product Owner",
     "requiredSignals": [
       "api_readiness_failure",
       "payment_failure",
@@ -68,10 +68,10 @@
     }
   },
   "releaseControls": {
-    "releaseOperator": null,
-    "rollbackAuthority": null,
-    "changeWindow": null,
-    "observationMinutes": null,
+    "releaseOperator": "Engineering Release Operator",
+    "rollbackAuthority": "Product Owner",
+    "changeWindow": "Product Owner-approved low-traffic window",
+    "observationMinutes": 30,
     "productionDeploymentRequiresSeparateApproval": true
   },
   "postDeploymentSmokeTests": [
