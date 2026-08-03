@@ -1,16 +1,15 @@
-name: VS-16 Runtime Build
+name: VS-16 Runtime Correction
 
 on:
-  pull_request:
+  push:
     branches:
-      - main
-  workflow_dispatch:
+      - codex/vs16-cancellation-refunds-runtime
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  correct:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-24.04
     steps:
@@ -20,49 +19,10 @@ jobs:
           fetch-depth: 0
       - name: Correct response and test contracts
         run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          service = Path('apps/api/CancellationRefundService.cs')
-          text = service.read_text()
-          old_success = 'public bool IsSuccess => StatusCode is >= 200 and < 300;'
-          if old_success not in text:
-              raise SystemExit('operation-result contract not found')
-          text = text.replace(old_success, 'public bool IsSuccess => Value is not null;', 1)
-
-          declaration = '        RefundRecord refund;\n        PaymentAttemptRecord? paymentAttempt;'
-          guard = '''        if (!await payments.Refunds.AsNoTracking().AnyAsync(
-                item => item.Id == refundId,
-                cancellationToken))
-        {
-            return CancellationOperationResult<RefundRecord>.Failure(
-                StatusCodes.Status404NotFound,
-                "refund_not_found",
-                "The refund could not be found.");
-        }
-
-        RefundRecord refund;
-        PaymentAttemptRecord? paymentAttempt;'''
-          if declaration not in text:
-              raise SystemExit('refund declaration not found')
-          text = text.replace(declaration, guard, 1)
-          text = text.replace(
-              '.SingleOrDefaultAsync(cancellationToken)\n                ?? throw new RefundNotFoundException();',
-              '.SingleAsync(cancellationToken);',
-              1)
-          text = text.replace('\n    private sealed class RefundNotFoundException : Exception;\n', '\n')
-          service.write_text(text)
-
-          test = Path('tests/NoorPath.Commercial.Integration.Tests/CancellationRefundApiTests.cs')
-          text = test.read_text()
-          old_status = 'Assert.Equal("Cancelled", approvedBody.RootElement.GetProperty("customerStatus").GetString());'
-          if old_status not in text:
-              raise SystemExit('customer status assertion not found')
-          test.write_text(text.replace(
-              old_status,
-              'Assert.Equal("RefundPending", approvedBody.RootElement.GetProperty("customerStatus").GetString());',
-              1))
-          PY
+          perl -0pi -e 's/public bool IsSuccess => StatusCode is >= 200 and < 300;/public bool IsSuccess => Value is not null;/' apps/api/CancellationRefundService.cs
+          perl -0pi -e 's/Assert\.Equal\("Cancelled", approvedBody\.RootElement\.GetProperty\("customerStatus"\)\.GetString\(\)\);/Assert.Equal("RefundPending", approvedBody.RootElement.GetProperty("customerStatus").GetString());/' tests/NoorPath.Commercial.Integration.Tests/CancellationRefundApiTests.cs
+          grep -F 'public bool IsSuccess => Value is not null;' apps/api/CancellationRefundService.cs
+          grep -F 'Assert.Equal("RefundPending", approvedBody.RootElement.GetProperty("customerStatus").GetString());' tests/NoorPath.Commercial.Integration.Tests/CancellationRefundApiTests.cs
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
