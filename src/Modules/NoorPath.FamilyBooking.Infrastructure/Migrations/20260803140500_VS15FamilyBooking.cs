@@ -6,7 +6,7 @@ namespace NoorPath.FamilyBooking.Infrastructure.Migrations;
 
 [DbContext(typeof(FamilyBookingDbContext))]
 [Migration("20260803140500_VS15FamilyBooking")]
-public sealed class VS15FamilyBooking : Migration
+public partial class VS15FamilyBooking : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
