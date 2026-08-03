@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - ops/vercel-source-export
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
