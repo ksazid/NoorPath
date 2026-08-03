@@ -72,7 +72,7 @@
 }
 .button {
   background: var(--green);
-  color: white;
+  color: #fff;
 }
 .secondary {
   border: 1px solid rgba(25, 82, 64, 0.22);
@@ -88,7 +88,7 @@
 .button:disabled {
   cursor: not-allowed;
   background: #355a4e;
-  color: white;
+  color: #fff;
   opacity: 1;
 }
 .secondary:disabled,
