@@ -91,7 +91,13 @@ public sealed class VS15FamilyBooking : Migration
             constraints: table =>
             {
                 table.PrimaryKey("PK_members", x => new { x.FamilyPartyId, x.TravellerId });
-                table.ForeignKey("FK_members_parties_FamilyPartyId", x => x.FamilyPartyId, "family_booking", "parties", "Id", onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_members_parties_FamilyPartyId",
+                    column: x => x.FamilyPartyId,
+                    principalSchema: "family_booking",
+                    principalTable: "parties",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
             });
 
         migrationBuilder.CreateTable(
@@ -114,27 +120,73 @@ public sealed class VS15FamilyBooking : Migration
             constraints: table =>
             {
                 table.PrimaryKey("PK_mahram_links", x => x.Id);
-                table.ForeignKey("FK_mahram_links_parties_FamilyPartyId", x => x.FamilyPartyId, "family_booking", "parties", "Id", onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_mahram_links_parties_FamilyPartyId",
+                    column: x => x.FamilyPartyId,
+                    principalSchema: "family_booking",
+                    principalTable: "parties",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
             });
 
-        migrationBuilder.CreateIndex("IX_parties_AccountId_Status_UpdatedAtUtc", "family_booking", "parties", new[] { "AccountId", "Status", "UpdatedAtUtc" });
-        migrationBuilder.CreateIndex("IX_members_AccountId_TravellerId", "family_booking", "members", new[] { "AccountId", "TravellerId" });
-        migrationBuilder.CreateIndex("IX_mahram_links_AccountId_FamilyPartyId", "family_booking", "mahram_links", new[] { "AccountId", "FamilyPartyId" });
-        migrationBuilder.CreateIndex("IX_mahram_links_FamilyPartyId_ProtectedTravellerId_MahramTravellerId", "family_booking", "mahram_links", new[] { "FamilyPartyId", "ProtectedTravellerId", "MahramTravellerId" }, unique: true, filter: "\"IsActive\" = TRUE");
-        migrationBuilder.CreateIndex("IX_audit_events_AccountId_OccurredAtUtc", "family_booking", "audit_events", new[] { "AccountId", "OccurredAtUtc" });
-        migrationBuilder.CreateIndex("IX_quote_snapshots_QuoteId", "family_booking", "quote_snapshots", "QuoteId", unique: true);
-        migrationBuilder.CreateIndex("IX_quote_snapshots_AccountId_FamilyPartyId", "family_booking", "quote_snapshots", new[] { "AccountId", "FamilyPartyId" });
-        migrationBuilder.CreateIndex("IX_booking_snapshots_BookingId", "family_booking", "booking_snapshots", "BookingId", unique: true);
-        migrationBuilder.CreateIndex("IX_booking_snapshots_AccountId_FamilyPartyId", "family_booking", "booking_snapshots", new[] { "AccountId", "FamilyPartyId" });
+        migrationBuilder.CreateIndex(
+            name: "IX_parties_AccountId_Status_UpdatedAtUtc",
+            schema: "family_booking",
+            table: "parties",
+            columns: new[] { "AccountId", "Status", "UpdatedAtUtc" });
+        migrationBuilder.CreateIndex(
+            name: "IX_members_AccountId_TravellerId",
+            schema: "family_booking",
+            table: "members",
+            columns: new[] { "AccountId", "TravellerId" });
+        migrationBuilder.CreateIndex(
+            name: "IX_mahram_links_AccountId_FamilyPartyId",
+            schema: "family_booking",
+            table: "mahram_links",
+            columns: new[] { "AccountId", "FamilyPartyId" });
+        migrationBuilder.CreateIndex(
+            name: "IX_mahram_links_FamilyPartyId_ProtectedTravellerId_MahramTravellerId",
+            schema: "family_booking",
+            table: "mahram_links",
+            columns: new[] { "FamilyPartyId", "ProtectedTravellerId", "MahramTravellerId" },
+            unique: true,
+            filter: "\"IsActive\" = TRUE");
+        migrationBuilder.CreateIndex(
+            name: "IX_audit_events_AccountId_OccurredAtUtc",
+            schema: "family_booking",
+            table: "audit_events",
+            columns: new[] { "AccountId", "OccurredAtUtc" });
+        migrationBuilder.CreateIndex(
+            name: "IX_quote_snapshots_QuoteId",
+            schema: "family_booking",
+            table: "quote_snapshots",
+            column: "QuoteId",
+            unique: true);
+        migrationBuilder.CreateIndex(
+            name: "IX_quote_snapshots_AccountId_FamilyPartyId",
+            schema: "family_booking",
+            table: "quote_snapshots",
+            columns: new[] { "AccountId", "FamilyPartyId" });
+        migrationBuilder.CreateIndex(
+            name: "IX_booking_snapshots_BookingId",
+            schema: "family_booking",
+            table: "booking_snapshots",
+            column: "BookingId",
+            unique: true);
+        migrationBuilder.CreateIndex(
+            name: "IX_booking_snapshots_AccountId_FamilyPartyId",
+            schema: "family_booking",
+            table: "booking_snapshots",
+            columns: new[] { "AccountId", "FamilyPartyId" });
     }
 
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropTable("audit_events", "family_booking");
-        migrationBuilder.DropTable("booking_snapshots", "family_booking");
-        migrationBuilder.DropTable("quote_snapshots", "family_booking");
-        migrationBuilder.DropTable("mahram_links", "family_booking");
-        migrationBuilder.DropTable("members", "family_booking");
-        migrationBuilder.DropTable("parties", "family_booking");
+        migrationBuilder.DropTable(name: "audit_events", schema: "family_booking");
+        migrationBuilder.DropTable(name: "booking_snapshots", schema: "family_booking");
+        migrationBuilder.DropTable(name: "quote_snapshots", schema: "family_booking");
+        migrationBuilder.DropTable(name: "mahram_links", schema: "family_booking");
+        migrationBuilder.DropTable(name: "members", schema: "family_booking");
+        migrationBuilder.DropTable(name: "parties", schema: "family_booking");
     }
 }
