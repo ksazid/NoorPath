@@ -1,0 +1,72 @@
+name: VS-16 Generate Migrations
+
+on:
+  push:
+    branches:
+      - codex/vs16-cancellation-refunds-runtime
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    env:
+      ConnectionStrings__NoorPath: Host=localhost;Port=5432;Database=noorpath;Username=noorpath;Password=local-only
+      Database__MigrateOnStartup: "false"
+      Authentication__Mode: Test
+      ASPNETCORE_ENVIRONMENT: Test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/vs16-cancellation-refunds-runtime
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet tool install --global dotnet-ef --version 10.0.10
+      - run: dotnet restore NoorPath.slnx
+      - run: dotnet build NoorPath.slnx --configuration Release --no-restore
+      - name: Generate Booking migration
+        run: >-
+          dotnet ef migrations add VS16CancellationRefunds
+          --project src/Modules/NoorPath.Booking.Infrastructure/NoorPath.Booking.Infrastructure.csproj
+          --startup-project apps/api/NoorPath.Api.csproj
+          --context BookingDbContext
+          --output-dir Migrations
+          --no-build
+          --configuration Release
+      - name: Generate Payments migration
+        run: >-
+          dotnet ef migrations add VS16CancellationRefunds
+          --project src/Modules/NoorPath.Payments.Infrastructure/NoorPath.Payments.Infrastructure.csproj
+          --startup-project apps/api/NoorPath.Api.csproj
+          --context PaymentsDbContext
+          --output-dir Migrations
+          --no-build
+          --configuration Release
+      - name: Generate Inventory migration
+        run: >-
+          dotnet ef migrations add VS16CancellationRefunds
+          --project src/Modules/NoorPath.Inventory.Infrastructure/NoorPath.Inventory.Infrastructure.csproj
+          --startup-project apps/api/NoorPath.Api.csproj
+          --context InventoryDbContext
+          --output-dir Migrations
+          --no-build
+          --configuration Release
+      - run: dotnet format NoorPath.slnx --no-restore
+      - name: Prove zero pending model changes
+        run: |
+          dotnet build NoorPath.slnx --configuration Release --no-restore
+          dotnet ef migrations has-pending-model-changes --project src/Modules/NoorPath.Booking.Infrastructure/NoorPath.Booking.Infrastructure.csproj --startup-project apps/api/NoorPath.Api.csproj --context BookingDbContext --no-build --configuration Release
+          dotnet ef migrations has-pending-model-changes --project src/Modules/NoorPath.Payments.Infrastructure/NoorPath.Payments.Infrastructure.csproj --startup-project apps/api/NoorPath.Api.csproj --context PaymentsDbContext --no-build --configuration Release
+          dotnet ef migrations has-pending-model-changes --project src/Modules/NoorPath.Inventory.Infrastructure/NoorPath.Inventory.Infrastructure.csproj --startup-project apps/api/NoorPath.Api.csproj --context InventoryDbContext --no-build --configuration Release
+      - name: Commit generated migrations
+        run: |
+          test "$(git status --short | grep -c 'Migrations/')" -ge 6
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/Modules/NoorPath.Booking.Infrastructure src/Modules/NoorPath.Payments.Infrastructure src/Modules/NoorPath.Inventory.Infrastructure apps/api tests
+          git commit -m "VS-16: generate cancellation and refund migrations"
+          git push origin HEAD:codex/vs16-cancellation-refunds-runtime
