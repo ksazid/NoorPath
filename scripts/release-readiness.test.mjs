@@ -97,10 +97,13 @@ test("certification fails closed while production decisions are unresolved", () 
 });
 
 test("completed decisions and exact SHA satisfy certification validation", () => {
-  const result = validateReleaseConfiguration(completeDecisions(configuration()), {
-    mode: "certify",
-    sha: exactSha,
-  });
+  const result = validateReleaseConfiguration(
+    completeDecisions(configuration()),
+    {
+      mode: "certify",
+      sha: exactSha,
+    },
+  );
   assert.deepEqual(result.errors, []);
   assert.deepEqual(result.unresolved, []);
 });
@@ -124,14 +127,19 @@ test("unknown or missing slices invalidate the release scope", () => {
 
   const result = validateReleaseConfiguration(value);
   assert.ok(result.errors.includes("releaseScope is missing VS-12."));
-  assert.ok(result.errors.includes("releaseScope contains unknown slice VS-99."));
+  assert.ok(
+    result.errors.includes("releaseScope contains unknown slice VS-99."),
+  );
 });
 
 test("certification rejects a non-exact commit reference", () => {
-  const result = validateReleaseConfiguration(completeDecisions(configuration()), {
-    mode: "certify",
-    sha: "main",
-  });
+  const result = validateReleaseConfiguration(
+    completeDecisions(configuration()),
+    {
+      mode: "certify",
+      sha: "main",
+    },
+  );
   assert.ok(
     result.errors.includes(
       "Certification requires an exact 40-character commit SHA.",

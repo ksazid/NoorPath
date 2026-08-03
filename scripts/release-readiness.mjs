@@ -33,7 +33,9 @@ function isNullablePositiveNumber(value) {
 }
 
 function isNullablePercentage(value) {
-  return value === null || (typeof value === "number" && value >= 0 && value <= 100);
+  return (
+    value === null || (typeof value === "number" && value >= 0 && value <= 100)
+  );
 }
 
 function isNullableString(value) {
@@ -41,18 +43,26 @@ function isNullableString(value) {
 }
 
 function addRequiredDecision(unresolved, pathName, value) {
-  if (value === null || value === undefined || value === "") unresolved.push(pathName);
+  if (value === null || value === undefined || value === "")
+    unresolved.push(pathName);
 }
 
-export function validateReleaseConfiguration(configuration, { mode = "structure", sha } = {}) {
+export function validateReleaseConfiguration(
+  configuration,
+  { mode = "structure", sha } = {},
+) {
   const errors = [];
   const unresolved = [];
 
   if (!isObject(configuration)) {
-    return { errors: ["Release configuration must be a JSON object."], unresolved };
+    return {
+      errors: ["Release configuration must be a JSON object."],
+      unresolved,
+    };
   }
 
-  if (!isNonEmptyString(configuration.id)) errors.push("id must be a non-empty string.");
+  if (!isNonEmptyString(configuration.id))
+    errors.push("id must be a non-empty string.");
 
   if (!Array.isArray(configuration.releaseScope)) {
     errors.push("releaseScope must be an array.");
@@ -64,13 +74,16 @@ export function validateReleaseConfiguration(configuration, { mode = "structure"
       if (!unique.has(slice)) errors.push(`releaseScope is missing ${slice}.`);
     }
     for (const slice of unique) {
-      if (!expectedScope.includes(slice)) errors.push(`releaseScope contains unknown slice ${slice}.`);
+      if (!expectedScope.includes(slice))
+        errors.push(`releaseScope contains unknown slice ${slice}.`);
     }
   }
 
   if (!Array.isArray(configuration.deferredCapabilities)) {
     errors.push("deferredCapabilities must be an array.");
-  } else if (configuration.deferredCapabilities.some((item) => !isNonEmptyString(item))) {
+  } else if (
+    configuration.deferredCapabilities.some((item) => !isNonEmptyString(item))
+  ) {
     errors.push("deferredCapabilities entries must be non-empty strings.");
   }
 
@@ -79,11 +92,17 @@ export function validateReleaseConfiguration(configuration, { mode = "structure"
     errors.push("thresholds must be an object.");
   } else {
     if (!isNullablePositiveNumber(thresholds.p95ApiLatencyMs))
-      errors.push("thresholds.p95ApiLatencyMs must be null or greater than zero.");
+      errors.push(
+        "thresholds.p95ApiLatencyMs must be null or greater than zero.",
+      );
     if (!isNullablePercentage(thresholds.maximumErrorRatePercent))
-      errors.push("thresholds.maximumErrorRatePercent must be null or between 0 and 100.");
+      errors.push(
+        "thresholds.maximumErrorRatePercent must be null or between 0 and 100.",
+      );
     if (!isNullablePositiveNumber(thresholds.maximumConcurrentCheckouts))
-      errors.push("thresholds.maximumConcurrentCheckouts must be null or greater than zero.");
+      errors.push(
+        "thresholds.maximumConcurrentCheckouts must be null or greater than zero.",
+      );
   }
 
   const recovery = configuration.recovery;
@@ -95,7 +114,9 @@ export function validateReleaseConfiguration(configuration, { mode = "structure"
     if (!isNullablePositiveNumber(recovery.rtoMinutes))
       errors.push("recovery.rtoMinutes must be null or greater than zero.");
     if (!isNullablePositiveNumber(recovery.backupRetentionDays))
-      errors.push("recovery.backupRetentionDays must be null or greater than zero.");
+      errors.push(
+        "recovery.backupRetentionDays must be null or greater than zero.",
+      );
     if (!isNullableString(recovery.restoreOwner))
       errors.push("recovery.restoreOwner must be null or a non-empty string.");
   }
@@ -107,7 +128,9 @@ export function validateReleaseConfiguration(configuration, { mode = "structure"
     if (!isNullableString(monitoring.alertOwner))
       errors.push("monitoring.alertOwner must be null or a non-empty string.");
     if (!isNullableString(monitoring.escalationTarget))
-      errors.push("monitoring.escalationTarget must be null or a non-empty string.");
+      errors.push(
+        "monitoring.escalationTarget must be null or a non-empty string.",
+      );
     if (!Array.isArray(monitoring.requiredSignals)) {
       errors.push("monitoring.requiredSignals must be an array.");
     } else {
@@ -122,16 +145,27 @@ export function validateReleaseConfiguration(configuration, { mode = "structure"
   if (!isObject(features)) {
     errors.push("features must be an object.");
   } else {
-    for (const featureName of ["refundExecution", "documentStorage", "externalNotifications"]) {
+    for (const featureName of [
+      "refundExecution",
+      "documentStorage",
+      "externalNotifications",
+    ]) {
       const feature = features[featureName];
       if (!isObject(feature)) {
         errors.push(`features.${featureName} must be an object.`);
         continue;
       }
-      if (typeof feature.enabled !== "boolean" || typeof feature.approved !== "boolean") {
-        errors.push(`features.${featureName} enabled and approved must be boolean values.`);
+      if (
+        typeof feature.enabled !== "boolean" ||
+        typeof feature.approved !== "boolean"
+      ) {
+        errors.push(
+          `features.${featureName} enabled and approved must be boolean values.`,
+        );
       } else if (feature.enabled && !feature.approved) {
-        errors.push(`features.${featureName} cannot be enabled without explicit approval.`);
+        errors.push(
+          `features.${featureName} cannot be enabled without explicit approval.`,
+        );
       }
     }
   }
@@ -141,31 +175,49 @@ export function validateReleaseConfiguration(configuration, { mode = "structure"
     errors.push("releaseControls must be an object.");
   } else {
     if (!isNullableString(controls.releaseOperator))
-      errors.push("releaseControls.releaseOperator must be null or a non-empty string.");
+      errors.push(
+        "releaseControls.releaseOperator must be null or a non-empty string.",
+      );
     if (!isNullableString(controls.rollbackAuthority))
-      errors.push("releaseControls.rollbackAuthority must be null or a non-empty string.");
+      errors.push(
+        "releaseControls.rollbackAuthority must be null or a non-empty string.",
+      );
     if (!isNullableString(controls.changeWindow))
-      errors.push("releaseControls.changeWindow must be null or a non-empty string.");
+      errors.push(
+        "releaseControls.changeWindow must be null or a non-empty string.",
+      );
     if (!isNullablePositiveNumber(controls.observationMinutes))
-      errors.push("releaseControls.observationMinutes must be null or greater than zero.");
+      errors.push(
+        "releaseControls.observationMinutes must be null or greater than zero.",
+      );
     if (controls.productionDeploymentRequiresSeparateApproval !== true)
-      errors.push("Production deployment must require a separate explicit approval.");
+      errors.push(
+        "Production deployment must require a separate explicit approval.",
+      );
   }
 
   if (!Array.isArray(configuration.postDeploymentSmokeTests)) {
     errors.push("postDeploymentSmokeTests must be an array.");
   } else if (
     configuration.postDeploymentSmokeTests.length < 5 ||
-    configuration.postDeploymentSmokeTests.some((item) => !isNonEmptyString(item))
+    configuration.postDeploymentSmokeTests.some(
+      (item) => !isNonEmptyString(item),
+    )
   ) {
-    errors.push("postDeploymentSmokeTests must contain at least five non-empty steps.");
+    errors.push(
+      "postDeploymentSmokeTests must contain at least five non-empty steps.",
+    );
   }
 
   if (mode === "certify") {
     if (!/^[0-9a-f]{40}$/i.test(sha ?? ""))
       errors.push("Certification requires an exact 40-character commit SHA.");
 
-    addRequiredDecision(unresolved, "thresholds.p95ApiLatencyMs", thresholds?.p95ApiLatencyMs);
+    addRequiredDecision(
+      unresolved,
+      "thresholds.p95ApiLatencyMs",
+      thresholds?.p95ApiLatencyMs,
+    );
     addRequiredDecision(
       unresolved,
       "thresholds.maximumErrorRatePercent",
@@ -176,27 +228,51 @@ export function validateReleaseConfiguration(configuration, { mode = "structure"
       "thresholds.maximumConcurrentCheckouts",
       thresholds?.maximumConcurrentCheckouts,
     );
-    addRequiredDecision(unresolved, "recovery.rpoMinutes", recovery?.rpoMinutes);
-    addRequiredDecision(unresolved, "recovery.rtoMinutes", recovery?.rtoMinutes);
+    addRequiredDecision(
+      unresolved,
+      "recovery.rpoMinutes",
+      recovery?.rpoMinutes,
+    );
+    addRequiredDecision(
+      unresolved,
+      "recovery.rtoMinutes",
+      recovery?.rtoMinutes,
+    );
     addRequiredDecision(
       unresolved,
       "recovery.backupRetentionDays",
       recovery?.backupRetentionDays,
     );
-    addRequiredDecision(unresolved, "recovery.restoreOwner", recovery?.restoreOwner);
-    addRequiredDecision(unresolved, "monitoring.alertOwner", monitoring?.alertOwner);
+    addRequiredDecision(
+      unresolved,
+      "recovery.restoreOwner",
+      recovery?.restoreOwner,
+    );
+    addRequiredDecision(
+      unresolved,
+      "monitoring.alertOwner",
+      monitoring?.alertOwner,
+    );
     addRequiredDecision(
       unresolved,
       "monitoring.escalationTarget",
       monitoring?.escalationTarget,
     );
-    addRequiredDecision(unresolved, "releaseControls.releaseOperator", controls?.releaseOperator);
+    addRequiredDecision(
+      unresolved,
+      "releaseControls.releaseOperator",
+      controls?.releaseOperator,
+    );
     addRequiredDecision(
       unresolved,
       "releaseControls.rollbackAuthority",
       controls?.rollbackAuthority,
     );
-    addRequiredDecision(unresolved, "releaseControls.changeWindow", controls?.changeWindow);
+    addRequiredDecision(
+      unresolved,
+      "releaseControls.changeWindow",
+      controls?.changeWindow,
+    );
     addRequiredDecision(
       unresolved,
       "releaseControls.observationMinutes",
@@ -204,7 +280,9 @@ export function validateReleaseConfiguration(configuration, { mode = "structure"
     );
 
     if (unresolved.length > 0)
-      errors.push(`Production decisions remain unresolved: ${unresolved.join(", ")}.`);
+      errors.push(
+        `Production decisions remain unresolved: ${unresolved.join(", ")}.`,
+      );
   }
 
   return { errors, unresolved };
@@ -215,9 +293,17 @@ export async function loadReleaseConfiguration(configurationPath) {
   return JSON.parse(raw);
 }
 
-export async function writeReleaseEvidence({ configuration, sha, outputDirectory }) {
-  const validation = validateReleaseConfiguration(configuration, { mode: "certify", sha });
-  if (validation.errors.length > 0) throw new Error(validation.errors.join("\n"));
+export async function writeReleaseEvidence({
+  configuration,
+  sha,
+  outputDirectory,
+}) {
+  const validation = validateReleaseConfiguration(configuration, {
+    mode: "certify",
+    sha,
+  });
+  if (validation.errors.length > 0)
+    throw new Error(validation.errors.join("\n"));
 
   await mkdir(outputDirectory, { recursive: true });
   const recordedAtUtc = new Date().toISOString();
@@ -274,8 +360,13 @@ function parseOptions(args) {
 }
 
 async function main() {
-  const [, , command = "validate", configurationPath = "delivery/releases/pilot-v1.json", ...rest] =
-    process.argv;
+  const [
+    ,
+    ,
+    command = "validate",
+    configurationPath = "delivery/releases/pilot-v1.json",
+    ...rest
+  ] = process.argv;
   const options = parseOptions(rest);
   const configuration = await loadReleaseConfiguration(configurationPath);
 
@@ -291,7 +382,9 @@ async function main() {
     }
     console.log(`Validated ${configuration.id} in ${command} mode.`);
     if (command === "validate" && validation.unresolved.length > 0)
-      console.log(`Unresolved production decisions: ${validation.unresolved.join(", ")}`);
+      console.log(
+        `Unresolved production decisions: ${validation.unresolved.join(", ")}`,
+      );
     return;
   }
 
@@ -310,7 +403,8 @@ async function main() {
 }
 
 const executedDirectly =
-  process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
 if (executedDirectly) {
   main().catch((error) => {
     console.error(error instanceof Error ? error.message : error);
