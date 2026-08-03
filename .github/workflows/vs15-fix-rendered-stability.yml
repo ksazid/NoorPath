@@ -47,7 +47,7 @@ jobs:
           global-json-file: global.json
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
-      - name: Stabilize family page and rendered locators
+      - name: Stabilize family page state
         shell: bash
         run: |
           python3 - <<'PY'
@@ -55,7 +55,6 @@ jobs:
 
           page = Path("apps/web/app/account/family/page.tsx")
           text = page.read_text()
-
           replacements = [
               (
                   'import { FormEvent, useCallback, useMemo, useState } from "react";',
@@ -95,49 +94,20 @@ jobs:
                   raise SystemExit(f"Expected page pattern not found: {old[:80]}")
               text = text.replace(old, new, 1)
 
-          first_list = '<ul className={styles.list}>'
-          if text.count(first_list) < 2:
-              raise SystemExit("Expected both family lists")
+          list_markup = '<ul className={styles.list}>'
+          if text.count(list_markup) < 2:
+              raise SystemExit("Expected traveller and Mahram lists")
           text = text.replace(
-              first_list,
+              list_markup,
               '<ul className={styles.list} aria-label="Travellers in this party">',
               1,
           )
           text = text.replace(
-              first_list,
+              list_markup,
               '<ul className={styles.list} aria-label="Mahram relationships">',
               1,
           )
           page.write_text(text)
-
-          test = Path("apps/web/e2e/family-booking-mahram.spec.ts")
-          spec = test.read_text()
-          old_assertions = '''  await expect(page.getByText("Amina Khan", { exact: true })).toBeVisible();
-          await expect(page.getByText("Omar Khan", { exact: true })).toBeVisible();
-          await expect(page.getByText(/Amina Khan → Omar Khan/)).toBeVisible();'''
-          new_assertions = '''  const travellers = page.getByRole("list", {
-            name: "Travellers in this party",
-          });
-          await expect(travellers.getByText("Amina Khan", { exact: true })).toBeVisible();
-          await expect(travellers.getByText("Omar Khan", { exact: true })).toBeVisible();
-          const relationships = page.getByRole("list", {
-            name: "Mahram relationships",
-          });
-          await expect(relationships.getByText(/Amina Khan → Omar Khan/)).toBeVisible();'''
-          if old_assertions not in spec:
-              raise SystemExit("Expected traveller assertions not found")
-          spec = spec.replace(old_assertions, new_assertions, 1)
-          old_click = '''  await page.goto("/account/family");
-          await page.getByRole("button", { name: "Validate party" }).click();'''
-          new_click = '''  await page.goto("/account/family");
-          await expect(page.getByRole("heading", { name: "Khan family" })).toBeVisible();
-          const validate = page.getByRole("button", { name: "Validate party" });
-          await expect(validate).toBeVisible();
-          await validate.click();'''
-          if old_click not in spec:
-              raise SystemExit("Expected validate click not found")
-          spec = spec.replace(old_click, new_click, 1)
-          test.write_text(spec)
           PY
       - name: Format repaired files
         run: >-
