@@ -1,9 +1,9 @@
 name: Temporary PR 68 operator E2E
 
 on:
-  push:
-    branches:
-      - agent/fix-role-aware-operator-routing
+  pull_request:
+    branches: [main]
+    types: [synchronize]
 
 permissions:
   contents: write
