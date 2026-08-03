@@ -46,19 +46,26 @@ describe("operator access proxy", () => {
     );
     expect(response.status).toBe(403);
     expect(response.headers.get("cache-control")).toBe("no-store");
-    await expect(response.json()).resolves.toMatchObject({ code: "forbidden" });
-  });
-
-  it("returns a safe unauthenticated response when the session is unavailable", async () => {
-    mockedGetAuth0Client.mockReturnValue({
-      getAccessToken: vi.fn().mockRejectedValue(new Error("session unavailable")),
-    } as never);
-
-    const response = await GET();
-
-    expect(response.status).toBe(401);
     await expect(response.json()).resolves.toMatchObject({
-      code: "not_authenticated",
+      code: "forbidden",
     });
   });
+
+  it(
+    "returns a safe unauthenticated response when the session is unavailable",
+    async () => {
+      mockedGetAuth0Client.mockReturnValue({
+        getAccessToken: vi
+          .fn()
+          .mockRejectedValue(new Error("session unavailable")),
+      } as never);
+
+      const response = await GET();
+
+      expect(response.status).toBe(401);
+      await expect(response.json()).resolves.toMatchObject({
+        code: "not_authenticated",
+      });
+    },
+  );
 });
