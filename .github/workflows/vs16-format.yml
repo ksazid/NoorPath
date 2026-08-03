@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - codex/vs16-cancellation-refunds-runtime
+  workflow_dispatch:
 
 permissions:
   contents: write
