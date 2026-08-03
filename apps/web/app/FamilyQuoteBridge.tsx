@@ -33,10 +33,13 @@ function testHeaders(json = false): HeadersInit {
 }
 
 function problem(status: number, title: string, detail: string) {
-  return new Response(JSON.stringify({ title, detail, code: "family_party_required" }), {
-    status,
-    headers: { "Content-Type": "application/problem+json" },
-  });
+  return new Response(
+    JSON.stringify({ title, detail, code: "family_party_required" }),
+    {
+      status,
+      headers: { "Content-Type": "application/problem+json" },
+    },
+  );
 }
 
 function sameMembers(left: string[], right: string[]) {
@@ -48,7 +51,9 @@ export default function FamilyQuoteBridge() {
     const originalFetch = window.fetch.bind(window);
     const bridgedFetch: typeof window.fetch = async (input, init) => {
       const url = requestUrl(input);
-      const method = (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
+      const method = (
+        init?.method ?? (input instanceof Request ? input.method : "GET")
+      ).toUpperCase();
       const isQuoteCreation =
         method === "POST" &&
         /\/api\/v1\/departures\/[^/]+\/quotes(?:\?|$)/.test(url);
@@ -61,7 +66,9 @@ export default function FamilyQuoteBridge() {
 
       let quoteRequest: QuoteRequest;
       try {
-        quoteRequest = JSON.parse(typeof init?.body === "string" ? init.body : "{}") as QuoteRequest;
+        quoteRequest = JSON.parse(
+          typeof init?.body === "string" ? init.body : "{}",
+        ) as QuoteRequest;
       } catch {
         return quoteResponse;
       }
@@ -81,7 +88,9 @@ export default function FamilyQuoteBridge() {
             "Your quote was not attached to a family party. Retry before securing availability.",
           );
         }
-        const partiesBody = (await partiesResponse.json()) as { parties?: PartySummary[] };
+        const partiesBody = (await partiesResponse.json()) as {
+          parties?: PartySummary[];
+        };
         const validated = (partiesBody.parties ?? []).filter(
           (party) => party.status === "Validated",
         );
@@ -95,12 +104,17 @@ export default function FamilyQuoteBridge() {
 
         const details = await Promise.all(
           validated.map(async (party) => {
-            const response = await originalFetch(`/api/v1/family-parties/${party.id}`, {
-              credentials: "include",
-              cache: "no-store",
-              headers: testHeaders(),
-            });
-            return response.ok ? ((await response.json()) as PartyDetail) : null;
+            const response = await originalFetch(
+              `/api/v1/family-parties/${party.id}`,
+              {
+                credentials: "include",
+                cache: "no-store",
+                headers: testHeaders(),
+              },
+            );
+            return response.ok
+              ? ((await response.json()) as PartyDetail)
+              : null;
           }),
         );
         const matches = details.filter(
@@ -143,7 +157,8 @@ export default function FamilyQuoteBridge() {
             status: bindResponse.status,
             headers: {
               "Content-Type":
-                bindResponse.headers.get("content-type") ?? "application/problem+json",
+                bindResponse.headers.get("content-type") ??
+                "application/problem+json",
             },
           });
         }

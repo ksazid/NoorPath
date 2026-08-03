@@ -211,13 +211,15 @@ function Dashboard({ journey: j }: { journey: Journey }) {
                     <li
                       key={`${link.protectedTravellerId}-${link.mahramTravellerId}`}
                     >
-                      {link.protectedTravellerName} → {link.mahramTravellerName} (
-                      {humanize(link.relationshipType)})
+                      {link.protectedTravellerName} → {link.mahramTravellerName}{" "}
+                      ({humanize(link.relationshipType)})
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p>No Mahram relationship was included in the booked snapshot.</p>
+                <p>
+                  No Mahram relationship was included in the booked snapshot.
+                </p>
               )}
             </div>
           </div>

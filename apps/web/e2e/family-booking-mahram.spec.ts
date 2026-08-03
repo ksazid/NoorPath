@@ -60,7 +60,8 @@ async function mockFamily(page: import("@playwright/test").Page) {
     route.fulfill({ json: { parties: [party.party] } }),
   );
   await page.route("**/api/v1/family-parties/*", (route) => {
-    if (route.request().method() === "GET") return route.fulfill({ json: party });
+    if (route.request().method() === "GET")
+      return route.fulfill({ json: party });
     return route.fallback();
   });
 }
