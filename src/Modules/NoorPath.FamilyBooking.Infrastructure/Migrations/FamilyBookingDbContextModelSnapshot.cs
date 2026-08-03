@@ -62,6 +62,17 @@ partial class FamilyBookingDbContextModelSnapshot : ModelSnapshot
             entity.HasIndex(x => new { x.AccountId, x.OccurredAtUtc });
         });
 
+        modelBuilder.Entity<FamilyQuoteSnapshotRecord>(entity =>
+        {
+            entity.ToTable("quote_snapshots", "family_booking");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.AccountId).HasMaxLength(120);
+            entity.Property(x => x.PolicyVersion).HasMaxLength(40);
+            entity.Property(x => x.PayloadJson).HasColumnType("jsonb");
+            entity.HasIndex(x => x.QuoteId).IsUnique();
+            entity.HasIndex(x => new { x.AccountId, x.FamilyPartyId });
+        });
+
         modelBuilder.Entity<FamilyBookingSnapshotRecord>(entity =>
         {
             entity.ToTable("booking_snapshots", "family_booking");
