@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import "@noorpath/design-tokens/tokens.css";
 import FamilyQuoteBridge from "./FamilyQuoteBridge";
 import "./styles.css";
 import "./composer.css";
