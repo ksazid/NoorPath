@@ -34,6 +34,12 @@ type QueueItem = {
   refund?: Refund | null;
 };
 
+type AllowedAction = {
+  code: string;
+  label: string;
+  refundId?: string;
+};
+
 type CaseDetail = {
   booking: {
     id: string;
@@ -75,11 +81,7 @@ type CaseDetail = {
     refundProcessingBusinessDays: number;
   };
   refund?: Refund | null;
-  allowedActions: {
-    code: string;
-    label: string;
-    refundId?: string;
-  }[];
+  allowedActions: AllowedAction[];
   audit: {
     action: string;
     reason?: string | null;
@@ -94,15 +96,14 @@ type ListState =
   | { kind: "error" }
   | { kind: "ready"; items: QueueItem[] };
 
-const headers = (json = false): HeadersInit => ({
-  ...(json && { "Content-Type": "application/json" }),
-  ...(process.env.NEXT_PUBLIC_NOORPATH_TEST_IDENTITY
-    ? {
-        "X-NoorPath-Test-Identity":
-          process.env.NEXT_PUBLIC_NOORPATH_TEST_IDENTITY,
-      }
-    : {}),
-});
+function requestHeaders(json = false): HeadersInit {
+  const headers: Record<string, string> = {};
+  if (json) headers["Content-Type"] = "application/json";
+
+  const identity = process.env.NEXT_PUBLIC_NOORPATH_TEST_IDENTITY;
+  if (identity) headers["X-NoorPath-Test-Identity"] = identity;
+  return headers;
+}
 
 export default function CancellationReviewPage() {
   const [state, setState] = useState<ListState>({ kind: "loading" });
@@ -117,17 +118,19 @@ export default function CancellationReviewPage() {
     setFeedback("");
     const params = new URLSearchParams();
     if (selectedState) params.set("state", selectedState);
+
     try {
       const response = await fetch(`/api/v1/operator/cancellations?${params}`, {
         credentials: "include",
         cache: "no-store",
-        headers: headers(),
+        headers: requestHeaders(),
       });
       if (response.status === 403) {
         setState({ kind: "denied" });
         return;
       }
       if (!response.ok) throw new Error();
+
       const payload = (await response.json()) as { items: QueueItem[] };
       setState({ kind: "ready", items: payload.items });
     } catch {
@@ -152,7 +155,7 @@ export default function CancellationReviewPage() {
         {
           credentials: "include",
           cache: "no-store",
-          headers: headers(),
+          headers: requestHeaders(),
         },
       );
       if (!response.ok) throw new Error();
@@ -164,10 +167,12 @@ export default function CancellationReviewPage() {
     }
   }
 
-  async function runAction(action: CaseDetail["allowedActions"][number]) {
+  async function runAction(action: AllowedAction) {
     if (!detail || working) return;
     if (reason.trim().length < 5) {
-      setFeedback("Record a reason of at least five characters before continuing.");
+      setFeedback(
+        "Record a reason of at least five characters before continuing.",
+      );
       return;
     }
 
@@ -188,7 +193,7 @@ export default function CancellationReviewPage() {
       const response = await fetch(endpoint, {
         method: "POST",
         credentials: "include",
-        headers: headers(true),
+        headers: requestHeaders(true),
         body: JSON.stringify({ expectedVersion, reason: reason.trim() }),
       });
       if (response.status === 409) {
@@ -236,10 +241,16 @@ export default function CancellationReviewPage() {
           booking request, and execute only the system-authorized refund.
         </p>
 
-        <form className="journey-panel" onSubmit={(event) => void applyFilter(event)}>
+        <form
+          className="journey-panel"
+          onSubmit={(event) => void applyFilter(event)}
+        >
           <label>
             Cancellation state
-            <select value={filter} onChange={(event) => setFilter(event.target.value)}>
+            <select
+              value={filter}
+              onChange={(event) => setFilter(event.target.value)}
+            >
               <option value="">All states</option>
               <option value="Requested">Requested</option>
               <option value="Applied">Applied</option>
@@ -252,7 +263,9 @@ export default function CancellationReviewPage() {
 
         <div aria-live="polite">
           {feedback ? <p role="alert">{feedback}</p> : null}
-          {state.kind === "loading" ? <p>Loading cancellation cases…</p> : null}
+          {state.kind === "loading" ? (
+            <p>Loading cancellation cases…</p>
+          ) : null}
           {state.kind === "denied" ? (
             <p>You do not have cancellation review permission.</p>
           ) : null}
@@ -280,7 +293,182 @@ export default function CancellationReviewPage() {
                 <p className="public-eyebrow">{item.customerStatus}</p>
                 <h2>Cancellation request</h2>
                 <p>
-                  Requested {new Date(item.requestedAtUtc).toLocaleString("en-IN")}
+                  Requested{" "}
+                  {new Date(item.requestedAtUtc).toLocaleString("en-IN")}
                 </p>
                 <p>
-                  Maximum authorized entitlement:{" 
+                  Maximum authorized entitlement:{" "}
+                  <strong>
+                    {money(item.currency, item.refundableAmount)}
+                  </strong>
+                </p>
+                <p>
+                  Policy {item.policyVersion} · Version {item.version}
+                </p>
+                {item.failureCode ? (
+                  <p>Recovery code: {item.failureCode}</p>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => void openCase(item.cancellationId)}
+                >
+                  Review case
+                </button>
+              </article>
+            ))}
+          </div>
+        ) : null}
+
+        {detail ? (
+          <section
+            className="journey-panel"
+            aria-labelledby="cancellation-case-title"
+          >
+            <p className="public-eyebrow">
+              Booking {detail.booking.reference}
+            </p>
+            <h2 id="cancellation-case-title">
+              {detail.cancellation.customerStatus}
+            </h2>
+            <p>
+              Customer reason: {humanize(detail.cancellation.reasonCategory)}
+            </p>
+
+            <dl className="journey-money">
+              <div>
+                <dt>Settled payments</dt>
+                <dd>
+                  {money(
+                    detail.calculation.currency,
+                    detail.calculation.settledAmount,
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt>Policy deductions</dt>
+                <dd>
+                  {money(
+                    detail.calculation.currency,
+                    detail.calculation.percentageFee +
+                      detail.calculation.nonRefundableAmount,
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt>Authorized refund</dt>
+                <dd>
+                  {money(
+                    detail.calculation.currency,
+                    detail.calculation.refundableAmount,
+                  )}
+                </dd>
+              </div>
+            </dl>
+            <p>
+              Policy {detail.calculation.policyVersion} ·{" "}
+              {detail.calculation.daysBeforeDeparture} days before departure ·{" "}
+              {detail.calculation.policyTimeZoneId}
+            </p>
+            <p className="document-help">
+              <Icon name="shield-check" /> Amounts are read-only and derived
+              from authoritative settled-payment facts. Operators cannot enter
+              a replacement refund value.
+            </p>
+
+            {detail.refund ? (
+              <p>
+                Refund: {detail.refund.state} ·{" "}
+                {money(
+                  detail.refund.currency,
+                  detail.refund.refundedAmount,
+                )}{" "}
+                of{" "}
+                {money(
+                  detail.refund.currency,
+                  detail.refund.entitledAmount,
+                )}{" "}
+                recorded
+              </p>
+            ) : null}
+
+            {detail.allowedActions.length ? (
+              <div className="support-actions">
+                <label>
+                  Decision or recovery reason
+                  <textarea
+                    value={reason}
+                    onChange={(event) => setReason(event.target.value)}
+                    minLength={5}
+                    maxLength={500}
+                    rows={4}
+                    required
+                  />
+                </label>
+                <div className="document-row" aria-label="Governed actions">
+                  {detail.allowedActions.map((action) => (
+                    <button
+                      type="button"
+                      key={action.code}
+                      disabled={working}
+                      onClick={() => void runAction(action)}
+                    >
+                      {working ? "Working…" : action.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p>No operator action is currently available for this case.</p>
+            )}
+
+            <h3>Audit history</h3>
+            <ol className="journey-instalments">
+              {detail.audit.map((entry, index) => (
+                <li key={`${entry.occurredAtUtc}-${index}`}>
+                  <span>
+                    {humanize(entry.action)}
+                    <small>{entry.reason || "System transition"}</small>
+                  </span>
+                  <time dateTime={entry.occurredAtUtc}>
+                    {new Date(entry.occurredAtUtc).toLocaleString("en-IN")}
+                  </time>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ) : null}
+      </main>
+      <PublicFooter />
+    </div>
+  );
+}
+
+function money(currency: string, amount: number) {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+function humanize(value: string) {
+  return value
+    .replaceAll(/([A-Z_])/g, " $1")
+    .replaceAll("_", " ")
+    .trim();
+}
+
+function actionSuccess(code: string) {
+  switch (code) {
+    case "approve":
+      return "The cancellation was approved and the governed cancellation workflow was applied.";
+    case "reject":
+      return "The cancellation request was rejected and the confirmed booking remains unchanged.";
+    case "recover":
+      return "The governed cancellation recovery was retried.";
+    case "execute_refund":
+      return "The authorized refund execution was processed.";
+    default:
+      return "The governed action completed.";
+  }
+}
