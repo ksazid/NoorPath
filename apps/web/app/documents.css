@@ -30,7 +30,9 @@
   max-width: 280px;
 }
 .document-row button,
-.documents-action {
+.documents-action,
+.journey-panel > button,
+.documents-card > button {
   min-height: 44px;
   padding: 10px 16px;
   border: 0;
