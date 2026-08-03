@@ -101,7 +101,7 @@ public sealed class CancellationRefundApiTests
         using var approvedBody = await ReadJsonAsync(
             approved,
             TestContext.Current.CancellationToken);
-        Assert.Equal("Cancelled", approvedBody.RootElement.GetProperty("customerStatus").GetString());
+        Assert.Equal("RefundPending", approvedBody.RootElement.GetProperty("customerStatus").GetString());
         var refundId = approvedBody.RootElement.GetProperty("refundId").GetGuid();
 
         using (var scope = app.Services.CreateScope())

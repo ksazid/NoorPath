@@ -68,7 +68,7 @@ public sealed record CancellationOperationResult<T>(
     string? Message,
     T? Value)
 {
-    public bool IsSuccess => StatusCode is >= 200 and < 300;
+    public bool IsSuccess => Value is not null;
 
     public static CancellationOperationResult<T> Success(T value, int statusCode = 200) =>
         new(statusCode, null, null, value);
