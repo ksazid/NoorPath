@@ -9,6 +9,7 @@ public sealed class FamilyBookingDbContext(DbContextOptions<FamilyBookingDbConte
     public DbSet<FamilyPartyMemberRecord> Members => Set<FamilyPartyMemberRecord>();
     public DbSet<MahramLinkRecord> MahramLinks => Set<MahramLinkRecord>();
     public DbSet<FamilyBookingAuditRecord> Audit => Set<FamilyBookingAuditRecord>();
+    public DbSet<FamilyQuoteSnapshotRecord> QuoteSnapshots => Set<FamilyQuoteSnapshotRecord>();
     public DbSet<FamilyBookingSnapshotRecord> BookingSnapshots => Set<FamilyBookingSnapshotRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -68,6 +69,17 @@ public sealed class FamilyBookingDbContext(DbContextOptions<FamilyBookingDbConte
             entity.Property(x => x.SubjectType).HasMaxLength(80);
             entity.Property(x => x.DetailJson).HasColumnType("jsonb");
             entity.HasIndex(x => new { x.AccountId, x.OccurredAtUtc });
+        });
+
+        modelBuilder.Entity<FamilyQuoteSnapshotRecord>(entity =>
+        {
+            entity.ToTable("quote_snapshots");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.AccountId).HasMaxLength(120);
+            entity.Property(x => x.PolicyVersion).HasMaxLength(40);
+            entity.Property(x => x.PayloadJson).HasColumnType("jsonb");
+            entity.HasIndex(x => x.QuoteId).IsUnique();
+            entity.HasIndex(x => new { x.AccountId, x.FamilyPartyId });
         });
 
         modelBuilder.Entity<FamilyBookingSnapshotRecord>(entity =>
@@ -132,6 +144,18 @@ public sealed class FamilyBookingAuditRecord
     public DateTimeOffset OccurredAtUtc { get; set; }
 }
 
+public sealed class FamilyQuoteSnapshotRecord
+{
+    public Guid Id { get; set; }
+    public Guid QuoteId { get; set; }
+    public Guid FamilyPartyId { get; set; }
+    public required string AccountId { get; set; }
+    public required string PolicyVersion { get; set; }
+    public int PartyVersion { get; set; }
+    public required string PayloadJson { get; set; }
+    public DateTimeOffset CreatedAtUtc { get; set; }
+}
+
 public sealed class FamilyBookingSnapshotRecord
 {
     public Guid Id { get; set; }
@@ -139,6 +163,7 @@ public sealed class FamilyBookingSnapshotRecord
     public Guid FamilyPartyId { get; set; }
     public required string AccountId { get; set; }
     public required string PolicyVersion { get; set; }
+    public int PartyVersion { get; set; }
     public required string PayloadJson { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
 }
