@@ -6,7 +6,8 @@ on:
       - agent/fix-role-aware-operator-routing
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
 
 jobs:
   operator-e2e:
@@ -32,6 +33,7 @@ jobs:
       Authentication__Mode: Test
       ConnectionStrings__NoorPath: Host=127.0.0.1;Port=5432;Database=noorpath_operator_e2e;Username=noorpath;Password=ci-local-only-password
       Database__MigrateOnStartup: true
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -45,7 +47,8 @@ jobs:
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - run: pnpm --dir apps/web exec playwright install --with-deps chromium
-      - run: pnpm --dir apps/web exec playwright test e2e/operator-access.spec.ts
+      - name: Run operator role-routing acceptance
+        run: pnpm --dir apps/web exec playwright test e2e/operator-access.spec.ts
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -55,3 +58,11 @@ jobs:
           path: |
             apps/web/test-results
             apps/web/playwright-report
+      - name: Record success and remove temporary workflow
+        run: |
+          gh pr comment 68 --repo ksazid/NoorPath --body "✅ Explicit operator role-routing Playwright verification passed on commit \`${GITHUB_SHA}\` (desktop and mobile projects, including authenticated Platform Administrator guidance to /admin)."
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/tmp-pr68-operator-e2e.yml
+          git commit -m "Remove one-time operator role E2E workflow"
+          git push origin HEAD:agent/fix-role-aware-operator-routing
