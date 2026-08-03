@@ -4,7 +4,10 @@ import { useEffect, useRef } from "react";
 
 export function useDeferredInitialLoad(load: () => void | Promise<void>): void {
   const loadRef = useRef(load);
-  loadRef.current = load;
+
+  useEffect(() => {
+    loadRef.current = load;
+  }, [load]);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => void loadRef.current(), 0);
