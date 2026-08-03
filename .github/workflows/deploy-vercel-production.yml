@@ -1,9 +1,9 @@
 name: Deploy NoorPath frontend to Vercel
 
 on:
-  push:
+  pull_request:
     branches:
-      - ops/vercel-source-export
+      - main
     paths:
       - .github/workflows/deploy-vercel-production.yml
 
