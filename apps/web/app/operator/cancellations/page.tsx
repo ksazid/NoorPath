@@ -263,9 +263,7 @@ export default function CancellationReviewPage() {
 
         <div aria-live="polite">
           {feedback ? <p role="alert">{feedback}</p> : null}
-          {state.kind === "loading" ? (
-            <p>Loading cancellation cases…</p>
-          ) : null}
+          {state.kind === "loading" ? <p>Loading cancellation cases…</p> : null}
           {state.kind === "denied" ? (
             <p>You do not have cancellation review permission.</p>
           ) : null}
@@ -298,9 +296,7 @@ export default function CancellationReviewPage() {
                 </p>
                 <p>
                   Maximum authorized entitlement:{" "}
-                  <strong>
-                    {money(item.currency, item.refundableAmount)}
-                  </strong>
+                  <strong>{money(item.currency, item.refundableAmount)}</strong>
                 </p>
                 <p>
                   Policy {item.policyVersion} · Version {item.version}
@@ -324,9 +320,7 @@ export default function CancellationReviewPage() {
             className="journey-panel"
             aria-labelledby="cancellation-case-title"
           >
-            <p className="public-eyebrow">
-              Booking {detail.booking.reference}
-            </p>
+            <p className="public-eyebrow">Booking {detail.booking.reference}</p>
             <h2 id="cancellation-case-title">
               {detail.cancellation.customerStatus}
             </h2>
@@ -371,22 +365,15 @@ export default function CancellationReviewPage() {
             </p>
             <p className="document-help">
               <Icon name="shield-check" /> Amounts are read-only and derived
-              from authoritative settled-payment facts. Operators cannot enter
-              a replacement refund value.
+              from authoritative settled-payment facts. Operators cannot enter a
+              replacement refund value.
             </p>
 
             {detail.refund ? (
               <p>
                 Refund: {detail.refund.state} ·{" "}
-                {money(
-                  detail.refund.currency,
-                  detail.refund.refundedAmount,
-                )}{" "}
-                of{" "}
-                {money(
-                  detail.refund.currency,
-                  detail.refund.entitledAmount,
-                )}{" "}
+                {money(detail.refund.currency, detail.refund.refundedAmount)} of{" "}
+                {money(detail.refund.currency, detail.refund.entitledAmount)}{" "}
                 recorded
               </p>
             ) : null}

@@ -27,7 +27,12 @@ const journey = {
     travelRouteSummary: "Delhi to Jeddah · Madinah to Delhi",
   },
   travellers: [{ fullName: "Amina Khan" }, { fullName: "Omar Khan" }],
-  commercial: { currency: "INR", total: 220000, paid: 55000, remaining: 165000 },
+  commercial: {
+    currency: "INR",
+    total: 220000,
+    paid: 55000,
+    remaining: 165000,
+  },
   payment: { state: "Succeeded", instalments: [] },
   readiness: { documents: "Ready", visa: "InProgress" },
   support: {
@@ -195,7 +200,9 @@ test("customer reviews a server-calculated entitlement and submits mandatory rev
     page.getByRole("heading", { name: "Cancellation request under review" }),
   ).toBeVisible();
   await expect(
-    page.getByText("Your cancellation request was submitted for operator review."),
+    page.getByText(
+      "Your cancellation request was submitted for operator review.",
+    ),
   ).toBeVisible();
 
   await expectMinimumTargets(page);
@@ -232,7 +239,8 @@ test("operator receives recoverable stale-version feedback without editing the a
         status: 409,
         json: {
           code: "stale_cancellation_version",
-          title: "The cancellation case changed. Refresh it before trying again.",
+          title:
+            "The cancellation case changed. Refresh it before trying again.",
         },
       }),
   );
@@ -308,11 +316,11 @@ test("authorized refund remains safe when provider execution is disabled", async
   await page
     .getByLabel("Decision or recovery reason")
     .fill("Attempt the already-authorized provider refund.");
-  await page
-    .getByRole("button", { name: "Execute authorized refund" })
-    .click();
+  await page.getByRole("button", { name: "Execute authorized refund" }).click();
   await expect(
-    page.getByRole("alert").filter({ hasText: "production execution is not enabled" }),
+    page
+      .getByRole("alert")
+      .filter({ hasText: "production execution is not enabled" }),
   ).toBeVisible();
   await expect(page.getByText(/₹0 of ₹49,000 recorded/)).toBeVisible();
 });

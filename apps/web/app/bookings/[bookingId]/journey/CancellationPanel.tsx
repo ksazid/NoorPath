@@ -85,8 +85,8 @@ export function CancellationPanel({ bookingId }: { bookingId: string }) {
       if (!response.ok) throw new Error();
       const projection = (await response.json()) as Projection;
       setState({ kind: "ready", projection });
-      setReasonCategory((current) =>
-        current || projection.reasonCategories.at(0) || "",
+      setReasonCategory(
+        (current) => current || projection.reasonCategories.at(0) || "",
       );
     } catch {
       setState({
@@ -182,7 +182,9 @@ export function CancellationPanel({ bookingId }: { bookingId: string }) {
     <section className="journey-panel" aria-labelledby="cancellation-title">
       <p className="public-eyebrow">Cancellation &amp; refund</p>
       <h2 id="cancellation-title">
-        {request ? statusTitle(request.customerStatus) : "Review before requesting"}
+        {request
+          ? statusTitle(request.customerStatus)
+          : "Review before requesting"}
       </h2>
 
       {request ? (
@@ -245,7 +247,9 @@ export function CancellationPanel({ bookingId }: { bookingId: string }) {
                 </div>
                 <div>
                   <dt>Estimated deductions</dt>
-                  <dd>{m(policy.percentageFee + policy.nonRefundableAmount)}</dd>
+                  <dd>
+                    {m(policy.percentageFee + policy.nonRefundableAmount)}
+                  </dd>
                 </div>
                 <div>
                   <dt>Estimated maximum refund</dt>
@@ -253,7 +257,10 @@ export function CancellationPanel({ bookingId }: { bookingId: string }) {
                 </div>
               </dl>
               {policy.feeComponents.length ? (
-                <ul className="journey-instalments" aria-label="Estimated deductions">
+                <ul
+                  className="journey-instalments"
+                  aria-label="Estimated deductions"
+                >
                   {policy.feeComponents.map((component) => (
                     <li key={component.code}>
                       <span>{component.label}</span>
@@ -262,7 +269,9 @@ export function CancellationPanel({ bookingId }: { bookingId: string }) {
                   ))}
                 </ul>
               ) : (
-                <p>No configured cancellation deduction applies to this estimate.</p>
+                <p>
+                  No configured cancellation deduction applies to this estimate.
+                </p>
               )}
               <p className="document-help">
                 <Icon name="info" /> This is a server-calculated estimate under
