@@ -21,7 +21,7 @@
   font-size: clamp(1.45rem, 3vw, 2rem);
 }
 .muted {
-  color: var(--color-text-secondary);
+  color: var(--muted);
   line-height: 1.6;
 }
 .form {
@@ -71,7 +71,7 @@
   cursor: pointer;
 }
 .button {
-  background: var(--color-brand-madinah);
+  background: var(--green);
   color: white;
 }
 .secondary {
@@ -121,7 +121,7 @@
 }
 .item span {
   margin-top: 3px;
-  color: var(--color-text-secondary);
+  color: var(--muted);
   font-size: 0.9rem;
 }
 .badge {
@@ -130,7 +130,7 @@
   padding: 6px 10px;
   border-radius: 999px;
   background: #e4efe9;
-  color: var(--color-brand-madinah);
+  color: var(--green);
   font-size: 0.82rem;
   font-weight: 800;
 }
@@ -144,7 +144,7 @@
 }
 .notice {
   background: #f5f1e7;
-  color: var(--color-text-secondary);
+  color: var(--muted);
 }
 .error {
   background: #f7e9e5;
@@ -164,7 +164,7 @@
   margin: 18px 0 0;
 }
 .summary dt {
-  color: var(--color-text-secondary);
+  color: var(--muted);
   font-size: 0.78rem;
   font-weight: 800;
   text-transform: uppercase;
