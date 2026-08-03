@@ -106,8 +106,13 @@
   text-align: center;
 }
 .auth-support a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  padding: 0 4px;
   color: var(--green-deep);
   font-weight: 700;
+  vertical-align: middle;
 }
 
 .account-shell {
