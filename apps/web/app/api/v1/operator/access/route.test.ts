@@ -51,21 +51,18 @@ describe("operator access proxy", () => {
     });
   });
 
-  it(
-    "returns a safe unauthenticated response when the session is unavailable",
-    async () => {
-      mockedGetAuth0Client.mockReturnValue({
-        getAccessToken: vi
-          .fn()
-          .mockRejectedValue(new Error("session unavailable")),
-      } as never);
+  it("returns a safe unauthenticated response when the session is unavailable", async () => {
+    mockedGetAuth0Client.mockReturnValue({
+      getAccessToken: vi
+        .fn()
+        .mockRejectedValue(new Error("session unavailable")),
+    } as never);
 
-      const response = await GET();
+    const response = await GET();
 
-      expect(response.status).toBe(401);
-      await expect(response.json()).resolves.toMatchObject({
-        code: "not_authenticated",
-      });
-    },
-  );
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toMatchObject({
+      code: "not_authenticated",
+    });
+  });
 });
