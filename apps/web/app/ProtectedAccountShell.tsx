@@ -5,7 +5,12 @@ import { useCallback, useEffect, useState } from "react";
 
 type Kind = "customer" | "operator" | "platform";
 type State =
-  "loading" | "authorized" | "unauthenticated" | "forbidden" | "error";
+  | "loading"
+  | "authorized"
+  | "unauthenticated"
+  | "forbidden"
+  | "platform-administrator"
+  | "error";
 
 const content = {
   customer: {
@@ -55,11 +60,28 @@ export default function ProtectedAccountShell({ kind }: { kind: Kind }) {
 
   const load = useCallback(async () => {
     setState("loading");
+    const request: RequestInit = {
+      cache: "no-store",
+      credentials: "same-origin",
+    };
+
     try {
-      const response = await fetch(details.endpoint, {
-        cache: "no-store",
-        credentials: "same-origin",
-      });
+      const response = await fetch(details.endpoint, request);
+      if (response.status === 403 && kind === "operator") {
+        try {
+          const platformResponse = await fetch(
+            "/api/v1/platform/access",
+            request,
+          );
+          setState(
+            platformResponse.ok ? "platform-administrator" : "forbidden",
+          );
+        } catch {
+          setState("forbidden");
+        }
+        return;
+      }
+
       setState(
         response.ok
           ? "authorized"
@@ -72,7 +94,7 @@ export default function ProtectedAccountShell({ kind }: { kind: Kind }) {
     } catch {
       setState("error");
     }
-  }, [details.endpoint]);
+  }, [details.endpoint, kind]);
 
   useEffect(() => {
     const pending = window.setTimeout(load, 0);
@@ -96,18 +118,22 @@ export default function ProtectedAccountShell({ kind }: { kind: Kind }) {
               ? "Checking secure access"
               : state === "unauthenticated"
                 ? "Sign in to continue"
-                : state === "forbidden"
-                  ? "Access unavailable"
-                  : "We could not verify access"}
+                : state === "platform-administrator"
+                  ? "Use NoorPath administration"
+                  : state === "forbidden"
+                    ? "Access unavailable"
+                    : "We could not verify access"}
           </h1>
           <p className="auth-intro">
             {state === "loading"
               ? "Please wait while NoorPath verifies your account."
-              : state === "forbidden"
-                ? "You are signed in, but this account does not have permission to open this workspace."
-                : state === "error"
-                  ? "Check your connection and try again. Your account details are safe."
-                  : "Use your phone or Google account to continue securely."}
+              : state === "platform-administrator"
+                ? "You are signed in as a Platform Administrator. Operator workspaces require an approved Operator membership. Continue in NoorPath administration instead."
+                : state === "forbidden"
+                  ? "You are signed in, but this account does not have permission to open this workspace."
+                  : state === "error"
+                    ? "Check your connection and try again. Your account details are safe."
+                    : "Use your phone or Google account to continue securely."}
           </p>
           {state === "unauthenticated" && (
             <Link
@@ -116,6 +142,16 @@ export default function ProtectedAccountShell({ kind }: { kind: Kind }) {
             >
               Sign in securely
             </Link>
+          )}
+          {state === "platform-administrator" && (
+            <div className="auth-actions">
+              <Link className="auth-primary" href="/admin">
+                Open admin workspace
+              </Link>
+              <Link className="auth-secondary" href="/">
+                Return to NoorPath
+              </Link>
+            </div>
           )}
           {state === "forbidden" && (
             <Link className="auth-secondary" href="/">
