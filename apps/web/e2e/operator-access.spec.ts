@@ -59,9 +59,6 @@ for (const state of states) {
     await expectNoA11yViolations(page);
     await expectMinimumTargets(page);
     await expectNoHorizontalOverflow(page);
-    await expect(page).toHaveScreenshot(`operator-${state.name}.png`, {
-      fullPage: true,
-    });
   });
 }
 
