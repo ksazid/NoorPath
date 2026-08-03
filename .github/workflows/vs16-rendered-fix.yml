@@ -1,15 +1,18 @@
 name: VS-16 Rendered Fix
 
 on:
-  push:
+  pull_request:
     branches:
-      - codex/vs16-cancellation-refunds-runtime
+      - main
+    types:
+      - synchronize
 
 permissions:
   contents: write
 
 jobs:
   repair:
+    if: github.head_ref == 'codex/vs16-cancellation-refunds-runtime'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -53,19 +56,8 @@ jobs:
 
           css = Path("apps/web/app/my-journey.css")
           styles = css.read_text()
-          marker = '''.journey-readiness p {
-            margin: 0;
-            color: var(--color-text-secondary);
-            line-height: 1.55;
-          }
-          '''.replace("          ", "")
-          addition = marker + '''.journey-readiness a {
-            display: inline-flex;
-            min-height: 44px;
-            align-items: center;
-            padding-block: 8px;
-          }
-          '''.replace("          ", "")
+          marker = ".journey-readiness p {\n  margin: 0;\n  color: var(--color-text-secondary);\n  line-height: 1.55;\n}\n"
+          addition = marker + ".journey-readiness a {\n  display: inline-flex;\n  min-height: 44px;\n  align-items: center;\n  padding-block: 8px;\n}\n"
           if marker not in styles:
               raise SystemExit("journey readiness CSS target not found")
           css.write_text(styles.replace(marker, addition, 1))
