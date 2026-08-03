@@ -1,0 +1,84 @@
+{
+  "id": "noorpath-pilot-v1",
+  "releaseScope": [
+    "VS-00",
+    "VS-01",
+    "VS-02",
+    "VS-03",
+    "VS-04",
+    "VS-05",
+    "VS-06",
+    "VS-07",
+    "VS-08",
+    "VS-09",
+    "VS-10",
+    "VS-11",
+    "VS-12",
+    "VS-13",
+    "VS-14",
+    "VS-15",
+    "VS-16",
+    "VS-17"
+  ],
+  "deferredCapabilities": [
+    "Production refund-provider execution",
+    "Production document storage until S3 and malware-scanning controls are approved",
+    "Supplier, airline, hotel and insurance integrations",
+    "Automated WhatsApp notifications",
+    "Multi-region operation and speculative scaling infrastructure"
+  ],
+  "thresholds": {
+    "p95ApiLatencyMs": null,
+    "maximumErrorRatePercent": null,
+    "maximumConcurrentCheckouts": null
+  },
+  "recovery": {
+    "rpoMinutes": null,
+    "rtoMinutes": null,
+    "backupRetentionDays": null,
+    "restoreOwner": null
+  },
+  "monitoring": {
+    "alertOwner": null,
+    "escalationTarget": null,
+    "requiredSignals": [
+      "api_readiness_failure",
+      "payment_failure",
+      "confirmation_exception",
+      "inventory_commitment_failure",
+      "document_processing_failure",
+      "visa_transition_failure",
+      "cancellation_failure",
+      "refund_reconciliation_failure",
+      "migration_failure"
+    ]
+  },
+  "features": {
+    "refundExecution": {
+      "enabled": false,
+      "approved": false
+    },
+    "documentStorage": {
+      "enabled": false,
+      "approved": false
+    },
+    "externalNotifications": {
+      "enabled": false,
+      "approved": false
+    }
+  },
+  "releaseControls": {
+    "releaseOperator": null,
+    "rollbackAuthority": null,
+    "changeWindow": null,
+    "observationMinutes": null,
+    "productionDeploymentRequiresSeparateApproval": true
+  },
+  "postDeploymentSmokeTests": [
+    "GET /health/live returns 200",
+    "GET /health/ready returns 200",
+    "Public discovery loads without a server error",
+    "Customer sign-in entry is available",
+    "Operator sign-in entry is available"
+  ]
+}
