@@ -18,42 +18,27 @@ If sources conflict, stop and record the conflict. Do not silently invent produc
 
 ### UI/UX work
 
-These rules apply to every existing and future customer, operator, and admin
-screen. Refinement may correct usability, accessibility, responsiveness,
-interaction quality, visual drift, or missing states. It must not silently
-redesign an approved screen or change product behaviour.
+These rules apply to every existing and future customer, operator, and admin screen. Refinement may correct usability, accessibility, responsiveness, interaction quality, visual drift, or missing states. It must not silently redesign an approved screen or change product behaviour.
 
 Before any UI/UX task, verify and read the relevant installed project skills:
 
-- `.agents/skills/ui-ux-pro-max/SKILL.md` for IA, task flow, responsive
-  structure, accessibility, forms, feedback, and usability.
-- `.agents/skills/impeccable/SKILL.md` for bounded visual refinement,
-  hierarchy, spacing, typography, rhythm, consistency, content stress, and
-  design-drift detection.
-- `.agents/skills/emil-design-eng/SKILL.md` for purposeful interaction,
-  feedback, transitions, motion, performance, and reduced-motion equivalents.
-- `.agents/skills/ponytail/SKILL.md` in full mode for proportional,
-  minimum-change implementation.
+- `.agents/skills/design-taste-frontend/SKILL.md` for landing, package, campaign, editorial, and explicitly approved redesign surfaces; it is not the primary skill for dashboards, queues, forms, tables, or multi-step product workflows.
+- `.agents/skills/ui-ux-pro-max/SKILL.md` for IA, task flow, responsive structure, accessibility, forms, feedback, and usability.
+- `.agents/skills/impeccable/SKILL.md` for bounded visual refinement, hierarchy, spacing, typography, rhythm, consistency, content stress, and design-drift detection.
+- `.agents/skills/emil-design-eng/SKILL.md` for purposeful interaction, feedback, transitions, motion, performance, and reduced-motion equivalents.
+- `.agents/skills/ponytail/SKILL.md` in full mode for proportional, minimum-change implementation.
 
-Do not claim a skill was used when its project `SKILL.md` is absent or unread.
-Install and commit the approved skill source first, or record the task as
-blocked.
+Do not claim a skill was used when its project `SKILL.md` is absent or unread. Install and commit the approved skill source first, or record the task as blocked.
 
-The approved NoorPath Landing and Package references in `design-references/`
-are the primary visual source of truth. `design-system/MASTER.md` and approved
-Figma screens/components translate that identity into reusable rules. Skills
-may improve usability, accessibility, responsiveness, consistency, craft, and
-purposeful feedback, but must not replace NoorPath's established identity with
-a generic design system.
+The approved NoorPath Landing and Package references in `design-references/` are the primary visual source of truth. `design-system/MASTER.md` and approved Figma screens/components translate that identity into reusable rules. Skills may improve usability, accessibility, responsiveness, consistency, craft, and purposeful feedback, but must not replace NoorPath's established identity with a generic design system.
+
+Taste Skill may strengthen anti-template layout, typography, spacing, and art direction only where the active slice permits it. It must preserve NoorPath tokens, imagery, iconography, header/footer patterns, approved visual references, and the calm trust-first product character.
 
 ### Engineering work
 
-For coding, refactoring, bug fixing, dependency decisions, and implementation
-design, use the installed `.agents/skills/ponytail` skill in full mode.
+For coding, refactoring, bug fixing, dependency decisions, and implementation design, use the installed `.agents/skills/ponytail` skill in full mode.
 
-Ponytail's minimalism is subordinate to NoorPath requirements, architecture,
-security, accessibility, testing, auditability, financial correctness, and
-Definition of Done.
+Ponytail's minimalism is subordinate to NoorPath requirements, architecture, security, accessibility, testing, auditability, financial correctness, and Definition of Done.
 
 Prefer, in order:
 1. Existing NoorPath implementation or component
@@ -61,32 +46,22 @@ Prefer, in order:
 3. Existing dependency
 4. Minimum new implementation required
 
-Do not remove required validation, security, accessibility, observability,
-tests, audit behaviour, or documented product requirements in the name of
-simplification.
+Do not remove required validation, security, accessibility, observability, tests, audit behaviour, or documented product requirements in the name of simplification.
 
 When multiple UI skills are relevant, apply them in this order:
 
 1. Approved requirement IDs and the active vertical slice define product scope.
-2. Approved Landing/Package references and `design-system/MASTER.md` govern
-   visual identity.
-3. UI UX Pro Max governs UX structure, states, accessibility, and responsive
-   behaviour.
-4. Approved Figma artifacts govern new screen/component decisions where they
-   exist.
-5. Impeccable performs a bounded visual-refinement pass; it refines rather than
-   redesigns.
-6. Emil principles apply selectively where interaction or motion adds feedback,
-   state clarity, causality, or spatial continuity.
-7. Product-owner approval closes material visual decisions.
-8. Ponytail governs implementation simplicity after the design decision.
-9. Automated accessibility, responsive, interaction, and screenshot comparison
-   verify production against the approved design.
+2. Approved Landing/Package references and `design-system/MASTER.md` govern visual identity.
+3. Taste Skill applies only to landing/package/marketing/editorial or explicitly approved redesign surfaces.
+4. UI UX Pro Max governs UX structure, states, accessibility, responsive behaviour, forms, dashboards, queues, and multi-step workflows.
+5. Approved Figma artifacts govern new screen/component decisions where they exist.
+6. Impeccable performs a bounded visual-refinement pass; it refines rather than redesigns.
+7. Emil principles apply selectively where interaction or motion adds feedback, state clarity, causality, or spatial continuity.
+8. Product-owner approval closes material visual decisions.
+9. Ponytail governs implementation simplicity after the design decision.
+10. Automated accessibility, responsive, interaction, and screenshot comparison verify production against the approved design.
 
-This AGENTS.md and the governing sources above remain authoritative. If a skill
-recommendation conflicts with them, follow the governing source and record the
-conflict.
-
+This AGENTS.md and the governing sources above remain authoritative. If a skill recommendation conflicts with them, follow the governing source and record the conflict.
 
 ## Architecture rules
 
@@ -143,4 +118,3 @@ conflict.
 - Visual QA passes against the approved baseline.
 - Observability is sufficient to diagnose the feature.
 - Documentation and traceability are updated.
-
