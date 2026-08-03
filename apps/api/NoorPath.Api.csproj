@@ -5,6 +5,8 @@
     <ProjectReference Include="../../src/Modules/NoorPath.Booking.Infrastructure/NoorPath.Booking.Infrastructure.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Catalogue/NoorPath.Catalogue.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Catalogue.Infrastructure/NoorPath.Catalogue.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Modules/NoorPath.FamilyBooking/NoorPath.FamilyBooking.csproj" />
+    <ProjectReference Include="../../src/Modules/NoorPath.FamilyBooking.Infrastructure/NoorPath.FamilyBooking.Infrastructure.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Inventory/NoorPath.Inventory.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Inventory.Infrastructure/NoorPath.Inventory.Infrastructure.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Operators/NoorPath.Operators.csproj" />

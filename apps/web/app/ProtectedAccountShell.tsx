@@ -176,6 +176,11 @@ export default function ProtectedAccountShell({ kind }: { kind: Kind }) {
           <Link className="auth-primary" href={details.action.href}>
             {details.action.label}
           </Link>
+          {kind === "customer" ? (
+            <Link className="auth-secondary" href="/account/family">
+              Manage family travellers
+            </Link>
+          ) : null}
         </section>
       </main>
     </div>

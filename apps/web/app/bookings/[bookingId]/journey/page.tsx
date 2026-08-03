@@ -23,7 +23,22 @@ type Journey = {
     madinahNights: number;
     travelRouteSummary: string;
   };
-  travellers: { fullName: string }[];
+  travellers: { travellerId: string; fullName: string }[];
+  family: null | {
+    familyPartyId: string;
+    partyName: string;
+    policyVersion: string;
+    partyVersion: number;
+    travellers: { travellerId: string; fullName: string }[];
+    mahramLinks: {
+      protectedTravellerId: string;
+      protectedTravellerName: string;
+      mahramTravellerId: string;
+      mahramTravellerName: string;
+      relationshipType: string;
+    }[];
+    disclaimer: string;
+  };
   commercial: {
     currency: string;
     total: number;
@@ -164,11 +179,53 @@ function Dashboard({ journey: j }: { journey: Journey }) {
           <h2>{j.travellers.length} confirmed</h2>
           <ul>
             {j.travellers.map((t) => (
-              <li key={t.fullName}>{t.fullName}</li>
+              <li key={t.travellerId}>{t.fullName}</li>
             ))}
           </ul>
         </article>
       </section>
+      {j.family ? (
+        <section className="journey-panel" aria-labelledby="family-title">
+          <p className="public-eyebrow">Booked family snapshot</p>
+          <h2 id="family-title">{j.family.partyName}</h2>
+          <p>
+            This read-only composition is the exact validated family snapshot
+            retained for checkout under policy {j.family.policyVersion}.
+          </p>
+          <div className="journey-readiness">
+            <div>
+              <Icon name="users" />
+              <h3>{j.family.travellers.length} family travellers</h3>
+              <ul>
+                {j.family.travellers.map((traveller) => (
+                  <li key={traveller.travellerId}>{traveller.fullName}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <Icon name="link" />
+              <h3>Declared Mahram relationships</h3>
+              {j.family.mahramLinks.length ? (
+                <ul>
+                  {j.family.mahramLinks.map((link) => (
+                    <li
+                      key={`${link.protectedTravellerId}-${link.mahramTravellerId}`}
+                    >
+                      {link.protectedTravellerName} → {link.mahramTravellerName}{" "}
+                      ({humanize(link.relationshipType)})
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>
+                  No Mahram relationship was included in the booked snapshot.
+                </p>
+              )}
+            </div>
+          </div>
+          <p>{j.family.disclaimer}</p>
+        </section>
+      ) : null}
       <section className="journey-panel" aria-labelledby="payment-title">
         <div>
           <p className="public-eyebrow">Payment schedule</p>
@@ -285,4 +342,7 @@ function money(currency: string, amount: number) {
     currency,
     maximumFractionDigits: 0,
   }).format(amount);
+}
+function humanize(value: string) {
+  return value.replaceAll(/([A-Z])/g, " $1").trim();
 }

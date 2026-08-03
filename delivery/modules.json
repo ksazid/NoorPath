@@ -15,6 +15,13 @@
       "environment": "NOORPATH_CATALOGUE_TEST_DB"
     },
     {
+      "name": "FamilyBooking",
+      "project": "src/Modules/NoorPath.FamilyBooking.Infrastructure/NoorPath.FamilyBooking.Infrastructure.csproj",
+      "context": "FamilyBookingDbContext",
+      "database": "noorpath_family_booking_test",
+      "environment": "NOORPATH_FAMILY_BOOKING_TEST_DB"
+    },
+    {
       "name": "Operators",
       "project": "src/Modules/NoorPath.Operators.Infrastructure/NoorPath.Operators.Infrastructure.csproj",
       "context": "OperatorsDbContext",

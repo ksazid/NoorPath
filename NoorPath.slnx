@@ -8,6 +8,8 @@
     <Project Path="src/Modules/NoorPath.Booking.Infrastructure/NoorPath.Booking.Infrastructure.csproj" />
     <Project Path="src/Modules/NoorPath.Catalogue/NoorPath.Catalogue.csproj" />
     <Project Path="src/Modules/NoorPath.Catalogue.Infrastructure/NoorPath.Catalogue.Infrastructure.csproj" />
+    <Project Path="src/Modules/NoorPath.FamilyBooking/NoorPath.FamilyBooking.csproj" />
+    <Project Path="src/Modules/NoorPath.FamilyBooking.Infrastructure/NoorPath.FamilyBooking.Infrastructure.csproj" />
     <Project Path="src/Modules/NoorPath.Inventory/NoorPath.Inventory.csproj" />
     <Project Path="src/Modules/NoorPath.Inventory.Infrastructure/NoorPath.Inventory.Infrastructure.csproj" />
     <Project Path="src/Modules/NoorPath.Operators/NoorPath.Operators.csproj" />
@@ -29,6 +31,8 @@
     <Project Path="tests/NoorPath.Catalogue.Tests/NoorPath.Catalogue.Tests.csproj" />
     <Project Path="tests/NoorPath.Catalogue.Integration.Tests/NoorPath.Catalogue.Integration.Tests.csproj" />
     <Project Path="tests/NoorPath.Commercial.Integration.Tests/NoorPath.Commercial.Integration.Tests.csproj" />
+    <Project Path="tests/NoorPath.FamilyBooking.Tests/NoorPath.FamilyBooking.Tests.csproj" />
+    <Project Path="tests/NoorPath.FamilyBooking.Integration.Tests/NoorPath.FamilyBooking.Integration.Tests.csproj" />
     <Project Path="tests/NoorPath.Inventory.Tests/NoorPath.Inventory.Tests.csproj" />
     <Project Path="tests/NoorPath.Operators.Tests/NoorPath.Operators.Tests.csproj" />
     <Project Path="tests/NoorPath.Operators.Integration.Tests/NoorPath.Operators.Integration.Tests.csproj" />
