@@ -125,7 +125,20 @@ Includes: work queue/search required for MVP, exception-first views, approved op
 Depends on: relevant preceding capabilities.
 Excludes: full CRM/ticketing platform and unrestricted database-style admin UI.
 
-### VS-15 Production Readiness
+### VS-15 Family Booking & Mahram Linking
+Outcome: an authenticated customer can build an account-owned family travel party, explicitly link travellers through approved Mahram relationships, validate the party against a versioned policy, and carry an immutable validated snapshot into quote, booking and My Journey.
+Includes: account-owned party membership, directed relationship declarations, versioned structural validation, quote/booking snapshot integration, account isolation, concurrency, audit and customer-safe journey projection.
+Depends on: VS-02, VS-07, VS-09 and VS-11.
+Excludes: automated religious/legal rulings, kinship-document verification, cross-account sharing, room allocation and operator override of Mahram policy.
+
+### VS-16 Cancellation & Refunds
+Outcome: an authenticated booking owner can request whole-booking cancellation, understand the versioned entitlement, and track the governed booking cancellation, inventory release and append-only refund outcome.
+Includes: versioned cancellation policy, explainable entitlement, idempotent request/review, Booking-owned cancellation transition, Inventory-owned release, Payments-owned refund execution and reconciliation, My Journey status and operational exceptions.
+Depends on: VS-09, VS-10, VS-11 and VS-14.
+Excludes: partial traveller cancellation, chargebacks/disputes, arbitrary refund editing, supplier-refund integrations, vouchers and loyalty credit.
+Entry condition: Product Owner approval of cancellation windows, fees, refundable components, milestone restrictions and operating authority.
+
+### VS-17 Production Readiness
 Outcome: the complete MVP is demonstrably safe and operable for production release.
 Includes: critical E2E journeys, security/privacy verification, accessibility, visual regression, migration validation, backup/restore evidence, baseline performance/load checks, monitoring/alerting, deployment/rollback verification, secrets/config review and operational runbooks.
 Depends on: all release-scope slices.
@@ -133,7 +146,7 @@ Depends on: all release-scope slices.
 ## Dependency chain
 VS-00 -> VS-01 -> VS-02 -> VS-03 -> VS-04 -> VS-05 -> VS-06 -> VS-07 -> VS-08 -> VS-09 -> VS-10 -> VS-11.
 
-After confirmation/journey foundation, VS-12 and VS-13 can progress independently where their contracts do not require each other. VS-14 composes completed operational capabilities. VS-15 closes the release.
+After confirmation/journey foundation, VS-12 and VS-13 can progress independently where their contracts do not require each other. VS-14 composes completed operational capabilities. VS-15 extends the traveller/booking journey. VS-16 completes the remaining cancellation/refund pilot requirement. VS-17 closes the release.
 
 ## Anti-overengineering rules
 - Do not build a future slice's infrastructure merely because the architecture could support it.
