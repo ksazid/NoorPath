@@ -245,6 +245,12 @@
   color: var(--color-text-secondary);
   line-height: 1.55;
 }
+.journey-readiness a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  padding-block: 8px;
+}
 .journey-support {
   display: flex;
   gap: 20px;

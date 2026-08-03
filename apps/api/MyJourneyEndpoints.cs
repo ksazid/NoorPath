@@ -31,7 +31,8 @@ public static class MyJourneyEndpoints
             return Results.Unauthorized();
 
         var items = await bookings.Bookings.AsNoTracking()
-            .Where(item => item.AccountId == principal.AccountId.Value && item.State == BookingState.Confirmed)
+            .Where(item => item.AccountId == principal.AccountId.Value
+                && (item.State == BookingState.Confirmed || item.State == BookingState.Cancelled))
             .OrderByDescending(item => item.ConfirmedAtUtc)
             .Select(item => new
             {
@@ -68,7 +69,9 @@ public static class MyJourneyEndpoints
 
         var accountId = principal.AccountId.Value;
         var booking = await bookings.Bookings.AsNoTracking().SingleOrDefaultAsync(
-            item => item.Id == bookingId && item.AccountId == accountId && item.State == BookingState.Confirmed,
+            item => item.Id == bookingId
+                    && item.AccountId == accountId
+                    && (item.State == BookingState.Confirmed || item.State == BookingState.Cancelled),
             cancellationToken);
         if (booking is null)
             return Results.NotFound();

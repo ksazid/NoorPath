@@ -10,7 +10,8 @@ public enum BookingState
     PendingConfirmation,
     Confirming,
     Confirmed,
-    ConfirmationException
+    ConfirmationException,
+    Cancelled
 }
 
 public enum BookingOccupancy
@@ -130,6 +131,7 @@ public static class BookingPolicy
             (BookingState.Confirming, BookingState.ConfirmationException) => true,
             (BookingState.PendingConfirmation, BookingState.ConfirmationException) => true,
             (BookingState.ConfirmationException, BookingState.Confirming) => true,
+            (BookingState.Confirmed, BookingState.Cancelled) => true,
             _ => current == next
         };
 }

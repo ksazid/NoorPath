@@ -217,6 +217,16 @@ export default function ProtectedAccountShell({ kind }: { kind: Kind }) {
               Manage family travellers
             </Link>
           ) : null}
+          {kind === "operator" ? (
+            <>
+              <Link className="auth-secondary" href="/operator/support">
+                Open operational support
+              </Link>
+              <Link className="auth-secondary" href="/operator/cancellations">
+                Review cancellations &amp; refunds
+              </Link>
+            </>
+          ) : null}
         </section>
       </main>
     </div>

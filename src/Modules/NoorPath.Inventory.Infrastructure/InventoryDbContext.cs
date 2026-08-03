@@ -10,6 +10,7 @@ public sealed class InventoryDbContext(DbContextOptions<InventoryDbContext> opti
     public DbSet<InventoryAuditRecord> Audits => Set<InventoryAuditRecord>();
     public DbSet<InventoryHoldRecord> Holds => Set<InventoryHoldRecord>();
     public DbSet<InventoryCommitmentRecord> Commitments => Set<InventoryCommitmentRecord>();
+    public DbSet<InventoryReleaseRecord> Releases => Set<InventoryReleaseRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) => Configure(modelBuilder);
 
@@ -105,6 +106,30 @@ public sealed class InventoryDbContext(DbContextOptions<InventoryDbContext> opti
             entity.HasOne<InventoryPoolRecord>().WithMany().HasForeignKey(x => x.InventoryPoolId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<InventoryHoldRecord>().WithMany().HasForeignKey(x => x.HoldId).OnDelete(DeleteBehavior.Restrict);
         });
+
+        modelBuilder.Entity<InventoryReleaseRecord>(entity =>
+        {
+            entity.ToTable("inventory_releases", table =>
+                table.HasCheckConstraint(
+                    "CK_inventory_releases_Quantity_Positive",
+                    "\"Quantity\" > 0"));
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.AccountId).HasMaxLength(120);
+            entity.Property(x => x.ActorAccountId).HasMaxLength(120);
+            entity.Property(x => x.Reason).HasMaxLength(240);
+            entity.Property(x => x.CorrelationId).HasMaxLength(100);
+            entity.HasIndex(x => x.CancellationRequestId).IsUnique();
+            entity.HasIndex(x => x.CommitmentId).IsUnique();
+            entity.HasIndex(x => new { x.BookingId, x.ReleasedAtUtc });
+            entity.HasOne<InventoryCommitmentRecord>()
+                .WithMany()
+                .HasForeignKey(x => x.CommitmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<InventoryHoldRecord>()
+                .WithMany()
+                .HasForeignKey(x => x.HoldId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
     }
 }
 
@@ -119,6 +144,21 @@ public sealed class InventoryCommitmentRecord
     public int Quantity { get; set; }
     public required string CorrelationId { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
+}
+
+public sealed class InventoryReleaseRecord
+{
+    public Guid Id { get; set; }
+    public Guid CommitmentId { get; set; }
+    public Guid HoldId { get; set; }
+    public Guid BookingId { get; set; }
+    public Guid CancellationRequestId { get; set; }
+    public required string AccountId { get; set; }
+    public int Quantity { get; set; }
+    public required string ActorAccountId { get; set; }
+    public required string Reason { get; set; }
+    public required string CorrelationId { get; set; }
+    public DateTimeOffset ReleasedAtUtc { get; set; }
 }
 
 public sealed class InventoryConfigurationRecord
