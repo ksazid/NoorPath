@@ -1,9 +1,9 @@
 name: VS-16 Runtime Build
 
 on:
-  push:
+  pull_request:
     branches:
-      - codex/vs16-cancellation-refunds-runtime
+      - main
   workflow_dispatch:
 
 permissions:
