@@ -1,0 +1,198 @@
+name: Production readiness
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, labeled]
+    paths:
+      - ".github/workflows/production-readiness.yml"
+      - ".github/workflows/production-deploy.yml"
+      - "apps/web/e2e/production-readiness.spec.ts"
+      - "delivery/releases/**"
+      - "docs/runbooks/**"
+      - "package.json"
+      - "scripts/release-readiness*.mjs"
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        description: Exact 40-character release candidate SHA
+        required: true
+        type: string
+
+concurrency:
+  group: production-readiness-${{ github.event.pull_request.number || inputs.candidate_sha || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  configuration:
+    name: Release configuration
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'certify')
+    runs-on: ubuntu-latest
+    env:
+      CANDIDATE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || inputs.candidate_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CANDIDATE_SHA }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - name: Verify exact candidate reference
+        run: |
+          set -euo pipefail
+          test "${#CANDIDATE_SHA}" -eq 40
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
+      - name: Require all Product Owner release decisions
+        run: node scripts/release-readiness.mjs certify delivery/releases/pilot-v1.json --sha "$CANDIDATE_SHA"
+      - name: Write exact-head release evidence
+        run: node scripts/release-readiness.mjs evidence delivery/releases/pilot-v1.json --sha "$CANDIDATE_SHA" --output artifacts/production-readiness
+      - uses: actions/upload-artifact@v4
+        with:
+          name: production-readiness-configuration
+          path: artifacts/production-readiness
+          retention-days: 30
+
+  recovery-and-health:
+    name: Recovery and health contract
+    needs: configuration
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: noorpath_release_test
+          POSTGRES_USER: noorpath
+          POSTGRES_PASSWORD: ci-local-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U noorpath -d noorpath_release_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CANDIDATE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || inputs.candidate_sha }}
+      ASPNETCORE_ENVIRONMENT: Test
+      Authentication__Mode: Test
+      ConnectionStrings__NoorPath: Host=127.0.0.1;Port=5432;Database=noorpath_release_test;Username=noorpath;Password=ci-local-only-password
+      Database__MigrateOnStartup: true
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: noorpath
+      PGPASSWORD: ci-local-only-password
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CANDIDATE_SHA }}
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - name: Start the release candidate API
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/production-readiness
+          dotnet run --project apps/api/NoorPath.Api.csproj --urls http://127.0.0.1:5080 > artifacts/production-readiness/api-primary.log 2>&1 &
+          echo $! > artifacts/production-readiness/api-primary.pid
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:5080/health/ready > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat artifacts/production-readiness/api-primary.log
+          exit 1
+      - name: Verify live, ready, degraded and recovered states
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:5080/health/live)" = "200"
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:5080/health/ready)" = "200"
+
+          postgres_container="$(docker ps --filter 'publish=5432' --format '{{.ID}}' | head -n 1)"
+          test -n "$postgres_container"
+          docker stop "$postgres_container"
+
+          degraded=""
+          for attempt in $(seq 1 30); do
+            degraded="$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:5080/health/ready || true)"
+            if [ "$degraded" = "503" ]; then
+              break
+            fi
+            sleep 1
+          done
+          test "$degraded" = "503"
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:5080/health/live)" = "200"
+
+          docker start "$postgres_container"
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:5080/health/ready > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+      - name: Create and restore an isolated database backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          postgres_container="$(docker ps --filter 'publish=5432' --format '{{.ID}}' | head -n 1)"
+          test -n "$postgres_container"
+
+          docker exec -e PGPASSWORD="$PGPASSWORD" "$postgres_container" \
+            pg_dump --host=127.0.0.1 --username="$PGUSER" --dbname=noorpath_release_test \
+            --format=custom --file=/tmp/noorpath-release.dump
+
+          docker exec -e PGPASSWORD="$PGPASSWORD" "$postgres_container" \
+            psql --host=127.0.0.1 --username="$PGUSER" --dbname=postgres \
+            --set=ON_ERROR_STOP=1 --command='DROP DATABASE IF EXISTS noorpath_restore_test'
+          docker exec -e PGPASSWORD="$PGPASSWORD" "$postgres_container" \
+            psql --host=127.0.0.1 --username="$PGUSER" --dbname=postgres \
+            --set=ON_ERROR_STOP=1 --command='CREATE DATABASE noorpath_restore_test'
+          docker exec -e PGPASSWORD="$PGPASSWORD" "$postgres_container" \
+            pg_restore --host=127.0.0.1 --username="$PGUSER" --exit-on-error \
+            --no-owner --dbname=noorpath_restore_test /tmp/noorpath-release.dump
+
+          restored_tables="$(docker exec -e PGPASSWORD="$PGPASSWORD" "$postgres_container" \
+            psql --host=127.0.0.1 --username="$PGUSER" --tuples-only --no-align \
+            --dbname=noorpath_restore_test \
+            --command="select count(*) from information_schema.tables where table_schema not in ('pg_catalog', 'information_schema');")"
+          test "$restored_tables" -gt 0
+          printf '# Recovery evidence\n\n- Exact SHA: `%s`\n- Backup created: yes\n- Isolated restore completed: yes\n- Restored application tables: %s\n- Production data modified: no\n' "$CANDIDATE_SHA" "$restored_tables" > artifacts/production-readiness/recovery.md
+      - name: Verify the restored database is application-ready
+        shell: bash
+        env:
+          ConnectionStrings__NoorPath: Host=127.0.0.1;Port=5432;Database=noorpath_restore_test;Username=noorpath;Password=ci-local-only-password
+          Database__MigrateOnStartup: false
+        run: |
+          set -euo pipefail
+          dotnet run --no-build --project apps/api/NoorPath.Api.csproj --urls http://127.0.0.1:5081 > artifacts/production-readiness/api-restored.log 2>&1 &
+          echo $! > artifacts/production-readiness/api-restored.pid
+          for attempt in $(seq 1 45); do
+            if curl --fail --silent http://127.0.0.1:5081/health/ready > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat artifacts/production-readiness/api-restored.log
+          exit 1
+      - name: Stop test processes
+        if: always()
+        shell: bash
+        run: |
+          for file in artifacts/production-readiness/*.pid; do
+            [ -f "$file" ] || continue
+            kill "$(cat "$file")" 2>/dev/null || true
+          done
+      - name: Upload recovery and health evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-readiness-recovery-health
+          if-no-files-found: error
+          retention-days: 30
+          path: artifacts/production-readiness
