@@ -10,6 +10,10 @@
 }
 
 .auth-brand {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  padding: 0 4px;
   color: var(--ink);
   font-family: Georgia, "Times New Roman", serif;
   font-size: 28px;
