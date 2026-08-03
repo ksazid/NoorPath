@@ -22,53 +22,33 @@ jobs:
 
           operator = Path("apps/web/app/operator/cancellations/page.tsx")
           text = operator.read_text()
-          old_load = '''  const load = useCallback(async (selectedState = "") => {
-              setState({ kind: "loading" });
-              setFeedback("");
-          '''
-          new_load = '''  const load = useCallback(async (selectedState = "") => {
-              setState({ kind: "loading" });
-          '''
-          if old_load not in text:
-              raise SystemExit("load feedback reset target not found")
-          text = text.replace(old_load, new_load, 1)
 
-          old_open = '''  async function openCase(cancellationId: string) {
-              setFeedback("");
-              setReason("");
-          '''
-          new_open = '''  async function openCase(cancellationId: string) {
-              setReason("");
-          '''
-          if old_open not in text:
-              raise SystemExit("openCase feedback reset target not found")
-          text = text.replace(old_open, new_open, 1)
-
-          old_filter = '''  async function applyFilter(event: FormEvent) {
-              event.preventDefault();
-              setDetail(null);
-              await load(filter);
-          '''
-          new_filter = '''  async function applyFilter(event: FormEvent) {
-              event.preventDefault();
-              setFeedback("");
-              setDetail(null);
-              await load(filter);
-          '''
-          if old_filter not in text:
-              raise SystemExit("applyFilter target not found")
-          text = text.replace(old_filter, new_filter, 1)
-
-          old_review = '''                  onClick={() => void openCase(item.cancellationId)}
-          '''
-          new_review = '''                  onClick={() => {
-                            setFeedback("");
-                            void openCase(item.cancellationId);
-                          }}
-          '''
-          if old_review not in text:
-              raise SystemExit("review case target not found")
-          text = text.replace(old_review, new_review, 1)
+          replacements = [
+              (
+                  '    setState({ kind: "loading" });\n    setFeedback("");\n    const params',
+                  '    setState({ kind: "loading" });\n    const params',
+                  "load feedback reset",
+              ),
+              (
+                  '  async function openCase(cancellationId: string) {\n    setFeedback("");\n    setReason("");',
+                  '  async function openCase(cancellationId: string) {\n    setReason("");',
+                  "openCase feedback reset",
+              ),
+              (
+                  '  async function applyFilter(event: FormEvent) {\n    event.preventDefault();\n    setDetail(null);',
+                  '  async function applyFilter(event: FormEvent) {\n    event.preventDefault();\n    setFeedback("");\n    setDetail(null);',
+                  "applyFilter",
+              ),
+              (
+                  '                  onClick={() => void openCase(item.cancellationId)}',
+                  '                  onClick={() => {\n                    setFeedback("");\n                    void openCase(item.cancellationId);\n                  }}',
+                  "review case",
+              ),
+          ]
+          for old, new, label in replacements:
+              if old not in text:
+                  raise SystemExit(f"{label} target not found")
+              text = text.replace(old, new, 1)
           operator.write_text(text)
 
           css = Path("apps/web/app/my-journey.css")
@@ -78,18 +58,17 @@ jobs:
             color: var(--color-text-secondary);
             line-height: 1.55;
           }
-          '''
+          '''.replace("          ", "")
           addition = marker + '''.journey-readiness a {
             display: inline-flex;
             min-height: 44px;
             align-items: center;
             padding-block: 8px;
           }
-          '''
+          '''.replace("          ", "")
           if marker not in styles:
               raise SystemExit("journey readiness CSS target not found")
-          styles = styles.replace(marker, addition, 1)
-          css.write_text(styles)
+          css.write_text(styles.replace(marker, addition, 1))
           PY
           rm .github/workflows/vs16-rendered-fix.yml
       - name: Format changed web files
