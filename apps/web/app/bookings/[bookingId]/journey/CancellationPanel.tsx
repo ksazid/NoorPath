@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useState } from "react";
+import { useDeferredInitialLoad } from "../../../../lib/use-deferred-initial-load";
 import { Icon } from "../../../public-ui";
 
 type FeeComponent = {
@@ -97,9 +98,7 @@ export function CancellationPanel({ bookingId }: { bookingId: string }) {
     }
   }, [bookingId]);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  useDeferredInitialLoad(load);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
