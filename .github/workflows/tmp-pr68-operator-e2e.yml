@@ -1,0 +1,57 @@
+name: Temporary PR 68 operator E2E
+
+on:
+  push:
+    branches:
+      - agent/fix-role-aware-operator-routing
+
+permissions:
+  contents: read
+
+jobs:
+  operator-e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: noorpath_operator_e2e
+          POSTGRES_USER: noorpath
+          POSTGRES_PASSWORD: ci-local-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U noorpath -d noorpath_operator_e2e"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CI: true
+      ASPNETCORE_ENVIRONMENT: Test
+      Authentication__Mode: Test
+      ConnectionStrings__NoorPath: Host=127.0.0.1;Port=5432;Database=noorpath_operator_e2e;Username=noorpath;Password=ci-local-only-password
+      Database__MigrateOnStartup: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/fix-role-aware-operator-routing
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --dir apps/web exec playwright install --with-deps chromium
+      - run: pnpm --dir apps/web exec playwright test e2e/operator-access.spec.ts
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr68-operator-e2e
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            apps/web/test-results
+            apps/web/playwright-report
