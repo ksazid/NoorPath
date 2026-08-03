@@ -1,0 +1,22 @@
+name: VS-16 Runtime Build
+
+on:
+  push:
+    branches:
+      - codex/vs16-cancellation-refunds-runtime
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet restore NoorPath.slnx
+      - run: dotnet format NoorPath.slnx --verify-no-changes --no-restore
+      - run: dotnet build NoorPath.slnx --configuration Release --no-restore
