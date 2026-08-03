@@ -298,10 +298,10 @@ public static class CancellationRefundEndpoints
                 body.Reason,
                 http.TraceIdentifier,
                 cancellationToken);
-            if (!result.IsSuccess)
+            if (result.Value is null)
                 return ToResult(http, result);
             return Results.Json(
-                RefundProjection(result.Value!),
+                RefundProjection(result.Value),
                 statusCode: result.StatusCode);
         }
         catch (Exception exception) when (exception.GetType().Name == "RefundNotFoundException")
