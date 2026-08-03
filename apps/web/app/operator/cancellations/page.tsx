@@ -115,7 +115,6 @@ export default function CancellationReviewPage() {
 
   const load = useCallback(async (selectedState = "") => {
     setState({ kind: "loading" });
-    setFeedback("");
     const params = new URLSearchParams();
     if (selectedState) params.set("state", selectedState);
 
@@ -142,12 +141,12 @@ export default function CancellationReviewPage() {
 
   async function applyFilter(event: FormEvent) {
     event.preventDefault();
+    setFeedback("");
     setDetail(null);
     await load(filter);
   }
 
   async function openCase(cancellationId: string) {
-    setFeedback("");
     setReason("");
     try {
       const response = await fetch(
@@ -306,7 +305,10 @@ export default function CancellationReviewPage() {
                 ) : null}
                 <button
                   type="button"
-                  onClick={() => void openCase(item.cancellationId)}
+                  onClick={() => {
+                    setFeedback("");
+                    void openCase(item.cancellationId);
+                  }}
                 >
                   Review case
                 </button>
