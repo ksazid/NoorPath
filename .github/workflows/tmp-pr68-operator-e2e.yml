@@ -46,8 +46,10 @@ jobs:
           global-json-file: global.json
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --dir apps/web exec playwright install --with-deps chromium
+      - run: pnpm --dir apps/web exec playwright install --with-deps chromium webkit
       - name: Run operator role-routing acceptance
+        id: acceptance
+        continue-on-error: true
         run: pnpm --dir apps/web exec playwright test e2e/operator-access.spec.ts
       - if: always()
         uses: actions/upload-artifact@v4
@@ -58,9 +60,15 @@ jobs:
           path: |
             apps/web/test-results
             apps/web/playwright-report
-      - name: Record success and remove temporary workflow
+      - name: Record failure
+        if: steps.acceptance.outcome != 'success'
         run: |
-          gh pr comment 68 --repo ksazid/NoorPath --body "✅ Explicit operator role-routing Playwright verification passed on commit \`${GITHUB_SHA}\` (desktop and mobile projects, including authenticated Platform Administrator guidance to /admin)."
+          gh pr comment 68 --repo ksazid/NoorPath --body "❌ Explicit operator role-routing Playwright verification failed on commit \`${GITHUB_SHA}\`. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          exit 1
+      - name: Record success and remove temporary workflow
+        if: steps.acceptance.outcome == 'success'
+        run: |
+          gh pr comment 68 --repo ksazid/NoorPath --body "✅ Explicit operator role-routing Playwright verification passed on commit \`${GITHUB_SHA}\` across desktop Chromium and mobile WebKit, including authenticated Platform Administrator guidance to /admin."
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm .github/workflows/tmp-pr68-operator-e2e.yml
