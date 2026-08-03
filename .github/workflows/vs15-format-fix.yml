@@ -1,0 +1,122 @@
+name: VS-15 formatting repair
+
+on:
+  push:
+    branches:
+      - codex/vs15-family-booking-mahram-runtime
+    paths:
+      - .github/workflows/vs15-format-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/vs15-family-booking-mahram-runtime
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - name: Repair known validation blockers
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          migration = Path("src/Modules/NoorPath.FamilyBooking.Infrastructure/Migrations/20260803140500_VS15FamilyBooking.cs")
+          text = migration.read_text()
+          start = text.index("        migrationBuilder.CreateIndex(")
+          end = text.index("    }\n\n    protected override void Down", start)
+          indexes = '''        migrationBuilder.CreateIndex(
+              name: "IX_parties_AccountId_Status_UpdatedAtUtc",
+              schema: "family_booking",
+              table: "parties",
+              columns: new[] { "AccountId", "Status", "UpdatedAtUtc" });
+          migrationBuilder.CreateIndex(
+              name: "IX_members_AccountId_TravellerId",
+              schema: "family_booking",
+              table: "members",
+              columns: new[] { "AccountId", "TravellerId" });
+          migrationBuilder.CreateIndex(
+              name: "IX_mahram_links_AccountId_FamilyPartyId",
+              schema: "family_booking",
+              table: "mahram_links",
+              columns: new[] { "AccountId", "FamilyPartyId" });
+          migrationBuilder.CreateIndex(
+              name: "IX_mahram_links_FamilyPartyId_ProtectedTravellerId_MahramTravellerId",
+              schema: "family_booking",
+              table: "mahram_links",
+              columns: new[] { "FamilyPartyId", "ProtectedTravellerId", "MahramTravellerId" },
+              unique: true,
+              filter: "\\\"IsActive\\\" = TRUE");
+          migrationBuilder.CreateIndex(
+              name: "IX_audit_events_AccountId_OccurredAtUtc",
+              schema: "family_booking",
+              table: "audit_events",
+              columns: new[] { "AccountId", "OccurredAtUtc" });
+          migrationBuilder.CreateIndex(
+              name: "IX_quote_snapshots_QuoteId",
+              schema: "family_booking",
+              table: "quote_snapshots",
+              column: "QuoteId",
+              unique: true);
+          migrationBuilder.CreateIndex(
+              name: "IX_quote_snapshots_AccountId_FamilyPartyId",
+              schema: "family_booking",
+              table: "quote_snapshots",
+              columns: new[] { "AccountId", "FamilyPartyId" });
+          migrationBuilder.CreateIndex(
+              name: "IX_booking_snapshots_BookingId",
+              schema: "family_booking",
+              table: "booking_snapshots",
+              column: "BookingId",
+              unique: true);
+          migrationBuilder.CreateIndex(
+              name: "IX_booking_snapshots_AccountId_FamilyPartyId",
+              schema: "family_booking",
+              table: "booking_snapshots",
+              columns: new[] { "AccountId", "FamilyPartyId" });
+'''
+          migration.write_text(text[:start] + indexes + text[end:])
+
+          tests = Path("tests/NoorPath.FamilyBooking.Tests/FamilyBookingPolicyTests.cs")
+          test_text = tests.read_text()
+          if "using Xunit;" not in test_text:
+              tests.write_text("using Xunit;\n" + test_text)
+          PY
+      - name: Format frontend files
+        run: >-
+          pnpm --dir apps/web exec prettier --write
+          "app/account/family/page.tsx"
+          "app/bookings/[bookingId]/journey/page.tsx"
+          "app/FamilyQuoteBridge.tsx"
+          "e2e/family-booking-mahram.spec.ts"
+      - run: dotnet restore NoorPath.slnx
+      - name: Format .NET files
+        run: dotnet format NoorPath.slnx --no-restore
+      - name: Commit repairs
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web/app/account/family/page.tsx \
+            'apps/web/app/bookings/[bookingId]/journey/page.tsx' \
+            apps/web/app/FamilyQuoteBridge.tsx \
+            apps/web/e2e/family-booking-mahram.spec.ts \
+            src/Modules/NoorPath.FamilyBooking.Infrastructure/Migrations/20260803140500_VS15FamilyBooking.cs \
+            tests/NoorPath.FamilyBooking.Tests/FamilyBookingPolicyTests.cs
+          if git diff --cached --quiet; then
+            echo "No repair changes were required."
+          else
+            git commit -m "Fix VS-15 formatting and validation blockers"
+            git push origin HEAD:codex/vs15-family-booking-mahram-runtime
+          fi
