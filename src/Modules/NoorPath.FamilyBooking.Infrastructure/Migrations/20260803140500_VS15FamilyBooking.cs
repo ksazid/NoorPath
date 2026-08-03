@@ -45,6 +45,22 @@ public sealed class VS15FamilyBooking : Migration
             constraints: table => table.PrimaryKey("PK_audit_events", x => x.Id));
 
         migrationBuilder.CreateTable(
+            name: "quote_snapshots",
+            schema: "family_booking",
+            columns: table => new
+            {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                QuoteId = table.Column<Guid>(type: "uuid", nullable: false),
+                FamilyPartyId = table.Column<Guid>(type: "uuid", nullable: false),
+                AccountId = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
+                PolicyVersion = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
+                PartyVersion = table.Column<int>(type: "integer", nullable: false),
+                PayloadJson = table.Column<string>(type: "jsonb", nullable: false),
+                CreatedAtUtc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+            },
+            constraints: table => table.PrimaryKey("PK_quote_snapshots", x => x.Id));
+
+        migrationBuilder.CreateTable(
             name: "booking_snapshots",
             schema: "family_booking",
             columns: table => new
@@ -54,6 +70,7 @@ public sealed class VS15FamilyBooking : Migration
                 FamilyPartyId = table.Column<Guid>(type: "uuid", nullable: false),
                 AccountId = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
                 PolicyVersion = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
+                PartyVersion = table.Column<int>(type: "integer", nullable: false),
                 PayloadJson = table.Column<string>(type: "jsonb", nullable: false),
                 CreatedAtUtc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
             },
@@ -105,6 +122,8 @@ public sealed class VS15FamilyBooking : Migration
         migrationBuilder.CreateIndex("IX_mahram_links_AccountId_FamilyPartyId", "family_booking", "mahram_links", new[] { "AccountId", "FamilyPartyId" });
         migrationBuilder.CreateIndex("IX_mahram_links_FamilyPartyId_ProtectedTravellerId_MahramTravellerId", "family_booking", "mahram_links", new[] { "FamilyPartyId", "ProtectedTravellerId", "MahramTravellerId" }, unique: true, filter: "\"IsActive\" = TRUE");
         migrationBuilder.CreateIndex("IX_audit_events_AccountId_OccurredAtUtc", "family_booking", "audit_events", new[] { "AccountId", "OccurredAtUtc" });
+        migrationBuilder.CreateIndex("IX_quote_snapshots_QuoteId", "family_booking", "quote_snapshots", "QuoteId", unique: true);
+        migrationBuilder.CreateIndex("IX_quote_snapshots_AccountId_FamilyPartyId", "family_booking", "quote_snapshots", new[] { "AccountId", "FamilyPartyId" });
         migrationBuilder.CreateIndex("IX_booking_snapshots_BookingId", "family_booking", "booking_snapshots", "BookingId", unique: true);
         migrationBuilder.CreateIndex("IX_booking_snapshots_AccountId_FamilyPartyId", "family_booking", "booking_snapshots", new[] { "AccountId", "FamilyPartyId" });
     }
@@ -113,6 +132,7 @@ public sealed class VS15FamilyBooking : Migration
     {
         migrationBuilder.DropTable("audit_events", "family_booking");
         migrationBuilder.DropTable("booking_snapshots", "family_booking");
+        migrationBuilder.DropTable("quote_snapshots", "family_booking");
         migrationBuilder.DropTable("mahram_links", "family_booking");
         migrationBuilder.DropTable("members", "family_booking");
         migrationBuilder.DropTable("parties", "family_booking");
