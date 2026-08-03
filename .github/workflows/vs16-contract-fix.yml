@@ -1,0 +1,80 @@
+name: VS-16 Contract Correction
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  correct:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/vs16-cancellation-refunds-runtime
+          fetch-depth: 0
+      - name: Correct response and test contracts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          service = Path('apps/api/CancellationRefundService.cs')
+          text = service.read_text()
+          text = text.replace(
+              'public bool IsSuccess => StatusCode is >= 200 and < 300;',
+              'public bool IsSuccess => Value is not null;')
+          old = '''        RefundRecord refund;
+        PaymentAttemptRecord? paymentAttempt;
+        await using (var transaction = await payments.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken))
+        {
+            refund = await payments.Refunds
+                .FromSqlInterpolated($"SELECT * FROM payments.refunds WHERE \\"Id\\" = {refundId} FOR UPDATE")
+                .SingleOrDefaultAsync(cancellationToken)
+                ?? throw new RefundNotFoundException();'''
+          new = '''        if (!await payments.Refunds.AsNoTracking().AnyAsync(item => item.Id == refundId, cancellationToken))
+        {
+            return CancellationOperationResult<RefundRecord>.Failure(
+                StatusCodes.Status404NotFound,
+                "refund_not_found",
+                "The refund could not be found.");
+        }
+
+        RefundRecord refund;
+        PaymentAttemptRecord? paymentAttempt;
+        await using (var transaction = await payments.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken))
+        {
+            refund = await payments.Refunds
+                .FromSqlInterpolated($"SELECT * FROM payments.refunds WHERE \\"Id\\" = {refundId} FOR UPDATE")
+                .SingleAsync(cancellationToken);'''
+          if old not in text:
+              raise SystemExit('refund lookup block not found')
+          text = text.replace(old, new)
+          text = text.replace('\n    private sealed class RefundNotFoundException : Exception;\n', '\n')
+          service.write_text(text)
+
+          test = Path('tests/NoorPath.Commercial.Integration.Tests/CancellationRefundApiTests.cs')
+          text = test.read_text()
+          old = 'Assert.Equal("Cancelled", approvedBody.RootElement.GetProperty("customerStatus").GetString());'
+          new = 'Assert.Equal("RefundPending", approvedBody.RootElement.GetProperty("customerStatus").GetString());'
+          if old not in text:
+              raise SystemExit('customer status assertion not found')
+          test.write_text(text.replace(old, new))
+          PY
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet restore NoorPath.slnx
+      - run: dotnet format NoorPath.slnx --no-restore
+      - run: dotnet build NoorPath.slnx --configuration Release --no-restore
+      - name: Commit correction
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add apps/api/CancellationRefundService.cs tests/NoorPath.Commercial.Integration.Tests/CancellationRefundApiTests.cs
+          git commit -m "VS-16: align refund response and customer status contracts"
+          git pull --rebase origin codex/vs16-cancellation-refunds-runtime
+          git push origin HEAD:codex/vs16-cancellation-refunds-runtime
