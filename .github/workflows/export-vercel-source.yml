@@ -1,0 +1,31 @@
+name: Export Vercel source
+
+on:
+  push:
+    branches:
+      - ops/vercel-source-export
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ops/vercel-source-export
+          fetch-depth: 1
+      - name: Verify exported release base
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 087cbb056005e18a4cfb3f37e107bc9098b2c6a2 HEAD
+      - name: Package deployable source
+        run: |
+          set -euo pipefail
+          tar --exclude=.git --exclude=.github/workflows/export-vercel-source.yml -czf /tmp/noorpath-vercel-source.tar.gz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: noorpath-vercel-source
+          path: /tmp/noorpath-vercel-source.tar.gz
+          retention-days: 1
