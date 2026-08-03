@@ -1,0 +1,114 @@
+name: Deploy NoorPath frontend to Vercel
+
+on:
+  push:
+    branches:
+      - ops/vercel-source-export
+    paths:
+      - .github/workflows/deploy-vercel-production.yml
+
+concurrency:
+  group: noorpath-vercel-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    environment: production
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_TEAM_ID: team_ghLFxIsm305QR8R0zV26zztz
+      VERCEL_TEAM_SLUG: sazid62-gmailcoms-projects
+      VERCEL_PROJECT_ID: prj_48IATlRDIGvKKvhyfpkRwlE3s03i
+      APPROVED_MAIN_SHA: 087cbb056005e18a4cfb3f37e107bc9098b2c6a2
+      PRODUCTION_URL: https://noor-path-web-sazid62-gmailcoms-projects.vercel.app
+    steps:
+      - name: Require Vercel deployment credential
+        run: test -n "$VERCEL_TOKEN"
+
+      - name: Check out exact approved main SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.APPROVED_MAIN_SHA }}
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Link the approved Vercel project
+        run: |
+          mkdir -p .vercel
+          cat > .vercel/project.json <<EOF
+          {"orgId":"$VERCEL_TEAM_ID","projectId":"$VERCEL_PROJECT_ID"}
+          EOF
+
+      - name: Restore the monorepo project settings
+        run: |
+          curl --fail --silent --show-error \
+            --request PATCH \
+            --header "Authorization: Bearer $VERCEL_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data '{"framework":"nextjs","rootDirectory":"apps/web","installCommand":"cd ../.. && corepack enable && corepack prepare pnpm@10.14.0 --activate && pnpm install --frozen-lockfile","buildCommand":"pnpm build","outputDirectory":".next","nodeVersion":"24.x"}' \
+            "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID?teamId=$VERCEL_TEAM_ID" \
+            > /tmp/vercel-project-update.json
+
+      - name: Deploy the exact main SHA to Vercel production
+        id: deploy
+        run: |
+          set -euo pipefail
+          url=$(npx --yes vercel@latest deploy \
+            --prod \
+            --yes \
+            --token "$VERCEL_TOKEN" \
+            --scope "$VERCEL_TEAM_SLUG" \
+            --env NOORPATH_API_URL=https://noorpath-api.onrender.com \
+            --build-env NOORPATH_API_URL=https://noorpath-api.onrender.com \
+            --env APP_BASE_URL="$PRODUCTION_URL" \
+            --build-env APP_BASE_URL="$PRODUCTION_URL" \
+            --env AUTH0_DOMAIN=dev-8pkx2k6rewsss4ph.us.auth0.com \
+            --build-env AUTH0_DOMAIN=dev-8pkx2k6rewsss4ph.us.auth0.com \
+            --env AUTH0_AUDIENCE=https://api.noorpath.in \
+            --build-env AUTH0_AUDIENCE=https://api.noorpath.in)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Verify public production frontend
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            if body=$(curl --fail --silent --show-error "$DEPLOYMENT_URL/"); then
+              printf '%s' "$body" | grep -q 'NoorPath'
+              curl --fail --silent --show-error "$PRODUCTION_URL/" > /dev/null
+              exit 0
+            fi
+            sleep 10
+          done
+          exit 1
+
+      - name: Write deployment evidence
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          mkdir -p artifacts/vercel-production
+          cat > artifacts/vercel-production/deployment.md <<EOF
+          # NoorPath Vercel production deployment
+
+          - Exact main SHA: \`$APPROVED_MAIN_SHA\`
+          - Vercel project: \`$VERCEL_PROJECT_ID\`
+          - Deployment URL: $DEPLOYMENT_URL
+          - Production alias: $PRODUCTION_URL
+          - Public smoke check: passed
+          - Workflow run: $RUN_URL
+          EOF
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: noorpath-vercel-production-evidence
+          path: artifacts/vercel-production
+          retention-days: 90
