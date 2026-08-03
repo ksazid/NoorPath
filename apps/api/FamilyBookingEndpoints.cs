@@ -19,11 +19,11 @@ public static class FamilyBookingEndpoints
         api.MapPost("/{partyId:guid}/validate", ValidateParty);
     }
 
-    private static string? AccountId(HttpContext http) => http.User.GetCurrentPrincipal()?.AccountId.Value;
+    private static string? CurrentAccountId(HttpContext http) => http.User.GetCurrentPrincipal()?.AccountId.Value;
 
     private static async Task<IResult> ListParties(HttpContext http, FamilyBookingDbContext db, CancellationToken ct)
     {
-        var accountId = AccountId(http);
+        var accountId = CurrentAccountId(http);
         if (accountId is null) return Results.Unauthorized();
 
         var parties = await db.Parties.AsNoTracking()
@@ -37,7 +37,7 @@ public static class FamilyBookingEndpoints
 
     private static async Task<IResult> GetParty(Guid partyId, HttpContext http, FamilyBookingDbContext db, CancellationToken ct)
     {
-        var accountId = AccountId(http);
+        var accountId = CurrentAccountId(http);
         if (accountId is null) return Results.Unauthorized();
 
         var party = await db.Parties.AsNoTracking().SingleOrDefaultAsync(x => x.Id == partyId && x.AccountId == accountId, ct);
@@ -76,7 +76,7 @@ public static class FamilyBookingEndpoints
 
     private static async Task<IResult> CreateParty(CreatePartyRequest request, HttpContext http, FamilyBookingDbContext db, TimeProvider clock, CancellationToken ct)
     {
-        var accountId = AccountId(http);
+        var accountId = CurrentAccountId(http);
         if (accountId is null) return Results.Unauthorized();
 
         var error = FamilyBookingPolicy.ValidatePartyName(request.Name);
@@ -96,58 +96,68 @@ public static class FamilyBookingEndpoints
         };
 
         db.Parties.Add(party);
-        AddAudit(db, accountId, accountId, "family_party_created", "family_party", party.Id, new { party.Name }, now);
+        AddAudit(db, accountId, "family_party_created", "family_party", party.Id, new { party.Name }, now);
         await db.SaveChangesAsync(ct);
 
         return Results.Created($"/api/v1/family-parties/{party.Id}", new { party.Id, party.Name, status = party.Status.ToString(), party.PolicyVersion, party.Version });
     }
 
     public sealed record AddMemberRequest(Guid TravellerId, int Version);
+    public sealed record VersionRequest(int Version);
 
     private static async Task<IResult> AddMember(Guid partyId, AddMemberRequest request, HttpContext http, FamilyBookingDbContext db, TravellerDbContext travellers, TimeProvider clock, CancellationToken ct)
     {
-        var accountId = AccountId(http);
+        var accountId = CurrentAccountId(http);
         if (accountId is null) return Results.Unauthorized();
 
-        var party = await db.Parties.SingleOrDefaultAsync(x => x.Id == partyId && x.AccountId == accountId, ct);
+        var party = await FindParty(partyId, accountId, db, ct);
         if (party is null) return Results.NotFound();
         if (party.Version != request.Version) return Stale(party.Version);
         if (party.Status == FamilyPartyStatus.Archived) return Results.Conflict(new { code = "party_archived" });
 
-        var travellerExists = await travellers.Travellers.AsNoTracking()
-            .AnyAsync(x => x.Id == request.TravellerId && x.OwnerAccountId == accountId, ct);
+        var travellerExists = await travellers.Travellers.AsNoTracking().AnyAsync(x => x.Id == request.TravellerId && x.OwnerAccountId == accountId, ct);
         if (!travellerExists) return Results.NotFound();
 
-        var existing = await db.Members
-            .Where(x => x.FamilyPartyId == partyId && x.RemovedAtUtc == null)
+        var activeTravellerIds = await db.Members
+            .Where(x => x.FamilyPartyId == partyId && x.AccountId == accountId && x.RemovedAtUtc == null)
             .Select(x => x.TravellerId)
             .ToArrayAsync(ct);
-        var error = FamilyBookingPolicy.ValidateMembership(existing, request.TravellerId);
+        var error = FamilyBookingPolicy.ValidateMembership(activeTravellerIds, request.TravellerId);
         if (error is not null) return Results.Conflict(new { code = "invalid_party_membership", message = error });
 
         var now = clock.GetUtcNow();
-        db.Members.Add(new FamilyPartyMemberRecord
+        var previousMembership = await db.Members.SingleOrDefaultAsync(x => x.FamilyPartyId == partyId && x.TravellerId == request.TravellerId, ct);
+        if (previousMembership is null)
         {
-            FamilyPartyId = party.Id,
-            AccountId = accountId,
-            TravellerId = request.TravellerId,
-            Version = 0,
-            AddedAtUtc = now,
-        });
+            db.Members.Add(new FamilyPartyMemberRecord
+            {
+                FamilyPartyId = party.Id,
+                AccountId = accountId,
+                TravellerId = request.TravellerId,
+                Version = 0,
+                AddedAtUtc = now,
+            });
+        }
+        else
+        {
+            previousMembership.AccountId = accountId;
+            previousMembership.AddedAtUtc = now;
+            previousMembership.RemovedAtUtc = null;
+            previousMembership.Version++;
+        }
+
         TouchDraft(party, now);
-        AddAudit(db, accountId, accountId, "family_member_added", "traveller", request.TravellerId, new { partyId }, now);
-
-        return await Save(db, party);
+        AddAudit(db, accountId, "family_member_added", "traveller", request.TravellerId, new { partyId }, now);
+        var failure = await TrySave(db, ct);
+        return failure ?? Results.Ok(new { party.Version, party.UpdatedAtUtc });
     }
-
-    public sealed record VersionRequest(int Version);
 
     private static async Task<IResult> RemoveMember(Guid partyId, Guid travellerId, VersionRequest request, HttpContext http, FamilyBookingDbContext db, TimeProvider clock, CancellationToken ct)
     {
-        var accountId = AccountId(http);
+        var accountId = CurrentAccountId(http);
         if (accountId is null) return Results.Unauthorized();
 
-        var party = await db.Parties.SingleOrDefaultAsync(x => x.Id == partyId && x.AccountId == accountId, ct);
+        var party = await FindParty(partyId, accountId, db, ct);
         if (party is null) return Results.NotFound();
         if (party.Version != request.Version) return Stale(party.Version);
 
@@ -158,27 +168,41 @@ public static class FamilyBookingEndpoints
         member.RemovedAtUtc = now;
         member.Version++;
         var links = await db.MahramLinks.Where(x => x.FamilyPartyId == partyId && x.AccountId == accountId && x.IsActive && (x.ProtectedTravellerId == travellerId || x.MahramTravellerId == travellerId)).ToArrayAsync(ct);
-        foreach (var link in links) { link.IsActive = false; link.Version++; link.UpdatedAtUtc = now; }
-        TouchDraft(party, now);
-        AddAudit(db, accountId, accountId, "family_member_removed", "traveller", travellerId, new { partyId, removedLinks = links.Length }, now);
+        foreach (var link in links)
+        {
+            link.IsActive = false;
+            link.Version++;
+            link.UpdatedAtUtc = now;
+        }
 
-        return await Save(db, party);
+        TouchDraft(party, now);
+        AddAudit(db, accountId, "family_member_removed", "traveller", travellerId, new { partyId, removedLinks = links.Length }, now);
+        var failure = await TrySave(db, ct);
+        return failure ?? Results.Ok(new { party.Version, party.UpdatedAtUtc });
     }
 
     public sealed record AddMahramLinkRequest(Guid ProtectedTravellerId, Guid MahramTravellerId, MahramRelationshipType RelationshipType, string Declaration, int Version);
 
     private static async Task<IResult> AddMahramLink(Guid partyId, AddMahramLinkRequest request, HttpContext http, FamilyBookingDbContext db, TimeProvider clock, CancellationToken ct)
     {
-        var accountId = AccountId(http);
+        var accountId = CurrentAccountId(http);
         if (accountId is null) return Results.Unauthorized();
 
-        var party = await db.Parties.SingleOrDefaultAsync(x => x.Id == partyId && x.AccountId == accountId, ct);
+        var party = await FindParty(partyId, accountId, db, ct);
         if (party is null) return Results.NotFound();
         if (party.Version != request.Version) return Stale(party.Version);
         if (party.Status == FamilyPartyStatus.Archived) return Results.Conflict(new { code = "party_archived" });
 
-        var memberIds = await db.Members.Where(x => x.FamilyPartyId == partyId && x.AccountId == accountId && x.RemovedAtUtc == null).Select(x => x.TravellerId).ToArrayAsync(ct);
-        var activeLinks = await db.MahramLinks.Where(x => x.FamilyPartyId == partyId && x.AccountId == accountId && x.IsActive).Select(x => new ValueTuple<Guid, Guid>(x.ProtectedTravellerId, x.MahramTravellerId)).ToArrayAsync(ct);
+        var memberIds = await db.Members
+            .Where(x => x.FamilyPartyId == partyId && x.AccountId == accountId && x.RemovedAtUtc == null)
+            .Select(x => x.TravellerId)
+            .ToArrayAsync(ct);
+        var persistedLinks = await db.MahramLinks
+            .Where(x => x.FamilyPartyId == partyId && x.AccountId == accountId && x.IsActive)
+            .Select(x => new { x.ProtectedTravellerId, x.MahramTravellerId })
+            .ToArrayAsync(ct);
+        var activeLinks = persistedLinks.Select(x => (x.ProtectedTravellerId, x.MahramTravellerId)).ToArray();
+
         var error = FamilyBookingPolicy.ValidateMahramLink(request.ProtectedTravellerId, request.MahramTravellerId, request.Declaration, memberIds, activeLinks);
         if (error is not null) return Results.Conflict(new { code = "invalid_mahram_link", message = error });
 
@@ -197,20 +221,20 @@ public static class FamilyBookingEndpoints
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
         };
+
         db.MahramLinks.Add(link);
         TouchDraft(party, now);
-        AddAudit(db, accountId, accountId, "mahram_link_created", "mahram_link", link.Id, new { partyId, link.ProtectedTravellerId, link.MahramTravellerId, relationshipType = link.RelationshipType.ToString() }, now);
-
-        var saved = await Save(db, party);
-        return saved is null ? Results.Ok(new { link.Id, party.Version }) : saved;
+        AddAudit(db, accountId, "mahram_link_created", "mahram_link", link.Id, new { partyId, link.ProtectedTravellerId, link.MahramTravellerId, relationshipType = link.RelationshipType.ToString() }, now);
+        var failure = await TrySave(db, ct);
+        return failure ?? Results.Ok(new { link.Id, party.Version, party.UpdatedAtUtc });
     }
 
     private static async Task<IResult> RemoveMahramLink(Guid partyId, Guid linkId, VersionRequest request, HttpContext http, FamilyBookingDbContext db, TimeProvider clock, CancellationToken ct)
     {
-        var accountId = AccountId(http);
+        var accountId = CurrentAccountId(http);
         if (accountId is null) return Results.Unauthorized();
 
-        var party = await db.Parties.SingleOrDefaultAsync(x => x.Id == partyId && x.AccountId == accountId, ct);
+        var party = await FindParty(partyId, accountId, db, ct);
         if (party is null) return Results.NotFound();
         if (party.Version != request.Version) return Stale(party.Version);
 
@@ -222,17 +246,17 @@ public static class FamilyBookingEndpoints
         link.Version++;
         link.UpdatedAtUtc = now;
         TouchDraft(party, now);
-        AddAudit(db, accountId, accountId, "mahram_link_removed", "mahram_link", link.Id, new { partyId }, now);
-
-        return await Save(db, party);
+        AddAudit(db, accountId, "mahram_link_removed", "mahram_link", link.Id, new { partyId }, now);
+        var failure = await TrySave(db, ct);
+        return failure ?? Results.Ok(new { party.Version, party.UpdatedAtUtc });
     }
 
     private static async Task<IResult> ValidateParty(Guid partyId, VersionRequest request, HttpContext http, FamilyBookingDbContext db, TimeProvider clock, CancellationToken ct)
     {
-        var accountId = AccountId(http);
+        var accountId = CurrentAccountId(http);
         if (accountId is null) return Results.Unauthorized();
 
-        var party = await db.Parties.SingleOrDefaultAsync(x => x.Id == partyId && x.AccountId == accountId, ct);
+        var party = await FindParty(partyId, accountId, db, ct);
         if (party is null) return Results.NotFound();
         if (party.Version != request.Version) return Stale(party.Version);
         if (party.Status == FamilyPartyStatus.Archived) return Results.Conflict(new { code = "party_archived" });
@@ -244,26 +268,27 @@ public static class FamilyBookingEndpoints
         foreach (var link in links.Where(x => !members.Contains(x.ProtectedTravellerId) || !members.Contains(x.MahramTravellerId)))
             issues.Add(new("link_member_missing", link.ProtectedTravellerId, "A Mahram link references a traveller who is no longer in the family party."));
 
-        if (issues.Count > 0)
-            return Results.Conflict(new MahramValidationResult(false, FamilyBookingPolicy.CurrentVersion, issues));
+        if (issues.Count > 0) return Results.Conflict(new MahramValidationResult(false, FamilyBookingPolicy.CurrentVersion, issues));
 
         var now = clock.GetUtcNow();
         party.Status = FamilyPartyStatus.Validated;
         party.PolicyVersion = FamilyBookingPolicy.CurrentVersion;
         party.Version++;
         party.UpdatedAtUtc = now;
-        AddAudit(db, accountId, accountId, "family_party_validated", "family_party", party.Id, new { memberCount = members.Length, linkCount = links.Length, party.PolicyVersion }, now);
-
-        try
+        AddAudit(db, accountId, "family_party_validated", "family_party", party.Id, new { memberCount = members.Length, linkCount = links.Length, party.PolicyVersion }, now);
+        var failure = await TrySave(db, ct);
+        return failure ?? Results.Ok(new
         {
-            await db.SaveChangesAsync(ct);
-            return Results.Ok(new { structurallyValid = true, party.PolicyVersion, party.Version, party.UpdatedAtUtc, disclaimer = "NoorPath records the customer declaration and structural checks; it does not provide a religious or legal ruling." });
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            return Results.Conflict(new { code = "stale_family_party" });
-        }
+            structurallyValid = true,
+            party.PolicyVersion,
+            party.Version,
+            party.UpdatedAtUtc,
+            disclaimer = "NoorPath records customer declarations and structural checks; it does not provide a religious or legal ruling.",
+        });
     }
+
+    private static Task<FamilyPartyRecord?> FindParty(Guid partyId, string accountId, FamilyBookingDbContext db, CancellationToken ct) =>
+        db.Parties.SingleOrDefaultAsync(x => x.Id == partyId && x.AccountId == accountId, ct);
 
     private static void TouchDraft(FamilyPartyRecord party, DateTimeOffset now)
     {
@@ -273,12 +298,12 @@ public static class FamilyBookingEndpoints
         party.UpdatedAtUtc = now;
     }
 
-    private static void AddAudit(FamilyBookingDbContext db, string accountId, string actorId, string action, string subjectType, Guid subjectId, object detail, DateTimeOffset now) =>
+    private static void AddAudit(FamilyBookingDbContext db, string accountId, string action, string subjectType, Guid subjectId, object detail, DateTimeOffset now) =>
         db.Audit.Add(new FamilyBookingAuditRecord
         {
             Id = Guid.NewGuid(),
             AccountId = accountId,
-            ActorId = actorId,
+            ActorId = accountId,
             Action = action,
             SubjectType = subjectType,
             SubjectId = subjectId,
@@ -288,12 +313,12 @@ public static class FamilyBookingEndpoints
 
     private static IResult Stale(int currentVersion) => Results.Conflict(new { code = "stale_family_party", currentVersion });
 
-    private static async Task<IResult> Save(FamilyBookingDbContext db, FamilyPartyRecord party)
+    private static async Task<IResult?> TrySave(FamilyBookingDbContext db, CancellationToken ct)
     {
         try
         {
-            await db.SaveChangesAsync();
-            return Results.Ok(new { party.Version, party.UpdatedAtUtc });
+            await db.SaveChangesAsync(ct);
+            return null;
         }
         catch (DbUpdateConcurrencyException)
         {
