@@ -23,7 +23,7 @@ public enum MahramRelationshipType
 
 public sealed record FamilyParty(
     Guid Id,
-    Guid AccountId,
+    string AccountId,
     string Name,
     FamilyPartyStatus Status,
     int Version,
@@ -33,14 +33,16 @@ public sealed record FamilyParty(
 
 public sealed record FamilyPartyMember(
     Guid FamilyPartyId,
+    string AccountId,
     Guid TravellerId,
     int Version,
-    DateTimeOffset AddedAtUtc);
+    DateTimeOffset AddedAtUtc,
+    DateTimeOffset? RemovedAtUtc = null);
 
 public sealed record MahramLink(
     Guid Id,
     Guid FamilyPartyId,
-    Guid AccountId,
+    string AccountId,
     Guid ProtectedTravellerId,
     Guid MahramTravellerId,
     MahramRelationshipType RelationshipType,
@@ -62,8 +64,10 @@ public sealed record MahramValidationResult(
 
 public static class FamilyBookingPolicy
 {
+    public const string CurrentVersion = "2026-08-v1";
     public const int MaximumPartySize = 20;
     public const int MaximumDeclarationLength = 500;
+    public const int MaximumPartyNameLength = 100;
 
     public static string? ValidatePartyName(string? name)
     {
@@ -72,8 +76,8 @@ public static class FamilyBookingPolicy
             return "A family party name is required.";
         }
 
-        return name.Trim().Length > 100
-            ? "The family party name cannot exceed 100 characters."
+        return name.Trim().Length > MaximumPartyNameLength
+            ? $"The family party name cannot exceed {MaximumPartyNameLength} characters."
             : null;
     }
 
@@ -100,6 +104,7 @@ public static class FamilyBookingPolicy
         Guid protectedTravellerId,
         Guid mahramTravellerId,
         string? declaration,
+        IReadOnlyCollection<Guid> partyTravellerIds,
         IReadOnlyCollection<(Guid ProtectedTravellerId, Guid MahramTravellerId)> activeLinks)
     {
         if (protectedTravellerId == Guid.Empty || mahramTravellerId == Guid.Empty)
@@ -110,6 +115,11 @@ public static class FamilyBookingPolicy
         if (protectedTravellerId == mahramTravellerId)
         {
             return "A traveller cannot be linked to themselves as Mahram.";
+        }
+
+        if (!partyTravellerIds.Contains(protectedTravellerId) || !partyTravellerIds.Contains(mahramTravellerId))
+        {
+            return "Both travellers must belong to the same family party.";
         }
 
         if (activeLinks.Contains((protectedTravellerId, mahramTravellerId)))
