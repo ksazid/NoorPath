@@ -1,9 +1,9 @@
 name: VS-16 Generate Migrations
 
 on:
-  push:
+  pull_request:
     branches:
-      - codex/vs16-cancellation-refunds-runtime
+      - main
 
 permissions:
   contents: write
@@ -69,4 +69,5 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add src/Modules/NoorPath.Booking.Infrastructure src/Modules/NoorPath.Payments.Infrastructure src/Modules/NoorPath.Inventory.Infrastructure apps/api tests
           git commit -m "VS-16: generate cancellation and refund migrations"
+          git pull --rebase origin codex/vs16-cancellation-refunds-runtime
           git push origin HEAD:codex/vs16-cancellation-refunds-runtime
