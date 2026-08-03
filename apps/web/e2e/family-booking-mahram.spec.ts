@@ -66,18 +66,39 @@ async function mockFamily(page: import("@playwright/test").Page) {
   });
 }
 
+async function waitForFamilyReady(page: import("@playwright/test").Page) {
+  await page.waitForLoadState("networkidle");
+  await expect(
+    page.getByRole("heading", { name: "Travellers in this party", level: 2 }),
+  ).toBeVisible({ timeout: 15_000 });
+  await expect(
+    page.getByRole("heading", { name: "Loading family travellers", level: 2 }),
+  ).toBeHidden();
+}
+
 test("customer reviews a validated family party and Mahram link", async ({
   page,
 }) => {
   await mockFamily(page);
   await page.goto("/account/family");
+  await waitForFamilyReady(page);
 
   await expect(
     page.getByRole("heading", { name: "Family travellers", level: 1 }),
   ).toBeVisible();
-  await expect(page.getByText("Amina Khan", { exact: true })).toBeVisible();
-  await expect(page.getByText("Omar Khan", { exact: true })).toBeVisible();
-  await expect(page.getByText(/Amina Khan → Omar Khan/)).toBeVisible();
+
+  const travellersSection = page
+    .getByRole("heading", { name: "Travellers in this party", level: 2 })
+    .locator("..");
+  await expect(
+    travellersSection.getByText("Amina Khan", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    travellersSection.getByText("Omar Khan", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.locator("strong").filter({ hasText: /^Amina Khan → Omar Khan$/ }),
+  ).toBeVisible();
   await expect(page.getByText("Validated", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Validate party" }),
@@ -103,7 +124,11 @@ test("customer receives recoverable stale-version guidance", async ({
     }),
   );
   await page.goto("/account/family");
-  await page.getByRole("button", { name: "Validate party" }).click();
+  await waitForFamilyReady(page);
+
+  const validateButton = page.getByRole("button", { name: "Validate party" });
+  await expect(validateButton).toBeVisible();
+  await validateButton.click();
   await expect(page.getByRole("alert")).toContainText(
     "This family party was updated elsewhere",
   );
