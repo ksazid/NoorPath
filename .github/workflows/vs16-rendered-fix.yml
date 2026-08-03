@@ -67,9 +67,9 @@ jobs:
         run: |
           corepack enable
           pnpm install --frozen-lockfile
-          pnpm exec prettier --write \
-            apps/web/app/operator/cancellations/page.tsx \
-            apps/web/app/my-journey.css
+          pnpm --dir apps/web exec prettier --write \
+            app/operator/cancellations/page.tsx \
+            app/my-journey.css
       - name: Commit repair
         run: |
           git config user.name "github-actions[bot]"
