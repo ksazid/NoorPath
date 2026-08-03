@@ -16,6 +16,8 @@ type PartyDetail = {
 type QuoteResponse = { quoteId?: string };
 type QuoteRequest = { travellerIds?: string[] };
 
+const familySessionKey = "noorpath:family-booking-session";
+
 function requestUrl(input: RequestInfo | URL) {
   if (typeof input === "string") return input;
   if (input instanceof URL) return input.toString();
@@ -50,7 +52,9 @@ export default function FamilyQuoteBridge() {
       const isQuoteCreation =
         method === "POST" &&
         /\/api\/v1\/departures\/[^/]+\/quotes(?:\?|$)/.test(url);
-      if (!isQuoteCreation) return originalFetch(input, init);
+      const familySession =
+        window.sessionStorage.getItem(familySessionKey) === "active";
+      if (!isQuoteCreation || !familySession) return originalFetch(input, init);
 
       const quoteResponse = await originalFetch(input, init);
       if (!quoteResponse.ok) return quoteResponse;
@@ -81,7 +85,13 @@ export default function FamilyQuoteBridge() {
         const validated = (partiesBody.parties ?? []).filter(
           (party) => party.status === "Validated",
         );
-        if (validated.length === 0) return quoteResponse;
+        if (validated.length === 0) {
+          return problem(
+            409,
+            "Validate your family party",
+            "Return to Family travellers, validate the latest composition, and create the quote again.",
+          );
+        }
 
         const details = await Promise.all(
           validated.map(async (party) => {
@@ -137,6 +147,7 @@ export default function FamilyQuoteBridge() {
             },
           });
         }
+        window.sessionStorage.removeItem(familySessionKey);
         return quoteResponse;
       } catch {
         return problem(
