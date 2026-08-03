@@ -1,9 +1,12 @@
+using Amazon.S3;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using NoorPath.Booking;
 using NoorPath.Booking.Infrastructure;
 using NoorPath.BuildingBlocks;
 using NoorPath.Catalogue.Infrastructure;
+using NoorPath.Documents;
+using NoorPath.Documents.Infrastructure;
 using NoorPath.FamilyBooking.Infrastructure;
 using NoorPath.Inventory;
 using NoorPath.Inventory.Infrastructure;
@@ -13,9 +16,6 @@ using NoorPath.Payments;
 using NoorPath.Payments.Infrastructure;
 using NoorPath.Pricing.Infrastructure;
 using NoorPath.Traveller.Infrastructure;
-using NoorPath.Documents;
-using NoorPath.Documents.Infrastructure;
-using Amazon.S3;
 using NoorPath.Visa.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,6 +42,9 @@ else builder.Services.AddScoped<IPrivateDocumentStorage, DisabledDocumentStorage
 builder.Services.AddScoped<IMalwareScanner, ClamAvScanner>();
 builder.Services.AddScoped<IBookingCheckoutService, BookingCheckoutService>();
 builder.Services.AddScoped<ConfirmationService>();
+builder.Services.AddScoped<CancellationPolicyProvider>();
+builder.Services.AddScoped<CancellationRefundService>();
+builder.Services.AddScoped<IRefundProviderGateway, DisabledRefundProviderGateway>();
 builder.Services.AddScoped<IOperatorAccess>(services => services.GetRequiredService<OperatorsDbContext>());
 builder.Services.AddScoped<IOperatorPublicationEligibility>(services => services.GetRequiredService<OperatorsDbContext>());
 builder.Services.AddSingleton(TimeProvider.System);
@@ -51,6 +54,10 @@ builder.Services.AddOptions<InventoryHoldOptions>()
         options => options.Lifetime > TimeSpan.Zero && options.Lifetime <= TimeSpan.FromMinutes(30),
         "InventoryHold:Lifetime must be greater than zero and no longer than 30 minutes.")
     .ValidateOnStart();
+builder.Services.AddOptions<CancellationPolicyOptions>()
+    .Bind(builder.Configuration.GetSection(CancellationPolicyOptions.SectionName));
+builder.Services.AddOptions<RefundExecutionOptions>()
+    .Bind(builder.Configuration.GetSection(RefundExecutionOptions.SectionName));
 builder.Services.AddOptions<RazorpayOptions>()
     .Bind(builder.Configuration.GetSection(RazorpayOptions.SectionName));
 builder.Services.AddHttpClient("Razorpay", (services, client) =>
@@ -116,6 +123,7 @@ app.MapInventoryHolds();
 app.MapBookings();
 app.MapPayments();
 app.MapConfirmations();
+app.MapCancellationRefunds();
 app.MapMyJourney();
 app.MapDocuments();
 app.MapVisa();
