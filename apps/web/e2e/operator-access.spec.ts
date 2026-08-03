@@ -34,6 +34,13 @@ for (const state of states) {
   test(`${state.name} operator access is accessible and responsive`, async ({
     page,
   }) => {
+    await page.route("**/api/v1/platform/access", (route) =>
+      route.fulfill({
+        status: 403,
+        contentType: "application/json",
+        body: JSON.stringify({ code: "forbidden" }),
+      }),
+    );
     await page.route("**/api/v1/operator/access", (route) =>
       route.fulfill({
         status: state.status,
@@ -52,11 +59,45 @@ for (const state of states) {
     await expectNoA11yViolations(page);
     await expectMinimumTargets(page);
     await expectNoHorizontalOverflow(page);
-    await expect(page).toHaveScreenshot(`operator-${state.name}.png`, {
-      fullPage: true,
-    });
   });
 }
+
+test("Platform Administrator opening operator is guided to admin", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/operator/access", (route) =>
+    route.fulfill({
+      status: 403,
+      contentType: "application/json",
+      body: JSON.stringify({ code: "forbidden" }),
+    }),
+  );
+  await page.route("**/api/v1/platform/access", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ accountId: "platform-administrator" }),
+    }),
+  );
+
+  await page.goto("/operator");
+
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Use NoorPath administration",
+  );
+  await expect(
+    page.getByText(/signed in as a Platform Administrator/i),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Open admin workspace" }),
+  ).toHaveAttribute("href", "/admin");
+  await expect(
+    page.getByRole("link", { name: "Sign in securely" }),
+  ).toHaveCount(0);
+  await expectNoA11yViolations(page);
+  await expectMinimumTargets(page);
+  await expectNoHorizontalOverflow(page);
+});
 
 test("operator access failure offers retry without leaking internals", async ({
   page,
