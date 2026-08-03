@@ -7,6 +7,10 @@ on:
         description: Exact 40-character main commit SHA approved by the Product Owner
         required: true
         type: string
+      confirm_deploy:
+        description: Type DEPLOY to confirm the separate production action
+        required: true
+        type: string
 
 concurrency:
   group: production-deployment
@@ -25,15 +29,59 @@ jobs:
         with:
           ref: main
           fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
       - name: Verify the approved commit is still main
         env:
           APPROVED_SHA: ${{ inputs.approved_sha }}
+          CONFIRM_DEPLOY: ${{ inputs.confirm_deploy }}
         run: |
+          set -euo pipefail
+          test "$CONFIRM_DEPLOY" = "DEPLOY"
           test "${#APPROVED_SHA}" -eq 40
           test "$(git rev-parse HEAD)" = "$APPROVED_SHA"
+      - name: Require complete production-readiness decisions
+        env:
+          APPROVED_SHA: ${{ inputs.approved_sha }}
+        run: node scripts/release-readiness.mjs certify delivery/releases/pilot-v1.json --sha "$APPROVED_SHA"
       - name: Trigger approved Render deployment
         env:
           DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
+          set -euo pipefail
           test -n "$DEPLOY_HOOK"
           curl --fail --silent --show-error --request POST "$DEPLOY_HOOK"
+      - name: Verify production readiness after deployment
+        env:
+          PRODUCTION_READY_URL: ${{ secrets.PRODUCTION_READY_URL }}
+        run: |
+          set -euo pipefail
+          test -n "$PRODUCTION_READY_URL"
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent --show-error "$PRODUCTION_READY_URL" > /dev/null; then
+              exit 0
+            fi
+            sleep 10
+          done
+          exit 1
+      - name: Write deployment evidence
+        env:
+          APPROVED_SHA: ${{ inputs.approved_sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          mkdir -p artifacts/production-deployment
+          cat > artifacts/production-deployment/deployment.md <<EOF
+          # NoorPath production deployment evidence
+
+          - Exact approved SHA: \`$APPROVED_SHA\`
+          - Protected environment: production
+          - Readiness verification: passed
+          - Workflow run: $RUN_URL
+          - Automatic deployment: no
+          EOF
+      - uses: actions/upload-artifact@v4
+        with:
+          name: production-deployment-evidence
+          path: artifacts/production-deployment
+          retention-days: 90
