@@ -10,11 +10,11 @@ test("release candidate exposes truthful live and ready contracts", async ({
 }) => {
   const live = await request.get("http://127.0.0.1:5080/health/live");
   expect(live.status()).toBe(200);
-  await expect(live.json()).resolves.toMatchObject({ status: "Healthy" });
+  expect(await live.json()).toMatchObject({ status: "Healthy" });
 
   const ready = await request.get("http://127.0.0.1:5080/health/ready");
   expect(ready.status()).toBe(200);
-  await expect(ready.json()).resolves.toMatchObject({ status: "Ready" });
+  expect(await ready.json()).toMatchObject({ status: "Ready" });
 
   expect(live.headers()["x-content-type-options"]).toBe("nosniff");
   expect(ready.headers()["x-correlation-id"]).toBeTruthy();
