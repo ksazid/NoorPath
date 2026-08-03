@@ -111,6 +111,7 @@ app.MapPublicDiscovery();
 app.MapPublicPackageDetails();
 app.MapTravellerQuotes();
 app.MapFamilyBooking();
+app.MapFamilyQuoteBinding();
 app.MapInventoryHolds();
 app.MapBookings();
 app.MapPayments();
