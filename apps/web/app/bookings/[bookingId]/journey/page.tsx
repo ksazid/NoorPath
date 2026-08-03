@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { useDeferredInitialLoad } from "../../../../lib/use-deferred-initial-load";
 import { Icon, PublicFooter, PublicHeader } from "../../../public-ui";
+import { CancellationPanel } from "./CancellationPanel";
 
 type Journey = {
   bookingId: string;
@@ -265,6 +266,7 @@ function Dashboard({ journey: j }: { journey: Journey }) {
           </p>
         )}
       </section>
+      <CancellationPanel bookingId={j.bookingId} />
       <section className="journey-panel">
         <p className="public-eyebrow">Travel readiness</p>
         <h2>What happens next</h2>
