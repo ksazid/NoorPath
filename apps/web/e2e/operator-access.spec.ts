@@ -90,18 +90,15 @@ for (const state of states) {
       await expect(
         page.getByText("Your secure workspace is ready"),
       ).toBeVisible();
-      await expect(page.getByRole("link", { name: "Packages", exact: true })).toHaveAttribute(
-        "href",
-        "/operator/packages",
-      );
-      await expect(page.getByRole("link", { name: "Departures", exact: true })).toHaveAttribute(
-        "href",
-        "/operator/departures",
-      );
-      await expect(page.getByRole("link", { name: "Account", exact: true })).toHaveAttribute(
-        "href",
-        "/operator/account",
-      );
+      await expect(
+        page.getByRole("link", { name: "Packages", exact: true }),
+      ).toHaveAttribute("href", "/operator/packages");
+      await expect(
+        page.getByRole("link", { name: "Departures", exact: true }),
+      ).toHaveAttribute("href", "/operator/departures");
+      await expect(
+        page.getByRole("link", { name: "Account", exact: true }),
+      ).toHaveAttribute("href", "/operator/account");
       await expect(page.getByText("1", { exact: true }).first()).toBeVisible();
     }
     await expectNoA11yViolations(page);
