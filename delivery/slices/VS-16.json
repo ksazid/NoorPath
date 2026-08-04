@@ -85,5 +85,6 @@
     "testFile": "e2e/cancellation-refunds.spec.ts"
   },
   "specPath": "docs/slices/VS-16-CANCELLATION-REFUNDS.md",
-  "checklistPath": "docs/slices/VS-16-IMPLEMENTATION-CHECKLIST.md"
+  "checklistPath": "docs/slices/VS-16-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-16-NAVIGATION-VERIFICATION.md"
 }
