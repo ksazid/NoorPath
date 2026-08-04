@@ -76,17 +76,22 @@ async function mockCustomerJourneys(page: import("@playwright/test").Page) {
   );
 }
 
+function desktopNavigation(page: import("@playwright/test").Page) {
+  return page
+    .locator(".np-customer-navigation--desktop")
+    .getByRole("navigation", { name: "Customer navigation" });
+}
+
 test("public shell exposes valid header, footer, support and legal destinations", async ({
   page,
 }, testInfo) => {
+  await mockCustomerJourneys(page);
   await page.goto("/");
 
   const shell = page.locator('[data-customer-shell="public"]');
   await expect(shell).toBeVisible();
 
-  const navigation = shell
-    .locator(".np-customer-navigation--desktop")
-    .getByRole("navigation", { name: "Customer navigation" });
+  const navigation = desktopNavigation(page);
   await expect(navigation.getByRole("link", { name: "Packages" })).toBeVisible();
   await expect(
     navigation.getByRole("link", { name: "How It Works" }),
@@ -98,17 +103,27 @@ test("public shell exposes valid header, footer, support and legal destinations"
     navigation.getByRole("link", { name: "My Journey" }),
   ).toBeVisible();
 
+  await navigation.getByRole("link", { name: "Packages" }).click();
+  await expect(page).toHaveURL(/\/#packages$/);
+
   await navigation.getByRole("link", { name: "How It Works" }).click();
   await expect(page).toHaveURL(/\/#plan-ahead$/);
 
-  await navigation.getByRole("link", { name: "Talk to Us" }).click();
+  await navigation.getByRole("link", { name: "My Journey" }).click();
+  await expect(page).toHaveURL(/\/journeys$/);
+  await expect(page.getByRole("heading", { name: "My Journey" })).toBeVisible();
+
+  await page.goto("/");
+  await desktopNavigation(page).getByRole("link", { name: "Talk to Us" }).click();
   await expect(page).toHaveURL(/\/support$/);
-  await expect(page.getByRole("heading", { name: "Talk to NoorPath" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Talk to NoorPath" }),
+  ).toBeVisible();
 
   await page.getByRole("link", { name: "NoorPath home" }).first().click();
   await expect(page).toHaveURL(/\/$/);
 
-  const footer = page.locator(".np-customer-footer").filter({ visible: true });
+  const footer = page.locator(".np-customer-footer:visible");
   await expect(footer.getByRole("link", { name: "Privacy" })).toHaveAttribute(
     "href",
     "/privacy",
@@ -124,13 +139,20 @@ test("public shell exposes valid header, footer, support and legal destinations"
   await footer.getByRole("link", { name: "Privacy" }).click();
   await expect(page).toHaveURL(/\/privacy$/);
   await expect(
-    page.getByRole("heading", { name: "How NoorPath handles journey information" }),
+    page.getByRole("heading", {
+      name: "How NoorPath handles journey information",
+    }),
   ).toBeVisible();
 
-  await page.getByRole("link", { name: "Terms" }).last().click();
+  await page
+    .locator(".np-customer-footer:visible")
+    .getByRole("link", { name: "Terms" })
+    .click();
   await expect(page).toHaveURL(/\/terms$/);
   await expect(
-    page.getByRole("heading", { name: "Understand every commitment before booking" }),
+    page.getByRole("heading", {
+      name: "Understand every commitment before booking",
+    }),
   ).toBeVisible();
 
   await expectNoA11yViolations(page);
@@ -151,21 +173,30 @@ test("authenticated shell preserves journey, documents, visa, cancellation and b
 
   const shell = page.locator('[data-customer-shell="authenticated"]');
   await expect(shell).toBeVisible();
-  const navigation = shell
-    .locator(".np-customer-navigation--desktop")
-    .getByRole("navigation", { name: "Customer navigation" });
+  const navigation = desktopNavigation(page);
 
-  for (const label of ["Packages", "My Journey", "Help", "Talk to Us", "Profile"]) {
-    await expect(navigation.getByRole("link", { name: label, exact: true })).toBeVisible();
+  for (const label of [
+    "Packages",
+    "My Journey",
+    "Help",
+    "Talk to Us",
+    "Profile",
+  ]) {
+    await expect(
+      navigation.getByRole("link", { name: label, exact: true }),
+    ).toBeVisible();
   }
-  await expect(navigation.getByRole("link", { name: "My Journey" })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
-  await expect(navigation.getByRole("link", { name: /operator|admin/i })).toHaveCount(0);
+  await expect(
+    navigation.getByRole("link", { name: "My Journey" }),
+  ).toHaveAttribute("aria-current", "page");
+  await expect(
+    navigation.getByRole("link", { name: /operator|admin/i }),
+  ).toHaveCount(0);
 
   await page.getByRole("link", { name: "View journey" }).click();
-  await expect(page).toHaveURL(new RegExp(`/bookings/${bookingId}/journey$`));
+  await expect(page).toHaveURL(
+    new RegExp(`/bookings/${bookingId}/journey$`),
+  );
   await expect(
     page.getByRole("heading", { name: journey.journey.packageName }),
   ).toBeVisible();
@@ -180,16 +211,25 @@ test("authenticated shell preserves journey, documents, visa, cancellation and b
     `/bookings/${bookingId}/documents`,
   );
   await documentsLink.click();
-  await expect(page).toHaveURL(new RegExp(`/bookings/${bookingId}/documents$`));
-  await expect(page.locator('[data-customer-shell="transactional"]')).toBeVisible();
+  await expect(page).toHaveURL(
+    new RegExp(`/bookings/${bookingId}/documents$`),
+  );
+  await expect(
+    page.locator('[data-customer-shell="transactional"]'),
+  ).toBeVisible();
 
   await page.goto(`/bookings/${bookingId}/journey`);
   await page.getByRole("link", { name: "View visa status" }).click();
   await expect(page).toHaveURL(new RegExp(`/bookings/${bookingId}/visa$`));
-  await expect(page.locator('[data-customer-shell="authenticated"]')).toBeVisible();
+  await expect(
+    page.locator('[data-customer-shell="authenticated"]'),
+  ).toBeVisible();
 
   await page.goto(`/bookings/${bookingId}/journey`);
-  await page.getByRole("navigation", { name: "Breadcrumb" }).getByRole("link").click();
+  await page
+    .getByRole("navigation", { name: "Breadcrumb" })
+    .getByRole("link")
+    .click();
   await expect(page).toHaveURL(/\/journeys$/);
 
   await expectNoHorizontalOverflow(page);
@@ -213,18 +253,15 @@ test("transactional shell provides reduced-distraction support and legal exits",
 
   const compactFooter = shell.locator(".np-customer-footer--compact");
   await expect(compactFooter).toBeVisible();
-  await expect(compactFooter.getByRole("link", { name: "Support" })).toHaveAttribute(
-    "href",
-    "/support",
-  );
-  await expect(compactFooter.getByRole("link", { name: "Privacy" })).toHaveAttribute(
-    "href",
-    "/privacy",
-  );
-  await expect(compactFooter.getByRole("link", { name: "Terms" })).toHaveAttribute(
-    "href",
-    "/terms",
-  );
+  await expect(
+    compactFooter.getByRole("link", { name: "Support" }),
+  ).toHaveAttribute("href", "/support");
+  await expect(
+    compactFooter.getByRole("link", { name: "Privacy" }),
+  ).toHaveAttribute("href", "/privacy");
+  await expect(
+    compactFooter.getByRole("link", { name: "Terms" }),
+  ).toHaveAttribute("href", "/terms");
 
   await shell.getByRole("link", { name: "Talk to Us" }).click();
   await expect(page).toHaveURL(/\/support$/);
@@ -248,8 +285,15 @@ test("mobile public and authenticated menus reflow without exposing staff routes
 
   await page.getByText("Menu", { exact: true }).click();
   const publicPanel = page.locator(".np-customer-menu__panel");
-  for (const label of ["Packages", "How It Works", "Talk to Us", "My Journey"]) {
-    await expect(publicPanel.getByRole("link", { name: label, exact: true })).toBeVisible();
+  for (const label of [
+    "Packages",
+    "How It Works",
+    "Talk to Us",
+    "My Journey",
+  ]) {
+    await expect(
+      publicPanel.getByRole("link", { name: label, exact: true }),
+    ).toBeVisible();
   }
   await publicPanel.getByRole("link", { name: "Talk to Us" }).click();
   await expect(page).toHaveURL(/\/support$/);
@@ -258,10 +302,20 @@ test("mobile public and authenticated menus reflow without exposing staff routes
   await page.goto("/journeys");
   await page.getByText("Menu", { exact: true }).click();
   const customerPanel = page.locator(".np-customer-menu__panel");
-  for (const label of ["Packages", "My Journey", "Help", "Talk to Us", "Profile"]) {
-    await expect(customerPanel.getByRole("link", { name: label, exact: true })).toBeVisible();
+  for (const label of [
+    "Packages",
+    "My Journey",
+    "Help",
+    "Talk to Us",
+    "Profile",
+  ]) {
+    await expect(
+      customerPanel.getByRole("link", { name: label, exact: true }),
+    ).toBeVisible();
   }
-  await expect(customerPanel.getByRole("link", { name: /operator|admin/i })).toHaveCount(0);
+  await expect(
+    customerPanel.getByRole("link", { name: /operator|admin/i }),
+  ).toHaveCount(0);
 
   await page.evaluate(() => {
     document.documentElement.style.fontSize = "200%";
@@ -273,4 +327,15 @@ test("mobile public and authenticated menus reflow without exposing staff routes
     body: await page.screenshot({ fullPage: true }),
     contentType: "image/png",
   });
+});
+
+test("staff routes remain outside customer shell adoption", async ({ page }) => {
+  await page.route("**/api/v1/operator/access", (route) =>
+    route.fulfill({ status: 401, json: {} }),
+  );
+  await page.goto("/operator");
+  await expect(page.locator("[data-customer-shell]")).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Sign in to continue" }),
+  ).toBeVisible();
 });
