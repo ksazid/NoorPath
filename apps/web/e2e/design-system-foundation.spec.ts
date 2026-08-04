@@ -16,9 +16,15 @@ test("design-system foundation renders shared contracts on desktop", async ({
   await expect(
     page.getByRole("button", { name: "Reserve Your Seats" }).first(),
   ).toBeVisible();
-  await expect(page.getByText("Double Sharing")).toBeVisible();
-  await expect(page.getByText("Triple Sharing")).toBeVisible();
-  await expect(page.getByText("Quad Sharing")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Double Sharing" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Triple Sharing" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Quad Sharing" }),
+  ).toBeVisible();
   await expect(page.getByText("Action required").first()).toBeVisible();
 
   await expectNoA11yViolations(page);
@@ -85,7 +91,7 @@ test("canonical customer shell remains accessible across desktop and mobile", as
   await expectMinimumTargets(page);
   await expectNoHorizontalOverflow(page);
 
-  await testInfo.attach("customer-shell-desktop", {
+  await testInfo.attach("customer-shell-initial", {
     body: await page.screenshot({ fullPage: true }),
     contentType: "image/png",
   });
@@ -94,7 +100,9 @@ test("canonical customer shell remains accessible across desktop and mobile", as
   await page.reload();
   await page.getByText("Menu", { exact: true }).click();
   await expect(
-    page.getByRole("link", { name: "My Journey" }).first(),
+    page
+      .locator(".np-customer-menu__panel")
+      .getByRole("link", { name: "My Journey" }),
   ).toBeVisible();
   await expectNoA11yViolations(page);
   await expectMinimumTargets(page);
@@ -114,24 +122,43 @@ test("canonical staff shell groups navigation and reflows to a drawer", async ({
   await expect(
     page.getByRole("heading", { name: "Operations dashboard" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("navigation", { name: "Staff navigation" }).first(),
-  ).toBeVisible();
+
+  const initialWidth = page.viewportSize()?.width ?? 1363;
+  if (initialWidth <= 900) {
+    await page.getByText("Workspace navigation", { exact: true }).click();
+    await expect(
+      page
+        .locator(".np-staff-menu__panel")
+        .getByRole("navigation", { name: "Staff navigation" }),
+    ).toBeVisible();
+  } else {
+    await expect(
+      page
+        .locator(".np-staff-sidebar")
+        .getByRole("navigation", { name: "Staff navigation" }),
+    ).toBeVisible();
+  }
+
   await expect(page.getByText("Administration").first()).toBeVisible();
   await expectNoA11yViolations(page);
   await expectMinimumTargets(page);
   await expectNoHorizontalOverflow(page);
 
-  await testInfo.attach("staff-shell-desktop", {
+  await testInfo.attach("staff-shell-initial", {
     body: await page.screenshot({ fullPage: true }),
     contentType: "image/png",
   });
 
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.reload();
-  await page.getByText("Workspace navigation", { exact: true }).click();
+  if (initialWidth > 900) {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload();
+    await page.getByText("Workspace navigation", { exact: true }).click();
+  }
+
   await expect(
-    page.getByRole("link", { name: "Audit Log" }).last(),
+    page
+      .locator(".np-staff-menu__panel")
+      .getByRole("link", { name: "Audit Log" }),
   ).toBeVisible();
   await expectNoA11yViolations(page);
   await expectMinimumTargets(page);
