@@ -5,10 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
-export type CustomerRouteMode =
-  | "public"
-  | "authenticated"
-  | "transactional";
+export type CustomerRouteMode = "public" | "authenticated" | "transactional";
 
 type NavigationItem = {
   href: string;

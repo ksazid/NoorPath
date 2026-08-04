@@ -193,7 +193,12 @@ test("public shell exposes valid discovery, package, support and legal destinati
   await expect(shell).toBeVisible();
 
   const navigation = desktopNavigation(page);
-  for (const label of ["Packages", "How It Works", "Talk to Us", "My Journey"]) {
+  for (const label of [
+    "Packages",
+    "How It Works",
+    "Talk to Us",
+    "My Journey",
+  ]) {
     await expect(
       navigation.getByRole("link", { name: label, exact: true }),
     ).toBeVisible();
@@ -228,7 +233,9 @@ test("public shell exposes valid discovery, package, support and legal destinati
   await expect(page.locator('[data-customer-shell="public"]')).toBeVisible();
 
   await page.goto("/");
-  await desktopNavigation(page).getByRole("link", { name: "Talk to Us" }).click();
+  await desktopNavigation(page)
+    .getByRole("link", { name: "Talk to Us" })
+    .click();
   await expect(page).toHaveURL(/\/support$/);
   await expect(
     page.getByRole("heading", { name: "Talk to NoorPath" }),
@@ -325,7 +332,9 @@ test("authenticated shell preserves header, journey and booking-owned reachabili
     .getByRole("link", { name: "Profile", exact: true })
     .click();
   await expect(page).toHaveURL(/\/account$/);
-  await expect(page.getByRole("heading", { name: "My NoorPath" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "My NoorPath" }),
+  ).toBeVisible();
 
   await page.goto("/journeys");
   await desktopNavigation(page)
@@ -335,9 +344,7 @@ test("authenticated shell preserves header, journey and booking-owned reachabili
 
   await page.goto("/journeys");
   await page.getByRole("link", { name: "View journey" }).click();
-  await expect(page).toHaveURL(
-    new RegExp(`/bookings/${bookingId}/journey$`),
-  );
+  await expect(page).toHaveURL(new RegExp(`/bookings/${bookingId}/journey$`));
   await expect(
     page.getByRole("heading", { name: journey.journey.packageName }),
   ).toBeVisible();
@@ -352,9 +359,7 @@ test("authenticated shell preserves header, journey and booking-owned reachabili
     `/bookings/${bookingId}/documents`,
   );
   await documentsLink.click();
-  await expect(page).toHaveURL(
-    new RegExp(`/bookings/${bookingId}/documents$`),
-  );
+  await expect(page).toHaveURL(new RegExp(`/bookings/${bookingId}/documents$`));
   await expect(
     page.locator('[data-customer-shell="transactional"]'),
   ).toBeVisible();
@@ -494,7 +499,9 @@ test("mobile public and authenticated menus reflow without exposing staff routes
   });
 });
 
-test("staff routes remain outside customer shell adoption", async ({ page }) => {
+test("staff routes remain outside customer shell adoption", async ({
+  page,
+}) => {
   await page.route("**/api/v1/operator/access", (route) =>
     route.fulfill({ status: 401, json: {} }),
   );

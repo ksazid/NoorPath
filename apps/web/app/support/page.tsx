@@ -16,7 +16,10 @@ export default function SupportPage() {
       </p>
       <section aria-labelledby="support-email-title">
         <h2 id="support-email-title">Email support</h2>
-        <p>Include your booking reference only when discussing an existing journey.</p>
+        <p>
+          Include your booking reference only when discussing an existing
+          journey.
+        </p>
         <a className="auth-primary" href="mailto:support@noorpath.example">
           Email NoorPath support
         </a>

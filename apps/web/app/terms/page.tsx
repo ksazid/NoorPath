@@ -18,8 +18,9 @@ export default function TermsPage() {
       <section>
         <h2>Published package facts</h2>
         <p>
-          Availability, operator, stay, travel and pricing information may change
-          until a place is successfully held and the booking is confirmed.
+          Availability, operator, stay, travel and pricing information may
+          change until a place is successfully held and the booking is
+          confirmed.
         </p>
       </section>
       <section>
