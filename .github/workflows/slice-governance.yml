@@ -61,9 +61,17 @@ jobs:
             }
       - name: Validate manifests and required planning files
         run: node scripts/slice.mjs validate
+      - name: Validate navigation matrix registrations
+        run: node scripts/navigation-verification.mjs validate
       - name: Resolve current slice
         id: slice
         run: node scripts/slice.mjs resolve --branch "$GITHUB_HEAD_REF" --optional --github-output
+      - name: Enforce navigation evidence before certification
+        if: contains(github.event.pull_request.labels.*.name, 'certify')
+        run: >-
+          node scripts/navigation-verification.mjs verify
+          --branch "$GITHUB_HEAD_REF"
+          --optional
       - name: Enforce Draft and certification discipline
         uses: actions/github-script@v7
         env:
