@@ -23,12 +23,12 @@
 - [x] Confirm customer authenticated header contract.
 - [x] Confirm full and compact customer footer contracts.
 - [x] Confirm staff sidebar groups and role-aware navigation input contract.
-- [x] Restrict the component showcase to non-production unless `NOORPATH_ENABLE_DESIGN_SYSTEM=true` is explicitly set.
+- [x] Restrict showcase routes to non-production unless `NOORPATH_ENABLE_DESIGN_SYSTEM_SHOWCASE=true` is explicitly set.
 - [x] Record unresolved reference details rather than inventing values.
 
 ## Tokens
 
-- [x] Reconcile token JSON, token CSS and application aliases for new foundation code.
+- [x] Reconcile token JSON and CSS exports for new foundation code; existing page aliases remain an incremental adoption boundary.
 - [x] Add missing semantic colour tokens.
 - [x] Add border, focus, disabled and skeleton tokens.
 - [x] Consolidate spacing scale.
@@ -37,12 +37,12 @@
 - [x] Consolidate motion durations and easing.
 - [x] Add z-index/layering scale.
 - [x] Preserve reduced-motion handling.
-- [ ] Add automated raw-value or token-consistency checks only if certification identifies drift not covered by current component tests.
+- [x] Add executable semantic-export and raw-colour consistency checks for the shared foundation styles.
 
 ## Shared components
 
 - [x] Actions and icon buttons.
-- [x] Form fields and selection controls.
+- [x] Text, select, checkbox, radio-card and switch controls.
 - [x] Content, metric and support cards.
 - [x] Status badge.
 - [x] Feature tile.
@@ -52,7 +52,7 @@
 - [x] Empty state.
 - [x] Error/offline/unavailable state with retry slot.
 - [x] Use native responsive disclosure for shell navigation; no new dialog/drawer dependency is justified.
-- [x] Component export and fixed-order contract tests.
+- [x] Component export, fixed-order and rendered accessible-name coverage added.
 
 ## Layouts
 
@@ -61,7 +61,7 @@
 - [x] Reduced transactional/checkout header.
 - [x] Full public footer.
 - [x] Compact transactional footer.
-- [x] Canonical staff shell with grouped navigation.
+- [x] Canonical staff shell with grouped navigation, search and action slots.
 - [x] Responsive staff navigation disclosure.
 - [x] Package Details fixed-order section contract.
 - [x] Sticky mobile CTA safe-area contract.
@@ -79,23 +79,23 @@
 ## Rendered and accessibility validation
 
 - [x] Add production-component showcase/test routes using synthetic data and a fail-closed production boundary.
-- [ ] Desktop Chromium evidence.
-- [ ] Mobile WebKit evidence.
-- [ ] Keyboard-only completion.
-- [ ] Visible focus and logical focus order.
-- [ ] 44px minimum customer touch targets and appropriate staff targets.
-- [ ] 200% zoom and narrow reflow.
-- [ ] Long-content and text-expansion coverage.
-- [ ] Reduced-motion coverage.
-- [ ] Automated serious/critical accessibility checks.
-- [ ] Same-viewport comparison against approved references for affected patterns.
+- [ ] Desktop Chromium evidence passes on the exact head.
+- [ ] Mobile WebKit evidence passes on the exact head.
+- [ ] Keyboard-only completion passes on the exact head.
+- [ ] Visible focus and logical focus order pass on the exact head.
+- [ ] 44px minimum customer touch targets and appropriate staff targets pass on the exact head.
+- [ ] 200% zoom and narrow reflow pass on the exact head.
+- [ ] Long-content and text-expansion coverage passes on the exact head.
+- [ ] Reduced-motion coverage passes on the exact head.
+- [ ] Automated serious/critical accessibility checks pass on the exact head.
+- [ ] Same-viewport comparison against approved references is recorded for affected patterns.
 
 ## Regression and delivery
 
-- [ ] Existing web unit/component tests pass.
-- [ ] Existing E2E tests pass.
-- [ ] Production web build passes.
-- [ ] Formatting, lint and type checking pass.
+- [ ] Existing web unit/component tests pass on the exact head.
+- [ ] Existing E2E tests pass on the exact head.
+- [ ] Production web build passes on the exact head.
+- [ ] Formatting, lint and type checking pass on the exact head.
 - [x] Slice registry validation passes.
 - [x] Diff contains no domain, API, database, migration or permission behaviour changes.
 - [x] No deployment performed.
