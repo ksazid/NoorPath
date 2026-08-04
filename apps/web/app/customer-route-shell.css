@@ -1,3 +1,4 @@
+/* VS-19 owns customer-route chrome only; page and domain state remain module-owned. */
 .np-route-shell {
   min-height: 100dvh;
 }
