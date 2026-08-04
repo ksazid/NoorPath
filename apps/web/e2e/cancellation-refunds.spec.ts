@@ -297,9 +297,7 @@ test("operator reaches cancellation review from overview and sees the sidebar li
     .getByRole("link", { name: "Cancellations" });
   await expect(sidebarLink).toHaveAttribute("href", "/operator/cancellations");
 
-  await page
-    .getByRole("link", { name: /Cancellations & refunds/ })
-    .click();
+  await page.getByRole("link", { name: /Cancellations & refunds/ }).click();
   await expect(page).toHaveURL(/\/operator\/cancellations$/);
   await expect(
     page.getByRole("heading", { name: "Cancellation & refund review" }),

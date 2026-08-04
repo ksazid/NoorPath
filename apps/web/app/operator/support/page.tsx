@@ -311,8 +311,9 @@ export default function OperationalSupportPage() {
               <div>
                 <p>
                   {detail.refund.state} ·{" "}
-                  {money(detail.refund.currency, detail.refund.refundedAmount)} of{" "}
-                  {money(detail.refund.currency, detail.refund.amount)} recorded
+                  {money(detail.refund.currency, detail.refund.refundedAmount)}{" "}
+                  of {money(detail.refund.currency, detail.refund.amount)}{" "}
+                  recorded
                 </p>
                 {detail.refund.failureCode ? (
                   <p>Recovery code: {detail.refund.failureCode}</p>
