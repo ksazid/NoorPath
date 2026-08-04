@@ -148,7 +148,11 @@ export default function OperatorWorkspaceShell({
             </Link>
           ) : null}
           {state.kind === "error" ? (
-            <button className="auth-primary" type="button" onClick={loadAccess}>
+            <button
+              className="auth-primary"
+              type="button"
+              onClick={loadAccess}
+            >
               Try again
             </button>
           ) : null}
