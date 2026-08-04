@@ -21,3 +21,16 @@ const client = isAuth0Configured()
 export function getAuth0Client() {
   return client;
 }
+
+export async function getAuth0ApiAccessToken() {
+  const auth0 = getAuth0Client();
+  if (!auth0) return null;
+
+  const session = await auth0.getSession();
+  if (!session) return null;
+
+  if (session.accessToken) return session.accessToken;
+
+  const refreshed = await auth0.getAccessToken();
+  return refreshed.token || null;
+}
