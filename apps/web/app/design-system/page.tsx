@@ -8,6 +8,11 @@ import {
   SurfaceCard,
   TimelineItem,
 } from "../_components/DesignSystem";
+import {
+  SkeletonBlock,
+  SupportAction,
+  TextField,
+} from "../_components/FormPrimitives";
 
 export const metadata: Metadata = {
   title: "NoorPath Design System",
@@ -93,6 +98,32 @@ export default function DesignSystemPage() {
         </div>
       </section>
 
+      <section className="np-showcase__section" aria-labelledby="forms-title">
+        <h2 id="forms-title">Forms and support</h2>
+        <div className="np-showcase__grid">
+          <SurfaceCard>
+            <TextField
+              id="traveller-name"
+              label="Traveller name"
+              description="Enter the name exactly as shown on the passport."
+              placeholder="Full name"
+            />
+          </SurfaceCard>
+          <SupportAction
+            href="/support"
+            icon="whatsapp"
+            title="WhatsApp Support"
+            description="Chat with NoorPath for help with your journey."
+          />
+          <SupportAction
+            href="/support"
+            icon="phone"
+            title="Request a Callback"
+            description="Ask the support team to call you."
+          />
+        </div>
+      </section>
+
       <section className="np-showcase__section" aria-labelledby="journey-title">
         <h2 id="journey-title">Journey progress</h2>
         <SurfaceCard>
@@ -110,6 +141,19 @@ export default function DesignSystemPage() {
               Starts after document approval.
             </TimelineItem>
           </ol>
+        </SurfaceCard>
+      </section>
+
+      <section className="np-showcase__section" aria-labelledby="loading-title">
+        <h2 id="loading-title">Loading structure</h2>
+        <SurfaceCard aria-label="Package card loading example">
+          <div className="np-showcase__skeleton">
+            <SkeletonBlock height="11rem" />
+            <SkeletonBlock width="38%" />
+            <SkeletonBlock height="2rem" width="72%" />
+            <SkeletonBlock width="100%" />
+            <SkeletonBlock width="84%" />
+          </div>
         </SurfaceCard>
       </section>
 
