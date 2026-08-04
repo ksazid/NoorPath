@@ -185,6 +185,10 @@ function desktopNavigation(page: import("@playwright/test").Page) {
 test("public shell exposes valid discovery, package, support and legal destinations", async ({
   page,
 }, testInfo) => {
+  test.skip(
+    testInfo.project.name === "mobile-390",
+    "Desktop source navigation is covered here; mobile source navigation has its own contract",
+  );
   await mockCustomerJourneys(page);
   await mockPublicPackages(page);
   await page.goto("/");
@@ -289,6 +293,10 @@ test("public shell exposes valid discovery, package, support and legal destinati
 test("authenticated shell preserves header, journey and booking-owned reachability", async ({
   page,
 }, testInfo) => {
+  test.skip(
+    testInfo.project.name === "mobile-390",
+    "Desktop authenticated navigation is covered here; mobile navigation has its own contract",
+  );
   await mockCustomerJourneys(page);
   await mockPublicPackages(page);
   await page.route("**/api/v1/account/access", (route) =>
@@ -388,6 +396,10 @@ test("authenticated shell preserves header, journey and booking-owned reachabili
 test("transactional shell provides reduced-distraction support and legal exits", async ({
   page,
 }, testInfo) => {
+  test.skip(
+    testInfo.project.name === "mobile-390",
+    "Desktop transactional presentation is covered here; mobile reflow is covered separately",
+  );
   await page.goto("/auth/sign-in?returnUrl=%2Fjourneys");
 
   const shell = page.locator('[data-customer-shell="transactional"]');
@@ -443,6 +455,10 @@ test("transactional shell provides reduced-distraction support and legal exits",
 test("mobile public and authenticated menus reflow without exposing staff routes", async ({
   page,
 }, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "mobile-390",
+    "This contract is intentionally authoritative in the mobile WebKit project",
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");

@@ -67,6 +67,14 @@
   padding-block: clamp(40px, 7vw, 88px);
 }
 
+.np-route-information .package-breadcrumbs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 8px;
+  margin-inline-start: -8px;
+}
+
 .np-route-information > h1 {
   max-width: 18ch;
   margin: 12px 0 18px;
