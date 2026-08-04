@@ -4,6 +4,12 @@
 
 These contracts implement the approved Landing and Package visual language without changing product behaviour. Existing approved components remain valid; new or changed shared components should use the semantic tokens exported by `@noorpath/design-tokens`.
 
+Related governance:
+
+- [`../PRODUCT_PRINCIPLES.md`](../PRODUCT_PRINCIPLES.md)
+- [`../PR_UX_CHECKLIST.md`](../PR_UX_CHECKLIST.md)
+- [`MASTER.md`](MASTER.md)
+
 ## Shared primitives
 
 ### `ActionButton`
@@ -22,6 +28,10 @@ Rules:
 - Labels describe the outcome: `Reserve Your Seats`, not `Continue`.
 - Press feedback uses a restrained transform and is disabled for reduced motion.
 
+### `IconButton`
+
+Used only when the icon meaning is conventional and the control has a required accessible label. The component always exposes that label through `aria-label` and `title` while using the governed NoorPath icon registry.
+
 ### `StatusBadge`
 
 Approved tones: success, warning, danger, info and neutral.
@@ -31,6 +41,10 @@ Every status includes an icon and text. Colour never carries meaning alone. Prod
 ### `FeatureTile`
 
 Used for stable package inclusions and other concise feature summaries. Operators control approved content values, not icon, colour, spacing or layout.
+
+### `MetricCard`
+
+Used for concise customer or staff facts such as total price, amount due now, remaining balance, capacity or queue count. Numeric values use tabular figures. The label and basis must remain explicit.
 
 ### `OccupancyAvatarGroup` and `OccupancyCard`
 
@@ -70,9 +84,17 @@ Domain status remains authoritative. The component only controls presentation.
 
 Uses a typed section identifier from `PACKAGE_DETAIL_SECTION_ORDER`. It does not allow operator-controlled section ordering.
 
-### `TextField`
+### `TextField` and `SelectField`
 
-The shared text field owns its visible label, helper text, field-adjacent error, `aria-describedby` and `aria-invalid` wiring. It keeps a minimum 48-pixel control height and inherits the shared focus token. Product slices still own validation rules and submitted values.
+The shared fields own their visible label, helper text, field-adjacent error, `aria-describedby` and `aria-invalid` wiring. They keep a minimum 48-pixel control height and inherit the shared focus token. Product slices still own validation rules, options and submitted values.
+
+### `CheckboxField`, `RadioCard` and `ToggleField`
+
+These use native inputs and preserve keyboard and assistive-technology behaviour. Labels provide the full interactive target. A product slice chooses the appropriate control:
+
+- checkbox — independent choice;
+- radio card — one choice from a mutually exclusive group;
+- switch — immediate on/off preference, never a form submission substitute.
 
 ### `SupportAction`
 
@@ -81,6 +103,10 @@ Used for approved WhatsApp Support, Request a Callback and general assisted-supp
 ### `SkeletonBlock`
 
 Represents a known loading shape without inventing content. Skeleton motion is removed under `prefers-reduced-motion`, while the loading state remains exposed to assistive technology.
+
+### `StickyActionBar`
+
+Provides a reusable safe-area-aware customer action bar. It must show the current commercial summary and one primary action. Support may be present as a subordinate control. Product slices decide whether sticky behaviour is appropriate and must reserve content space where required.
 
 ## Shell primitives
 
@@ -106,7 +132,7 @@ The staff shell provides grouped, caller-supplied navigation plus search and hea
 
 ## Form adoption
 
-Existing form controls remain in place until migrated by the slice that owns them. New or changed text inputs should use `TextField` or match its accessible contract. Other control types must use visible labels, field-adjacent validation, helper text where required, minimum 16-pixel mobile text and the shared focus token.
+Existing form controls remain in place until migrated by the slice that owns them. New or changed controls should use these primitives or match their accessible contracts. All controls require visible labels where the context does not already provide an unambiguous accessible name, field-adjacent validation, minimum 16-pixel mobile text and the shared focus token.
 
 ## Adoption rule
 
