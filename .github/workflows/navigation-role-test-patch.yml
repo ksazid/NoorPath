@@ -1,0 +1,68 @@
+name: Navigation role test patch
+
+on:
+  push:
+    branches:
+      - docs/navigation-verification-gate
+    paths:
+      - .github/workflows/navigation-role-test-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/navigation-verification-gate
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Add nested Platform Administrator routing test
+        run: |
+          cat >> apps/web/e2e/cancellation-refunds.spec.ts <<'EOF'
+
+          test("Platform Administrator opening cancellation review is guided to admin", async ({
+            page,
+          }) => {
+            await page.route("**/api/v1/operator/access", (route) =>
+              route.fulfill({
+                status: 403,
+                contentType: "application/json",
+                body: JSON.stringify({ code: "forbidden" }),
+              }),
+            );
+            await page.route("**/api/v1/platform/access", (route) =>
+              route.fulfill({
+                status: 200,
+                contentType: "application/json",
+                body: JSON.stringify({ accountId: "platform-administrator" }),
+              }),
+            );
+
+            await page.goto("/operator/cancellations");
+
+            await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+              "Use NoorPath administration",
+            );
+            await expect(
+              page.getByRole("link", { name: "Open admin workspace" }),
+            ).toHaveAttribute("href", "/admin");
+            await expectNoA11yViolations(page);
+            await expectMinimumTargets(page);
+            await expectNoHorizontalOverflow(page);
+          });
+          EOF
+          pnpm --dir apps/web exec prettier --write e2e/cancellation-refunds.spec.ts
+      - name: Commit test
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web/e2e/cancellation-refunds.spec.ts
+          git diff --cached --quiet && exit 0
+          git commit -m "test: verify nested operator role routing"
+          git push origin HEAD:docs/navigation-verification-gate
