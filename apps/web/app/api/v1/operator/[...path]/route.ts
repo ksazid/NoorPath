@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuth0Client } from "../../../../../../lib/auth0";
+import { getAuth0Client } from "../../../../../lib/auth0";
 
 type RouteContext = {
   params: Promise<{ path: string[] }>;
