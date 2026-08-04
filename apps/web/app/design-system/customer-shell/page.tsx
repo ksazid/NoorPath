@@ -5,6 +5,7 @@ import {
   SurfaceCard,
 } from "../../_components/DesignSystem";
 import { CustomerShell } from "../../_components/Shells";
+import { requireDesignSystemShowcase } from "../requireShowcase";
 
 export const metadata: Metadata = {
   title: "NoorPath Customer Shell",
@@ -12,6 +13,8 @@ export const metadata: Metadata = {
 };
 
 export default function CustomerShellExamplePage() {
+  requireDesignSystemShowcase();
+
   return (
     <CustomerShell activePath="/#packages">
       <header className="np-showcase__header">
