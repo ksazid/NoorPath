@@ -175,14 +175,18 @@ export type StaffNavigationGroup = {
 export function StaffShell({
   activePath,
   children,
+  headerActions,
   navigation,
   operatorName,
+  search,
   title,
 }: {
   activePath?: string;
   children: ReactNode;
+  headerActions?: ReactNode;
   navigation: StaffNavigationGroup[];
   operatorName: string;
+  search?: ReactNode;
   title: string;
 }) {
   const navigationContent = (
@@ -213,7 +217,11 @@ export function StaffShell({
         <Link className="np-brand" href="/operator">
           NoorPath Portal
         </Link>
-        <span>{operatorName}</span>
+        <div className="np-staff-header__tools">
+          {search ? <div className="np-staff-header__search">{search}</div> : null}
+          <span>{operatorName}</span>
+          {headerActions}
+        </div>
       </header>
       <aside className="np-staff-sidebar">{navigationContent}</aside>
       <details className="np-staff-menu">
