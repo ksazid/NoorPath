@@ -1,20 +1,24 @@
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getAuth0Client } from "../../../../../lib/auth0";
+import {
+  getAuth0ApiAccessToken,
+  getAuth0Client,
+} from "../../../../../lib/auth0";
 import { GET, POST } from "./route";
 
 vi.mock("../../../../../lib/auth0", () => ({
+  getAuth0ApiAccessToken: vi.fn(),
   getAuth0Client: vi.fn(),
 }));
 
+const mockedGetAuth0ApiAccessToken = vi.mocked(getAuth0ApiAccessToken);
 const mockedGetAuth0Client = vi.mocked(getAuth0Client);
 const originalApiOrigin = process.env.NOORPATH_API_URL;
 
 beforeEach(() => {
   process.env.NOORPATH_API_URL = "https://api.noorpath.test";
-  mockedGetAuth0Client.mockReturnValue({
-    getAccessToken: vi.fn().mockResolvedValue({ token: "operator-token" }),
-  } as never);
+  mockedGetAuth0Client.mockReturnValue({} as never);
+  mockedGetAuth0ApiAccessToken.mockResolvedValue("operator-token");
 });
 
 afterEach(() => {
@@ -82,7 +86,7 @@ describe("operator API proxy", () => {
       "application/json",
     );
     expect(new TextDecoder().decode(init.body as ArrayBuffer)).toContain(
-      '"status":"Submitted"',
+      '\"status\":\"Submitted\"',
     );
   });
 });

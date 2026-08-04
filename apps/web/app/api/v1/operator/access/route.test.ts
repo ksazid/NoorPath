@@ -1,17 +1,23 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getAuth0Client } from "../../../../../lib/auth0";
+import {
+  getAuth0ApiAccessToken,
+  getAuth0Client,
+} from "../../../../../lib/auth0";
 import { GET } from "./route";
 
 vi.mock("../../../../../lib/auth0", () => ({
+  getAuth0ApiAccessToken: vi.fn(),
   getAuth0Client: vi.fn(),
 }));
 
+const mockedGetAuth0ApiAccessToken = vi.mocked(getAuth0ApiAccessToken);
 const mockedGetAuth0Client = vi.mocked(getAuth0Client);
 const originalApiOrigin = process.env.NOORPATH_API_URL;
 
 beforeEach(() => {
   process.env.NOORPATH_API_URL = "https://api.noorpath.test";
   vi.clearAllMocks();
+  mockedGetAuth0Client.mockReturnValue({} as never);
 });
 
 afterEach(() => {
@@ -22,11 +28,7 @@ afterEach(() => {
 
 describe("operator access proxy", () => {
   it("forwards the Auth0 access token to the operator API", async () => {
-    mockedGetAuth0Client.mockReturnValue({
-      getAccessToken: vi
-        .fn()
-        .mockResolvedValue({ token: "operator-access-token" }),
-    } as never);
+    mockedGetAuth0ApiAccessToken.mockResolvedValue("operator-access-token");
     const apiFetch = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ code: "forbidden" }), {
         status: 403,
@@ -52,11 +54,9 @@ describe("operator access proxy", () => {
   });
 
   it("returns a safe unauthenticated response when the session is unavailable", async () => {
-    mockedGetAuth0Client.mockReturnValue({
-      getAccessToken: vi
-        .fn()
-        .mockRejectedValue(new Error("session unavailable")),
-    } as never);
+    mockedGetAuth0ApiAccessToken.mockRejectedValue(
+      new Error("session unavailable"),
+    );
 
     const response = await GET();
 
