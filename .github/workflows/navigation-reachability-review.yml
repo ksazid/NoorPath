@@ -1,0 +1,66 @@
+name: Navigation Reachability Review
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  navigation-review:
+    name: Navigation reachability review
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: noorpath_rendered_test
+          POSTGRES_USER: noorpath
+          POSTGRES_PASSWORD: ci-local-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U noorpath -d noorpath_rendered_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      ASPNETCORE_ENVIRONMENT: Test
+      Authentication__Mode: Test
+      ConnectionStrings__NoorPath: Host=127.0.0.1;Port=5432;Database=noorpath_rendered_test;Username=noorpath;Password=ci-local-only-password
+      Database__MigrateOnStartup: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Install desktop and mobile browser engines
+        run: pnpm --dir apps/web exec playwright install --with-deps chromium webkit
+      - name: Run VS-16 click-through navigation acceptance
+        run: >-
+          pnpm --dir apps/web exec playwright test
+          e2e/cancellation-refunds.spec.ts
+          --project=chromium
+          --project=mobile-safari
+      - name: Upload navigation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vs16-navigation-reachability
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            apps/web/test-results
+            apps/web/playwright-report
