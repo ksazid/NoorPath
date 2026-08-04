@@ -5,6 +5,7 @@ import {
   SurfaceCard,
 } from "../../_components/DesignSystem";
 import { StaffShell } from "../../_components/Shells";
+import { requireDesignSystemShowcase } from "../requireShowcase";
 
 export const metadata: Metadata = {
   title: "NoorPath Staff Shell",
@@ -41,6 +42,8 @@ const navigation = [
 ];
 
 export default function StaffShellExamplePage() {
+  requireDesignSystemShowcase();
+
   return (
     <StaffShell
       activePath="/operator"
