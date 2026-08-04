@@ -46,11 +46,13 @@ Every release-scope page, section, menu, card, breadcrumb, deep link, redirect a
 
 ## Identity-restricted verification log
 
-Add one row for every route that cannot be verified because an identity, membership, permission, tenant, provider or environment configuration is unavailable.
+The Product Owner confirmed on 2026-08-04 that production identities are not configured yet. These checks are deferred, not waived, and must be completed after Auth0 plus the required customer, Operator and Platform Administrator identities are configured. They remain release blockers for the real NoorPath production environment.
 
 | Route/path | Required identity/configuration | What was attempted | Result | Follow-up verification |
 | --- | --- | --- | --- | --- |
-| None recorded yet | — | — | PENDING | Replace this row with exact evidence or `NOT_APPLICABLE` before certification. |
+| `/bookings/{bookingId}/journey` protected deep link | `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`, `AUTH0_SECRET`, and a real booking-owner identity | Synthetic and role-preserving navigation coverage completed; real provider sign-in and return-to cannot run without configured Auth0 identity | `BLOCKED_IDENTITY` | After identity configuration, sign in from the protected deep link and verify return to the exact booking-owned journey without weakening ownership checks. |
+| `/operator/cancellations` protected deep link | Auth0 configuration and an approved Operator membership with the required permission | Synthetic Operator routing and permission coverage completed; real provider sign-in and return-to cannot run without configured membership | `BLOCKED_IDENTITY` | After identity configuration, sign in from the protected deep link and verify return to the cancellation queue with the intended Operator scope. |
+| `/operator/cancellations` to `/admin` role guidance | Configured Platform Administrator without implicit Operator membership | Role-preserving automated coverage completed; real provider identity is not available | `BLOCKED_IDENTITY` | Verify a real Platform Administrator is guided to `/admin` and receives no implicit Operator permission. |
 
 ## Completion rule
 
