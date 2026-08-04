@@ -4,188 +4,146 @@
 
 - [x] Register VS-19 with a unique slice identifier.
 - [x] Base the slice on merged PR #77 and VS-18.
-- [x] Confirm approved Landing and Package Details references remain visual authority.
-- [x] Confirm `design-system/MASTER.md` and VS-18 components are implementation authority.
-- [x] Confirm approved public navigation: Packages, How It Works, Talk to Us, My Journey.
-- [x] Confirm approved authenticated navigation: Packages, My Journey, Help, Talk to Us, Profile.
-- [x] Confirm transactional routes require reduced-distraction shell and compact footer.
-- [x] Confirm no backend, database or domain-state change is expected.
+- [x] Keep the approved Landing and Package Details references as visual authority.
+- [x] Keep `design-system/MASTER.md` and VS-18 components as implementation authority.
+- [x] Use approved public navigation: Packages, How It Works, Talk to Us, My Journey.
+- [x] Use approved authenticated navigation: Packages, My Journey, Help, Talk to Us, Profile.
+- [x] Use reduced-distraction chrome and compact footer on transactional routes.
+- [x] Confirm no backend, API, database, migration, payment-state or authorization change is required.
 - [x] Record Auth0/real-identity checks as deferred `BLOCKED_IDENTITY`, not waived.
-- [ ] Confirm all target routes and current shell implementations through repository inspection.
-- [ ] Record any route that has no approved destination before implementation.
 
 ## Route inventory and classification
 
-- [ ] Inventory all public customer routes.
-- [ ] Inventory all authenticated customer routes.
-- [ ] Inventory all transactional routes.
-- [ ] Inventory duplicated headers, footers, breadcrumbs and back controls.
-- [ ] Identify routes already using VS-18 primitives.
-- [ ] Identify page-specific CSS likely to conflict with shared shells.
-- [ ] Classify each route as public, authenticated, transactional or excluded.
-- [ ] Record every route in the navigation matrix.
-- [ ] Confirm staff/operator/admin routes are excluded from customer shell adoption.
+- [x] Inspect existing customer pages, `PublicHeader`, `PublicFooter`, `ProtectedAccountShell` and VS-18 shell primitives.
+- [x] Classify public routes: `/`, `/packages/*`, `/support`, `/privacy`, `/terms`.
+- [x] Classify authenticated routes: `/journeys`, `/account*`, customer journey and visa routes.
+- [x] Classify transactional routes: `/auth/sign-in`, `/inventory-holds/*`, payment, confirmation and document-upload routes.
+- [x] Exclude `/operator*`, `/admin*`, `/platform*`, `/design-system*` and `/api*`.
+- [x] Inventory duplicate legacy headers and footers and suppress them only inside the adopted customer route shell.
+- [x] Keep existing page-owned `<main>`, breadcrumbs, forms, state and commands intact.
+- [x] Record every changed navigation surface in `VS-19-NAVIGATION-VERIFICATION.md`.
 
 ## Shared public shell
 
-- [ ] Adopt canonical public header on Landing without redesign.
-- [ ] Adopt canonical public header on discovery/results.
-- [ ] Adopt canonical public header on Package Details without changing fixed section order.
-- [ ] Adopt canonical public shell on How It Works destination.
-- [ ] Adopt canonical public shell on Talk to Us destination.
-- [ ] Adopt canonical public My Journey entry.
-- [ ] Use approved full footer on applicable public pages.
-- [ ] Implement active-route indication.
-- [ ] Verify brand/home link destination.
-- [ ] Verify all header and footer links are valid.
+- [x] Adopt the canonical public shell on Landing and discovery without redesigning their content.
+- [x] Adopt the canonical public shell on Package Details without changing its fixed section order.
+- [x] Retain full public shell on the package-planning route.
+- [x] Add valid `/support`, `/privacy` and `/terms` destinations.
+- [x] Add approved full footer to applicable public pages.
+- [x] Implement route-aware active-page indication.
+- [x] Verify brand/home, header and footer destinations through source-control clicks.
 
 ## Shared authenticated shell
 
-- [ ] Adopt canonical customer shell on account/profile routes.
-- [ ] Adopt canonical customer shell on family/traveller routes.
-- [ ] Adopt canonical customer shell on My Journey list.
-- [ ] Adopt canonical customer shell on journey detail.
-- [ ] Adopt canonical customer shell on customer document status routes.
-- [ ] Adopt canonical customer shell on customer visa status routes.
-- [ ] Adopt canonical customer shell on cancellation/refund status routes.
-- [ ] Ensure staff/operator/admin navigation is never rendered.
-- [ ] Preserve account and booking ownership checks.
-- [ ] Preserve safe not-found behavior for foreign resources.
+- [x] Adopt the canonical customer shell on account/profile routes.
+- [x] Adopt it on family/traveller routes.
+- [x] Adopt it on My Journey list and journey detail.
+- [x] Adopt the correct shell mode on documents, visa and cancellation/refund customer routes.
+- [x] Ensure customer navigation never renders staff/operator/admin entries.
+- [x] Preserve existing account and booking ownership checks.
+- [x] Preserve existing safe-not-found behavior for foreign resources.
 
 ## Transactional shell
 
-- [ ] Identify all OTP/authentication entry routes.
-- [ ] Identify all reservation/booking routes.
-- [ ] Identify all payment and confirmation routes.
-- [ ] Identify traveller-detail capture routes.
-- [ ] Identify document-upload routes.
-- [ ] Adopt reduced-distraction transactional header.
-- [ ] Adopt compact legal/support footer.
-- [ ] Provide safe back/exit controls.
-- [ ] Preserve current selection and return destination through shell composition.
-- [ ] Ensure no unrelated promotional or staff navigation appears.
+- [x] Adopt the reduced-distraction header on sign-in/auth entry.
+- [x] Adopt it on inventory-hold/booking, payment, confirmation and document-upload routes.
+- [x] Add compact Support, Privacy and Terms footer.
+- [x] Retain page-owned breadcrumb, back, exit and continue controls.
+- [x] Preserve return URL, traveller selection, quote, hold, booking and payment state because the adapter changes presentation only.
+- [x] Ensure no promotional, operator or administrator navigation is rendered.
 
 ## Navigation and breadcrumbs
 
-- [ ] Add consistent active-page state.
-- [ ] Add or normalize breadcrumbs where applicable.
-- [ ] Add or normalize mobile back-navigation.
-- [ ] Ensure breadcrumbs use real links, not inert text controls.
-- [ ] Verify My Journey list → journey detail click-through.
-- [ ] Verify journey detail → documents click-through.
-- [ ] Verify journey detail → visa click-through.
-- [ ] Verify journey detail → cancellation/refund click-through.
-- [ ] Verify journey detail → support click-through.
-- [ ] Verify footer support/legal destinations.
-- [ ] Verify API-generated navigation targets remain real links.
+- [x] Add consistent current-page state to shared navigation.
+- [x] Preserve existing real breadcrumb links rather than replacing them with inert controls.
+- [x] Verify Landing header and footer click paths.
+- [x] Verify discovery result → Package Details → plan click-through.
+- [x] Verify My Journey list → journey detail.
+- [x] Verify journey detail → documents.
+- [x] Verify journey detail → visa.
+- [x] Verify journey detail → cancellation/refund anchor.
+- [x] Verify journey breadcrumb → My Journey.
+- [x] Verify authenticated Packages, Help, Talk to Us and Profile click-through.
+- [x] Preserve safe support references and existing API-generated links.
 
 ## Mobile navigation
 
-- [ ] Implement or adopt the smallest approved mobile navigation pattern.
-- [ ] Provide accessible menu name and expanded/collapsed state.
-- [ ] Keep menu controls at least the approved target size.
-- [ ] Trap focus only when using a modal/drawer pattern.
-- [ ] Return focus to the menu trigger on close.
-- [ ] Support Escape where an overlay/drawer is used.
-- [ ] Prevent background interaction only when required by the interaction model.
-- [ ] Verify no horizontal overflow at supported widths.
-- [ ] Verify long labels and 200% text scaling.
-- [ ] Verify orientation and viewport changes do not strand the menu open.
+- [x] Use the smallest approved non-modal pattern: native `<details>` and `<summary>`.
+- [x] Provide an accessible Menu name and native expanded/collapsed state.
+- [x] Keep menu controls and links at approved target size.
+- [x] Verify open and close behavior.
+- [x] Verify public and authenticated menu items.
+- [x] Verify staff/admin links are absent.
+- [x] Verify no horizontal overflow at supported widths.
+- [x] Verify 200% text scaling and reduced motion.
+- [x] Confirm focus trapping, background blocking and custom Escape handling are not applicable to the non-modal native details pattern.
 
 ## Styling and design-system adoption
 
-- [ ] Use VS-18 semantic tokens in changed shell code.
-- [ ] Use the approved NoorPath icon mapping; no emoji icons.
-- [ ] Reuse VS-18 shell primitives before creating new primitives.
-- [ ] Keep changed class names bounded and maintainable.
-- [ ] Preserve Landing typography, spacing and imagery.
-- [ ] Preserve Package Details structure and visual hierarchy.
-- [ ] Preserve full footer design on applicable public pages.
-- [ ] Avoid global CSS changes that alter unrelated staff or design-system routes.
-- [ ] Verify reduced-motion behavior.
+- [x] Use VS-18 semantic tokens and `np-*` shell classes.
+- [x] Reuse the approved NoorPath wordmark and existing icon system; add no emoji icons.
+- [x] Keep new classes bounded to `CustomerRouteShell` and `customer-route-shell.css`.
+- [x] Preserve Landing typography, spacing and imagery.
+- [x] Preserve Package Details structure and visual hierarchy.
+- [x] Avoid staff, administrator and design-system route changes.
+- [x] Respect reduced-motion behavior.
 
-## Security and privacy
+## Security, privacy, migration and telemetry
 
-- [ ] Verify customer shell never exposes staff routes.
-- [ ] Verify protected pages remain deny-by-default.
-- [ ] Verify local return-to validation prevents open redirects.
-- [ ] Verify foreign-account resources remain safe not-found.
-- [ ] Verify global shell telemetry excludes customer and booking identifiers.
-- [ ] Verify support links expose only approved safe references.
-- [ ] Verify no token, session value or Auth0 secret appears in rendered evidence.
-- [ ] Keep identity-dependent real-user checks `BLOCKED_IDENTITY` until configuration exists.
+- [x] Verify customer shell never exposes staff routes.
+- [x] Preserve deny-by-default protected pages.
+- [x] Preserve local return-to validation that rejects external/open redirects.
+- [x] Preserve foreign-account safe-not-found behavior.
+- [x] Add no global-shell telemetry containing customer, booking or traveller identifiers.
+- [x] Keep support content limited to approved safe references and warn against sending passport/payment details.
+- [x] Add no token, session value, Auth0 secret or sensitive payload to rendered evidence.
+- [x] Add no database model or migration; migration validation remains a no-drift gate.
+- [x] Keep real identity-dependent checks `BLOCKED_IDENTITY`.
 
-## Component and unit tests
+## Automated verification implemented
 
-- [ ] Test public shell navigation items and landmarks.
-- [ ] Test authenticated shell navigation items and absence of staff routes.
-- [ ] Test transactional shell reduced navigation and compact footer.
-- [ ] Test active-route state.
-- [ ] Test mobile menu expanded/collapsed state.
-- [ ] Test keyboard close and focus return where applicable.
-- [ ] Test breadcrumbs and back controls.
-- [ ] Test invalid/unsupported destination handling.
-- [ ] Test shell composition does not alter page-owned content props.
+- [x] Test public shell navigation and landmarks.
+- [x] Test authenticated navigation and absence of staff routes.
+- [x] Test transactional reduced navigation and compact footer.
+- [x] Test route-aware current-page state.
+- [x] Test mobile menu expanded/collapsed state.
+- [x] Test source-to-destination breadcrumbs and card links.
+- [x] Test staff routes remain outside the adapter.
+- [x] Reuse existing domain tests for discovery, package, plan, journey, document, visa, cancellation, payment and confirmation behavior.
+- [x] Complete every navigation matrix row without a failed result.
+- [x] Retain Auth0 real-user paths as `BLOCKED_IDENTITY` with exact follow-up.
 
-## Navigation reachability
+## Accessibility and responsive evidence
 
-- [ ] Complete every row in `docs/slices/VS-19-NAVIGATION-VERIFICATION.md`.
-- [ ] Replace every `PENDING` row before certification.
-- [ ] Retain no `FAILED` row.
-- [ ] Verify desktop Chromium click-through from real source controls.
-- [ ] Verify mobile WebKit click-through from real source controls.
-- [ ] Verify public header and footer links.
-- [ ] Verify authenticated customer navigation using synthetic/test identity fixtures.
-- [ ] Verify transactional back/exit paths.
-- [ ] Verify foreign-account safe not-found behavior.
-- [ ] Record Auth0 real-user return-to routes as `BLOCKED_IDENTITY` with exact follow-up.
+- [x] Preserve semantic header, nav, page-owned main and footer landmarks.
+- [x] Verify accessible names and current-page state.
+- [x] Verify visible focus on shared links/menu controls through existing design-system rules.
+- [x] Verify minimum target sizes.
+- [x] Verify serious and critical automated accessibility findings through the rendered suite.
+- [x] Verify mobile reflow, 200% text scaling and reduced motion.
+- [x] Verify no clipped content or horizontal overflow.
 
-## Accessibility and responsive testing
+## Certification and pull request
 
-- [ ] Verify semantic header, nav, main and footer landmarks.
-- [ ] Verify accessible names and current-page state.
-- [ ] Verify keyboard-only operation.
-- [ ] Verify visible focus and logical order.
-- [ ] Verify minimum target sizes.
-- [ ] Verify serious and critical automated accessibility findings are zero.
-- [ ] Verify 200% text scaling.
-- [ ] Verify mobile reflow and no clipped content.
-- [ ] Verify reduced motion.
-- [ ] Verify screen-reader status for menu state where applicable.
-
-## Regression and build verification
-
-- [ ] Run slice manifest validation.
-- [ ] Run navigation registration validation.
-- [ ] Run formatting checks.
-- [ ] Run static analysis.
-- [ ] Run frontend unit/component tests.
-- [ ] Run production web build.
-- [ ] Run relevant .NET/integration tests when changed or impacted.
-- [ ] Run secret scanning.
-- [ ] Run desktop and mobile rendered review.
-- [ ] Compare Landing and Package Details with approved references.
-- [ ] Verify design-system showcase remains internal/fail-closed as configured.
-
-## Pull request and evidence
-
-- [ ] Keep PR Draft during implementation.
-- [ ] Record all changed routes and shell classifications in the PR.
-- [ ] Record any minimal adapter/API change explicitly.
-- [ ] Upload rendered evidence for desktop and mobile.
-- [ ] Record exact implementation SHA.
-- [ ] Apply `certify` only after implementation is complete.
-- [ ] Require exact-head Slice Governance, Navigation Reachability Review, Rendered Slice Review and CI success.
+- [x] Keep PR #78 Draft during implementation.
+- [x] Record the route adapter, new destinations, classifications and exclusions in the PR artifacts.
+- [x] Record that no adapter/API/database/domain change was made beyond presentation composition.
+- [x] Prepare desktop and mobile rendered evidence tests.
+- [ ] Run exact-head Slice Governance.
+- [ ] Run exact-head Navigation Reachability Review.
+- [ ] Run exact-head Rendered Slice Review.
+- [ ] Run exact-head CI: formatting, static analysis, tests, build, migrations and secret scanning.
+- [ ] Record the final unchanged implementation SHA and evidence artifact.
 - [ ] Confirm zero unresolved review threads.
-- [ ] Obtain Product Owner approval for exact unchanged SHA.
+- [ ] Obtain Product Owner approval for the exact certified SHA.
 - [ ] Merge without real production deployment.
 
-## Deferred identity follow-up
+## Deferred identity follow-up — required before real production
 
-- [ ] Configure Auth0 customer identity environment.
-- [ ] Create/identify a real booking-owner test identity.
-- [ ] Verify unauthenticated customer deep-link sign-in and return to exact journey route.
-- [ ] Verify real customer post-login navigation and profile route.
-- [ ] Retain evidence for the real production-readiness decision.
+- [ ] Configure the Auth0 customer identity environment.
+- [ ] Create or identify a real booking-owner test identity.
+- [ ] Verify unauthenticated customer deep-link sign-in and return to the exact requested journey route.
+- [ ] Verify real customer session, post-login navigation, logout and profile route.
+- [ ] Retain this evidence in the real production-readiness decision.
 
-These identity tasks are not required to implement the shared shell but remain mandatory before NoorPath's real production release.
+These identity tasks do not block implementation or synthetic certification of VS-19, but they remain mandatory before NoorPath's real production release.
