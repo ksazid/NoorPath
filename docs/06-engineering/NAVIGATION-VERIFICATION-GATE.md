@@ -8,12 +8,13 @@ This gate applies to customer, operator, agent, administrator and platform-admin
 
 Each route or section must have exactly one recorded result:
 
+- `PENDING` — implementation or verification has not yet completed. Permitted only while the slice remains in progress.
 - `VERIFIED` — reached through the intended clickable navigation using the required identity, and the destination rendered the expected state.
 - `BLOCKED_IDENTITY` — verification could not be completed because the required authenticated identity, membership, permission, tenant or external identity configuration was unavailable.
 - `NOT_APPLICABLE` — the route is intentionally API-only, system-only or has no user navigation entry. The reason must be recorded.
 - `FAILED` — the link, redirect, route, section anchor, permission handoff or destination did not work as intended.
 
-A slice cannot be certified with any `FAILED` navigation result.
+A slice cannot be certified with any `PENDING` or `FAILED` navigation result.
 
 `BLOCKED_IDENTITY` is not equivalent to verification. It is permitted only when the exact restriction, required identity/permission, attempted evidence and follow-up verification step are recorded in the slice navigation matrix and PR description. Product Owner approval must be informed of every remaining `BLOCKED_IDENTITY` item.
 
@@ -49,7 +50,7 @@ Each row records:
 | Control | Exact visible link, button, card or redirect |
 | Destination | Expected route and section |
 | Identity | Required account, membership and permission |
-| Result | `VERIFIED`, `BLOCKED_IDENTITY`, `NOT_APPLICABLE` or `FAILED` |
+| Result | `PENDING`, `VERIFIED`, `BLOCKED_IDENTITY`, `NOT_APPLICABLE` or `FAILED` |
 | Evidence | Playwright test, screenshot, CI artifact or manual verification reference |
 | Notes | Restriction, failure, follow-up owner and next action |
 
@@ -65,6 +66,6 @@ Before the `certify` label is applied:
 - mobile and desktop navigation are both covered where navigation changes responsively;
 - every identity-restricted gap is explicitly marked `BLOCKED_IDENTITY` rather than silently omitted;
 - the PR body summarizes the matrix outcome and lists unresolved identity restrictions;
-- no `FAILED` result remains.
+- no `PENDING` or `FAILED` result remains.
 
 This gate does not authorize weakening authentication or permissions to make testing easier. Test identities must preserve the production role boundaries.
