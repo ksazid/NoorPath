@@ -1,5 +1,5 @@
-import ProtectedAccountShell from "../ProtectedAccountShell";
+import OperatorOverview from "./OperatorOverview";
 
 export default function OperatorPage() {
-  return <ProtectedAccountShell kind="operator" />;
+  return <OperatorOverview />;
 }
