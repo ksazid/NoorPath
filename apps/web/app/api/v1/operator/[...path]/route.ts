@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuth0Client } from "../../../../../lib/auth0";
+import {
+  getAuth0ApiAccessToken,
+  getAuth0Client,
+} from "../../../../../lib/auth0";
 
 type RouteContext = {
   params: Promise<{ path: string[] }>;
@@ -34,7 +37,7 @@ async function forward(request: NextRequest, context: RouteContext) {
   }
 
   try {
-    const { token: accessToken } = await auth0.getAccessToken();
+    const accessToken = await getAuth0ApiAccessToken();
     if (!accessToken) {
       return NextResponse.json(
         { code: "not_authenticated", message: "Sign in required." },
