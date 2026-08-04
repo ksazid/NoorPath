@@ -109,7 +109,10 @@ export function CustomerShell({
         ) : (
           <>
             <div className="np-customer-navigation--desktop">
-              <CustomerNavigation activePath={activePath} items={navigation} />
+              <CustomerNavigation
+                activePath={activePath}
+                items={navigation}
+              />
               {mode === "authenticated" ? (
                 <Link className="np-profile-link" href="/account">
                   {profileLabel}
@@ -119,7 +122,10 @@ export function CustomerShell({
             <details className="np-customer-menu">
               <summary>Menu</summary>
               <div className="np-customer-menu__panel">
-                <CustomerNavigation activePath={activePath} items={navigation} />
+                <CustomerNavigation
+                  activePath={activePath}
+                  items={navigation}
+                />
                 {mode === "authenticated" ? (
                   <Link className="np-profile-link" href="/account">
                     {profileLabel}
@@ -218,7 +224,9 @@ export function StaffShell({
           NoorPath Portal
         </Link>
         <div className="np-staff-header__tools">
-          {search ? <div className="np-staff-header__search">{search}</div> : null}
+          {search ? (
+            <div className="np-staff-header__search">{search}</div>
+          ) : null}
           <span>{operatorName}</span>
           {headerActions}
         </div>
