@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuth0Client } from "../../../../lib/auth0";
+import { getAuth0ApiAccessToken } from "../../../../lib/auth0";
 
 type Context = { params: Promise<{ path: string[] }> };
 
@@ -57,19 +57,14 @@ async function forward(request: NextRequest, context: Context) {
     if (value) headers.set(name, value);
   }
 
-  const auth0 = getAuth0Client();
-  if (auth0 && (await auth0.getSession())) {
-    try {
-      const { token } = await auth0.getAccessToken({
-        audience: process.env.AUTH0_AUDIENCE,
-      });
-      headers.set("authorization", `Bearer ${token}`);
-    } catch {
-      return NextResponse.json(
-        { code: "authentication_required" },
-        { status: 401 },
-      );
-    }
+  try {
+    const accessToken = await getAuth0ApiAccessToken();
+    if (accessToken) headers.set("authorization", `Bearer ${accessToken}`);
+  } catch {
+    return NextResponse.json(
+      { code: "authentication_required" },
+      { status: 401 },
+    );
   }
 
   const upstream = await fetch(destination, {
