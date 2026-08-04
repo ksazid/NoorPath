@@ -64,7 +64,7 @@ Runtime implementation may build configurable and fail-closed behavior, but prod
 - [x] Prevent arbitrary operator-entered refund amounts.
 - [x] Record actor, operator, reason, policy version, correlation and outcome.
 - [x] Add explicit Booking-, Inventory- and Payments-owned recovery commands where needed.
-- [ ] Complete VS-14 Operational Support navigation for cancellation and refund exceptions.
+- [x] Complete VS-14 Operational Support navigation for cancellation and refund exceptions.
 - [x] Return safe not-found for foreign-operator resources.
 
 ## Booking, inventory and refund orchestration
@@ -105,17 +105,17 @@ Runtime implementation may build configurable and fail-closed behavior, but prod
 ## Navigation and reachability
 
 - [x] Add the permanent navigation verification standard at `docs/06-engineering/NAVIGATION-VERIFICATION-GATE.md`.
-- [x] Create the VS-16 route matrix at `docs/slices/VS-16-NAVIGATION-VERIFICATION.md`.
-- [ ] Prove the customer cancellation section is reached by clicking from `/journeys`, not only by direct route loading.
-- [ ] Add and verify an explicit in-page link to the cancellation section.
-- [ ] Prove the operator cancellation queue is reached from the Operator Overview and sidebar.
-- [ ] Link cancellation/refund exceptions from Operational Support to the actionable cancellation workspace.
-- [ ] Verify breadcrumbs, back-navigation, refresh/deep links and API-generated action targets.
-- [ ] Verify desktop and mobile navigation, including responsive controls.
-- [ ] Verify authorized, forbidden-role, unauthenticated, foreign-account and foreign-operator outcomes.
-- [x] Mark production identity-restricted paths as `BLOCKED_IDENTITY` with the required configuration and follow-up action.
-- [ ] Resolve every `PENDING` and `FAILED` row before approving the retrospective navigation PR.
-- [ ] Summarize the matrix and remaining `BLOCKED_IDENTITY` rows for Product Owner visibility.
+- [x] Create and complete the VS-16 route matrix at `docs/slices/VS-16-NAVIGATION-VERIFICATION.md`.
+- [x] Prove the customer cancellation section is reached by clicking from `/journeys`, not only by direct route loading.
+- [x] Add and verify an explicit 44px in-page link to the cancellation section.
+- [x] Prove the operator cancellation queue is reached from the Operator Overview and sidebar.
+- [x] Link cancellation/refund exceptions from Operational Support to the actionable cancellation workspace.
+- [x] Verify breadcrumbs, back-navigation, refresh/deep links and API-generated action targets.
+- [x] Verify desktop and mobile navigation, including responsive controls and the restored mobile breadcrumb.
+- [x] Verify authorized, forbidden-role, foreign-account and foreign-operator outcomes.
+- [x] Mark production unauthenticated identity paths as `BLOCKED_IDENTITY` with the required Auth0 configuration and follow-up action.
+- [x] Resolve every `PENDING` and `FAILED` matrix row.
+- [x] Summarize the matrix and remaining `BLOCKED_IDENTITY` rows for Product Owner visibility.
 
 ## Automated verification
 
@@ -131,9 +131,11 @@ Runtime implementation may build configurable and fail-closed behavior, but prod
 - [x] Migration registry and fresh-database tests pass.
 - [x] Playwright covers customer request and status tracking on desktop and mobile.
 - [x] Playwright covers operator review, stale recovery and permission denial.
-- [ ] Playwright proves click-through navigation from My Journey, Operator Overview and Operational Support.
-- [x] Accessibility checks cover serious/critical axe findings, target size and reflow.
-- [x] VS-16 certification evidence was generated on the exact merged SHA.
+- [x] Playwright proves click-through navigation from My Journey, Operator Overview/sidebar and Operational Support.
+- [x] Playwright verifies the nested Platform Administrator `/operator/cancellations` to `/admin` handoff.
+- [x] Accessibility checks cover serious/critical axe findings, target size, responsive breadcrumb and reflow.
+- [x] Navigation Reachability Review run `30890719264` passed on SHA `fc20e4f41fdd247319a41fbcc89b2b5016d0d609` with artifact `8884970317`.
+- [x] Standard CI run `30890718422` passed frontend checks/build, .NET build, migrations and the complete solution test suite.
 
 ## Release controls
 
