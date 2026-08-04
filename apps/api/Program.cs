@@ -111,6 +111,7 @@ app.MapGet("/health/ready", async (OperatorsDbContext database, CancellationToke
 app.MapOperatorAccess();
 app.MapAccountAccess();
 app.MapCatalogueAuthoring();
+app.MapOperatorCatalogueQueries();
 app.MapCommercialAuthoring();
 app.MapPaymentPlanAuthoring();
 app.MapPublicationReview();
