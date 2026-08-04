@@ -42,6 +42,8 @@
   "acceptance": [
     "The exact release-scope slice set and release candidate SHA are recorded and unchanged throughout certification.",
     "Critical customer and operator journeys pass end-to-end against the production-like environment using safe test data.",
+    "Every release-scope page, section, menu, breadcrumb, card, redirect and API-generated action target is reachable through its intended clickable navigation on desktop and mobile, or is explicitly recorded as BLOCKED_IDENTITY with the required identity/configuration and follow-up verification step.",
+    "Direct-route tests supplement but do not replace click-through verification from the real public, customer, operator, administration and operational source controls.",
     "Authentication, authorization, account isolation, operator isolation and privileged-action controls are reverified across all release-scope surfaces.",
     "Secret scanning, configuration review and log inspection show no exposed credentials, tokens, payment payloads, traveller data or document data.",
     "Every registered migration applies from an empty database and from the approved prior production baseline without pending model drift.",
@@ -100,6 +102,7 @@
     "accessibility",
     "rendered-regression",
     "journey-linking",
+    "navigation-reachability",
     "deployment",
     "rollback",
     "runbook",
@@ -110,5 +113,6 @@
     "testFile": "e2e/production-readiness.spec.ts"
   },
   "specPath": "docs/slices/VS-17-PRODUCTION-READINESS.md",
-  "checklistPath": "docs/slices/VS-17-IMPLEMENTATION-CHECKLIST.md"
+  "checklistPath": "docs/slices/VS-17-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-17-NAVIGATION-VERIFICATION.md"
 }
