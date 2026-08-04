@@ -4,6 +4,7 @@ import "@noorpath/design-tokens/tokens.css";
 import FamilyQuoteBridge from "./FamilyQuoteBridge";
 import "./styles.css";
 import "./design-system.css";
+import "./shells.css";
 import "./composer.css";
 import "./commercial.css";
 import "./payment-plan.css";
