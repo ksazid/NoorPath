@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { getAuth0Client } from "../../../../../lib/auth0";
+import {
+  getAuth0ApiAccessToken,
+  getAuth0Client,
+} from "../../../../../lib/auth0";
 
 export async function GET() {
   const auth0 = getAuth0Client();
@@ -16,7 +19,7 @@ export async function GET() {
   }
 
   try {
-    const { token: accessToken } = await auth0.getAccessToken();
+    const accessToken = await getAuth0ApiAccessToken();
     if (!accessToken) {
       return NextResponse.json(
         { code: "not_authenticated", message: "Sign in required." },
