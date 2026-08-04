@@ -27,7 +27,7 @@ public static class OperatorCatalogueQueryEndpoints
         if (access is null || !access.IsAllowed(OperatorPermissions.AdminAccess))
             return Results.Forbid();
 
-        var items = await (
+        var records = await (
             from departure in catalogue.DepartureBatches.AsNoTracking()
             join packageVersion in catalogue.PackageVersions.AsNoTracking()
                 on departure.PackageVersionId equals packageVersion.Id
@@ -37,18 +37,33 @@ public static class OperatorCatalogueQueryEndpoints
             orderby departure.DepartureDate, packageVersion.Name
             select new
             {
-                departureId = departure.Id,
-                packageTemplateId = template.Id,
-                packageVersionId = packageVersion.Id,
-                packageName = packageVersion.Name,
-                summary = packageVersion.Summary,
-                origin = departure.Origin,
-                departureDate = departure.DepartureDate,
-                returnDate = departure.ReturnDate,
-                status = StatusKey(departure.Status),
-                version = departure.Version,
-                updatedAtUtc = departure.UpdatedAtUtc
+                DepartureId = departure.Id,
+                PackageTemplateId = template.Id,
+                PackageVersionId = packageVersion.Id,
+                PackageName = packageVersion.Name,
+                Summary = packageVersion.Summary,
+                Origin = departure.Origin,
+                DepartureDate = departure.DepartureDate,
+                ReturnDate = departure.ReturnDate,
+                Status = departure.Status,
+                Version = departure.Version,
+                UpdatedAtUtc = departure.UpdatedAtUtc
             }).ToArrayAsync(cancellationToken);
+
+        var items = records.Select(record => new
+        {
+            departureId = record.DepartureId,
+            packageTemplateId = record.PackageTemplateId,
+            packageVersionId = record.PackageVersionId,
+            packageName = record.PackageName,
+            summary = record.Summary,
+            origin = record.Origin,
+            departureDate = record.DepartureDate,
+            returnDate = record.ReturnDate,
+            status = StatusKey(record.Status),
+            version = record.Version,
+            updatedAtUtc = record.UpdatedAtUtc
+        });
 
         return Results.Ok(new { items });
     }
