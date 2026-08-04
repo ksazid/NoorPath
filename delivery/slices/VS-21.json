@@ -1,0 +1,66 @@
+{
+  "id": "VS-21",
+  "title": "Auth0 Session Establishment Repair",
+  "slug": "auth0-session-establishment",
+  "outcome": "A successful Auth0 login establishes a persistent NoorPath session and returns the user to the intended protected customer, operator or platform route.",
+  "actor": "Authenticated NoorPath customers, approved operator members and platform administrators.",
+  "dependsOn": ["VS-19", "VS-20"],
+  "modules": [
+    "Accounts owns Auth0 session establishment and normalized identity.",
+    "Web owns the Next.js network authentication boundary and protected-route redirects.",
+    "Operators and Platform retain their existing authorization policies."
+  ],
+  "routes": [
+    "Protected route -> sign in -> Auth0 callback -> original route",
+    "Authenticated customer -> account and owned journey pages",
+    "Approved operator -> operator workspace and queues",
+    "Platform administrator -> admin and publication pages",
+    "Authenticated user -> logout -> unauthenticated sign-in boundary"
+  ],
+  "acceptance": [
+    "Auth0 is handled only at the Next.js proxy boundary.",
+    "No App Route calls auth0.middleware or returns NextResponse.next.",
+    "Successful Google login persists a session cookie.",
+    "The original relative return destination is preserved.",
+    "Customer, operator and platform access checks execute after authentication.",
+    "Logout and expired sessions return safely to sign-in.",
+    "No authorization policy or page design is weakened or redesigned.",
+    "Product Owner approval is required before merge and release deployment."
+  ],
+  "policyDecisionsRequired": [
+    "Keep the existing all-access smoke-test identity until remaining slices finish.",
+    "Use relative return destinations only.",
+    "Do not introduce phone OTP or role-administration UI in this slice."
+  ],
+  "exclusions": [
+    "Page redesign or content changes.",
+    "Auth0 tenant redesign.",
+    "Phone OTP and account recovery.",
+    "Authorization weakening.",
+    "Real customer production launch."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "migration",
+    "security",
+    "authorization",
+    "privacy",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "rendered-regression",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true
+  },
+  "specPath": "docs/slices/VS-21-AUTH0-SESSION-ESTABLISHMENT.md",
+  "checklistPath": "docs/slices/VS-21-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-21-NAVIGATION-VERIFICATION.md"
+}
