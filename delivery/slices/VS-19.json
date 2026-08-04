@@ -1,0 +1,86 @@
+{
+  "id": "VS-19",
+  "title": "Customer Shell and Navigation Adoption",
+  "slug": "customer-shell-navigation",
+  "outcome": "Existing NoorPath customer-facing routes use one canonical public, authenticated or transactional shell with consistent navigation, footer, breadcrumbs, support access and verified desktop/mobile reachability without changing domain behavior.",
+  "actor": "Public visitors, authenticated NoorPath customers and booking owners using customer-facing journeys on desktop and mobile.",
+  "dependsOn": ["VS-18"],
+  "modules": [
+    "Web owns shared public, authenticated and transactional customer shell composition.",
+    "Accounts continues to own authentication, session, return-to and customer authorization behavior.",
+    "Each existing domain module continues to own its page data, state and commands; the shell does not mutate domain persistence.",
+    "Design governance owns the approved Landing and Package visual authority, shared footer behavior, navigation terminology and responsive accessibility rules."
+  ],
+  "routes": [
+    "Public visitor -> Landing or discovery -> canonical public header and full footer -> package and support destinations",
+    "Public visitor -> Package Details -> canonical public shell -> reservation entry and support",
+    "Authenticated customer -> customer shell -> Packages, My Journey, Help, Talk to Us and Profile",
+    "Booking owner -> My Journey -> journey detail -> documents, visa, cancellation and support",
+    "Customer -> OTP, reservation, payment or document upload -> transactional shell with compact legal/support footer",
+    "Protected customer deep link -> sign-in -> exact return destination when identity configuration is available"
+  ],
+  "acceptance": [
+    "Applicable live customer routes use exactly one approved shell variant: public, authenticated or transactional.",
+    "Public navigation exposes Packages, How It Works, Talk to Us and My Journey using valid destinations.",
+    "Authenticated customer navigation exposes Packages, My Journey, Help, Talk to Us and Profile without exposing staff routes.",
+    "OTP, reservation, payment and document-upload routes use a reduced-distraction transactional header and compact legal/support footer.",
+    "The approved full footer remains consistent across applicable public pages.",
+    "Breadcrumbs, back-navigation, active-page states and mobile navigation are consistent and keyboard accessible.",
+    "Every visible navigation control reaches its intended destination on desktop Chromium and mobile WebKit, or is recorded as BLOCKED_IDENTITY with an exact follow-up step.",
+    "The approved Landing and Package Details visual identity is preserved; this slice does not redesign page-specific content.",
+    "Customer, booking, traveller, payment, document, visa and cancellation domain behavior remains unchanged.",
+    "Foreign-account resources continue to return safe not-found behavior without resource-existence leakage.",
+    "Changed routes meet WCAG 2.2 AA expectations for keyboard, focus, target size, landmarks, text scaling, reflow and reduced motion.",
+    "No horizontal overflow, clipped navigation or inaccessible menu state occurs at supported mobile widths.",
+    "Rendered regression and navigation evidence belongs to the exact unchanged implementation SHA.",
+    "Product Owner approval is required before merge; production deployment remains separately approved."
+  ],
+  "policyDecisionsRequired": [
+    "No new commercial, religious, financial or identity policy may be invented in this slice.",
+    "Existing approved pre-login and post-login navigation labels from improvement.md are authoritative.",
+    "Identity-dependent return-to tests remain BLOCKED_IDENTITY until Auth0 and real customer identities are configured."
+  ],
+  "exclusions": [
+    "Staff portal shell adoption or operator sidebar redesign.",
+    "Customer OTP provider implementation or authentication-policy changes.",
+    "Booking-flow, occupancy, pricing, payment milestone or payment-provider changes.",
+    "Package builder, package publication or departure-management changes.",
+    "My Journey feature expansion, new downloads or new support-provider integrations.",
+    "API, database, migration, authorization-rule or domain-state changes unless a minimal presentation adapter is strictly required.",
+    "Real production deployment."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "component",
+    "migration",
+    "security",
+    "authorization",
+    "privacy",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "keyboard",
+    "focus",
+    "target-size",
+    "responsive-reflow",
+    "text-scaling",
+    "reduced-motion",
+    "rendered-regression",
+    "design-token-consistency",
+    "terminology-consistency",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "e2e/customer-shell-navigation.spec.ts"
+  },
+  "specPath": "docs/slices/VS-19-CUSTOMER-SHELL-NAVIGATION.md",
+  "checklistPath": "docs/slices/VS-19-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-19-NAVIGATION-VERIFICATION.md"
+}

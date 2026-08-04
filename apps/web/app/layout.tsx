@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "@noorpath/design-tokens/tokens.css";
+import CustomerRouteShell from "./CustomerRouteShell";
 import FamilyQuoteBridge from "./FamilyQuoteBridge";
 import "./styles.css";
 import "./design-system.css";
@@ -8,6 +9,7 @@ import "./primitives.css";
 import "./interaction-primitives.css";
 import "./shells.css";
 import "./shell-slots.css";
+import "./customer-route-shell.css";
 import "./composer.css";
 import "./commercial.css";
 import "./payment-plan.css";
@@ -39,7 +41,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <FamilyQuoteBridge />
-        {children}
+        <CustomerRouteShell>{children}</CustomerRouteShell>
       </body>
     </html>
   );
