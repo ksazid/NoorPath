@@ -5,7 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
-export type CustomerRouteMode = "public" | "authenticated" | "transactional";
+export type CustomerRouteMode =
+  | "public"
+  | "authenticated"
+  | "transactional";
 
 type NavigationItem = {
   href: string;
@@ -17,12 +20,12 @@ const publicNavigation: NavigationItem[] = [
   {
     href: "/#packages",
     label: "Packages",
-    match: (pathname) => pathname === "/" || pathname.startsWith("/packages/"),
+    match: (pathname) => pathname.startsWith("/packages/"),
   },
   {
     href: "/#plan-ahead",
     label: "How It Works",
-    match: (pathname) => pathname === "/",
+    match: () => false,
   },
   {
     href: "/support",
@@ -43,7 +46,7 @@ const authenticatedNavigation: NavigationItem[] = [
   {
     href: "/#packages",
     label: "Packages",
-    match: (pathname) => pathname === "/" || pathname.startsWith("/packages/"),
+    match: (pathname) => pathname.startsWith("/packages/"),
   },
   {
     href: "/journeys",
@@ -99,7 +102,9 @@ const footerGroups = [
   },
 ] as const;
 
-export function classifyCustomerRoute(pathname: string): CustomerRouteMode | null {
+export function classifyCustomerRoute(
+  pathname: string,
+): CustomerRouteMode | null {
   if (
     pathname.startsWith("/operator") ||
     pathname.startsWith("/admin") ||
@@ -142,7 +147,11 @@ export function classifyCustomerRoute(pathname: string): CustomerRouteMode | nul
 
 function Brand() {
   return (
-    <Link className="np-brand np-route-brand" href="/" aria-label="NoorPath home">
+    <Link
+      className="np-brand np-route-brand"
+      href="/"
+      aria-label="NoorPath home"
+    >
       <Image
         src="/assets/noorpath-wordmark.svg"
         alt="NoorPath"
@@ -176,7 +185,13 @@ function Navigation({
   );
 }
 
-function Header({ mode, pathname }: { mode: CustomerRouteMode; pathname: string }) {
+function Header({
+  mode,
+  pathname,
+}: {
+  mode: CustomerRouteMode;
+  pathname: string;
+}) {
   const navigation =
     mode === "authenticated" ? authenticatedNavigation : publicNavigation;
 
@@ -213,8 +228,13 @@ function FullFooter() {
         <p>A calm, transparent path for your Umrah journey.</p>
       </div>
       {footerGroups.map((group) => (
-        <section key={group.title} aria-labelledby={`route-footer-${group.title.toLowerCase()}`}>
-          <h2 id={`route-footer-${group.title.toLowerCase()}`}>{group.title}</h2>
+        <section
+          key={group.title}
+          aria-labelledby={`route-footer-${group.title.toLowerCase()}`}
+        >
+          <h2 id={`route-footer-${group.title.toLowerCase()}`}>
+            {group.title}
+          </h2>
           <nav aria-label={`${group.title} links`}>
             {group.links.map((link) => (
               <Link href={link.href} key={`${link.href}-${link.label}`}>
@@ -241,7 +261,11 @@ function CompactFooter() {
   );
 }
 
-export default function CustomerRouteShell({ children }: { children: ReactNode }) {
+export default function CustomerRouteShell({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const pathname = usePathname();
   const mode = classifyCustomerRoute(pathname);
 
