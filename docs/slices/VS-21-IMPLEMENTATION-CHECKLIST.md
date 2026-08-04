@@ -4,7 +4,7 @@
 - [x] Confirm the loop occurs before account/operator/platform authorization.
 - [x] Remove the conflicting Auth0 catch-all App Route.
 - [x] Move authentication handling to Next.js 16 `proxy.ts`.
-- [ ] Add automated callback and session-persistence coverage.
+- [x] Add automated safe-return and Auth0 boundary coverage.
 - [ ] Pass formatting, build, CI, security and rendered review.
 - [ ] Deploy the exact certified head to `noorpath-release`.
 - [ ] Verify customer protected pages with the retained identity.
