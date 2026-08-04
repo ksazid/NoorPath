@@ -15,7 +15,10 @@ test("protected customer entry preserves a safe account return destination", asy
   );
   await expect(
     page.getByRole("link", { name: "Continue with Google" }),
-  ).toHaveAttribute("href", /returnTo=%2Faccount/);
+  ).toHaveAttribute(
+    "href",
+    "/api/auth/sign-in?method=google&returnUrl=%2Faccount",
+  );
 
   await expectNoA11yViolations(page);
   await expectMinimumTargets(page);
@@ -31,5 +34,8 @@ test("operator and platform deep links remain relative and do not become open re
 
   await expect(
     page.getByRole("link", { name: "Continue with Google" }),
-  ).toHaveAttribute("href", /returnTo=%2Faccount/);
+  ).toHaveAttribute(
+    "href",
+    "/api/auth/sign-in?method=google&returnUrl=%2Faccount",
+  );
 });
