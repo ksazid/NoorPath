@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const manifestDir = join(root, "delivery", "slices");
 const navigationGate = "navigation-reachability";
+const firstRequiredSliceNumber = 16;
 const outcomePattern =
   /\|\s*(PENDING|VERIFIED|BLOCKED_IDENTITY|NOT_APPLICABLE|FAILED)\s*\|/gi;
 
@@ -25,8 +26,17 @@ function manifests() {
     }));
 }
 
+function sliceNumber(manifest) {
+  const match = /^VS-(\d+)$/i.exec(String(manifest.id ?? ""));
+  return match ? Number.parseInt(match[1], 10) : null;
+}
+
 function requiresNavigation(manifest) {
-  return (manifest.qualityGates ?? []).includes(navigationGate);
+  const number = sliceNumber(manifest);
+  return (
+    (number !== null && number >= firstRequiredSliceNumber) ||
+    (manifest.qualityGates ?? []).includes(navigationGate)
+  );
 }
 
 function findManifest(branch, optional) {
@@ -52,6 +62,12 @@ function validateRegistrations() {
 
   for (const { value } of manifests()) {
     if (!requiresNavigation(value)) continue;
+
+    if (!(value.qualityGates ?? []).includes(navigationGate)) {
+      errors.push(
+        `${value.id}: qualityGates must include ${navigationGate} for VS-${String(firstRequiredSliceNumber).padStart(2, "0")} and later`,
+      );
+    }
 
     if (
       typeof value.navigationPath !== "string" ||
@@ -93,7 +109,7 @@ function verifyMatrix(manifest) {
 
   if (!requiresNavigation(manifest)) {
     console.log(
-      `${manifest.id} does not declare ${navigationGate}; navigation certification is not applicable.`,
+      `${manifest.id} predates mandatory ${navigationGate} verification.`,
     );
     return;
   }
