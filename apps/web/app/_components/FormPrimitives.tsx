@@ -1,16 +1,15 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { InputHTMLAttributes } from "react";
 import { NoorPathIcon, type NoorPathIconName } from "./NoorPathIcon";
 
-export function Field({
-  children,
+export function TextField({
   description,
   error,
   id,
   label,
   optional = false,
-}: {
-  children: ReactNode;
+  ...inputProps
+}: Omit<InputHTMLAttributes<HTMLInputElement>, "id"> & {
   description?: string;
   error?: string;
   id: string;
@@ -19,6 +18,7 @@ export function Field({
 }) {
   const descriptionId = description ? `${id}-description` : undefined;
   const errorId = error ? `${id}-error` : undefined;
+  const describedBy = [descriptionId, errorId].filter(Boolean).join(" ") || undefined;
 
   return (
     <div className={`np-field${error ? " np-field--error" : ""}`}>
@@ -26,7 +26,12 @@ export function Field({
         <span>{label}</span>
         {optional ? <small>Optional</small> : null}
       </label>
-      {children}
+      <input
+        aria-describedby={describedBy}
+        aria-invalid={error ? true : undefined}
+        id={id}
+        {...inputProps}
+      />
       {description ? (
         <p className="np-field__description" id={descriptionId}>
           {description}
