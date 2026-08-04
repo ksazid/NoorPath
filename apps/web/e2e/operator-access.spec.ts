@@ -48,14 +48,62 @@ for (const state of states) {
         body: JSON.stringify(state.body),
       }),
     );
+    await page.route("**/api/v1/operator/catalogue", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          items: [
+            {
+              departureId: "departure-1",
+              packageTemplateId: "package-1",
+              packageName: "Noor Umrah",
+              origin: "Delhi, IN",
+              status: "published",
+            },
+          ],
+        }),
+      }),
+    );
+    await page.route("**/api/v1/operator/visa", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          items: [
+            {
+              caseId: "case-1",
+              bookingId: "booking-1",
+              travellerId: "traveller-1",
+              status: "NotStarted",
+            },
+          ],
+        }),
+      }),
+    );
+
     await page.goto("/operator");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       state.heading,
     );
-    if (state.name === "authorized")
+    if (state.name === "authorized") {
       await expect(
         page.getByText("Your secure workspace is ready"),
       ).toBeVisible();
+      await expect(page.getByRole("link", { name: "Packages", exact: true })).toHaveAttribute(
+        "href",
+        "/operator/packages",
+      );
+      await expect(page.getByRole("link", { name: "Departures", exact: true })).toHaveAttribute(
+        "href",
+        "/operator/departures",
+      );
+      await expect(page.getByRole("link", { name: "Account", exact: true })).toHaveAttribute(
+        "href",
+        "/operator/account",
+      );
+      await expect(page.getByText("1", { exact: true }).first()).toBeVisible();
+    }
     await expectNoA11yViolations(page);
     await expectMinimumTargets(page);
     await expectNoHorizontalOverflow(page);
