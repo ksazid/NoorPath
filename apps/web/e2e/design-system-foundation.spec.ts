@@ -14,7 +14,7 @@ test("design-system foundation renders shared contracts on desktop", async ({
     page.getByRole("heading", { name: "NoorPath component foundation" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Reserve Your Seats" }),
+    page.getByRole("button", { name: "Reserve Your Seats" }).first(),
   ).toBeVisible();
   await expect(page.getByText("Double Sharing")).toBeVisible();
   await expect(page.getByText("Triple Sharing")).toBeVisible();
@@ -25,9 +25,9 @@ test("design-system foundation renders shared contracts on desktop", async ({
   await expectMinimumTargets(page);
   await expectNoHorizontalOverflow(page);
 
-  const primaryAction = page.getByRole("button", {
-    name: "Reserve Your Seats",
-  });
+  const primaryAction = page
+    .getByRole("button", { name: "Reserve Your Seats" })
+    .first();
   await primaryAction.focus();
   await expect(primaryAction).toBeFocused();
   expect(
@@ -61,7 +61,7 @@ test("design-system foundation reflows on mobile with reduced motion", async ({
   });
   await expectNoHorizontalOverflow(page);
   await expect(
-    page.getByRole("button", { name: "Reserve Your Seats" }),
+    page.getByRole("button", { name: "Reserve Your Seats" }).first(),
   ).toBeVisible();
 
   await testInfo.attach("design-system-mobile-200-percent", {
