@@ -32,7 +32,6 @@
     "The Product Owner approves the exact implementation before merge; deployment remains separately approved."
   ],
   "policyDecisionsRequired": [
-    "Confirm Lucide as the single standard icon library unless repository inspection proves an existing approved equivalent.",
     "Confirm final customer pre-login and post-login header items.",
     "Confirm final staff sidebar grouping for Overview, Content, Operations and Administration.",
     "Confirm whether the design-system showcase is development-only or available to authorized staff in non-production environments.",
@@ -51,7 +50,13 @@
     "format",
     "static-analysis",
     "unit",
+    "integration",
+    "architecture",
     "component",
+    "migration",
+    "security",
+    "journey-linking",
+    "telemetry",
     "accessibility",
     "keyboard",
     "target-size",
