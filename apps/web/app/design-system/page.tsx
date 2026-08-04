@@ -13,6 +13,7 @@ import {
   SupportAction,
   TextField,
 } from "../_components/FormPrimitives";
+import { requireDesignSystemShowcase } from "./requireShowcase";
 
 export const metadata: Metadata = {
   title: "NoorPath Design System",
@@ -20,6 +21,8 @@ export const metadata: Metadata = {
 };
 
 export default function DesignSystemPage() {
+  requireDesignSystemShowcase();
+
   return (
     <main className="np-showcase" id="main-content">
       <header className="np-showcase__header">
