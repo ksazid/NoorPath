@@ -152,6 +152,9 @@ function Dashboard({ journey: j }: { journey: Journey }) {
           <p className="public-eyebrow">Confirmed · {j.bookingReference}</p>
           <h1>{j.journey.packageName}</h1>
           <p>{j.journey.travelRouteSummary}</p>
+          <Link className="journey-section-link" href="#cancellation">
+            Review cancellation options
+          </Link>
         </div>
         <span className="journey-confirmed">
           <Icon name="seal-check" /> Confirmed
@@ -266,7 +269,9 @@ function Dashboard({ journey: j }: { journey: Journey }) {
           </p>
         )}
       </section>
-      <CancellationPanel bookingId={j.bookingId} />
+      <div id="cancellation" tabIndex={-1}>
+        <CancellationPanel bookingId={j.bookingId} />
+      </div>
       <section className="journey-panel">
         <p className="public-eyebrow">Travel readiness</p>
         <h2>What happens next</h2>

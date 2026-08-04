@@ -35,6 +35,8 @@
     "Operator decisions require permission, operator scope, reason, expected version and an auditable actor/timestamp/outcome.",
     "The booking owner can see requested, under-review, approved, rejected, refund-pending, partially-refunded, refunded and failed/recovery-required states using customer-safe language.",
     "Operational exceptions are recoverable through explicit module-owned commands rather than direct state editing.",
+    "Every generated or changed page, section, breadcrumb, card, action target and redirect is reachable through its intended clickable navigation on desktop and mobile, or is explicitly recorded as BLOCKED_IDENTITY with the required identity and follow-up verification step.",
+    "Direct-route tests supplement but do not replace click-through navigation verification from My Journey, the Operator workspace and Operational Support.",
     "Logs and telemetry use opaque identifiers and exclude payment payloads, traveller data, document data, tokens and provider secrets.",
     "Loading, unavailable, ineligible, stale, duplicate, permission-denied, provider-delayed and recoverable-error states are complete and accessible.",
     "Customer and operator surfaces extend the approved NoorPath visual language and pass keyboard, focus, reflow, target-size, reduced-motion and WCAG checks."
@@ -75,6 +77,7 @@
     "accessibility",
     "rendered-regression",
     "journey-linking",
+    "navigation-reachability",
     "product-owner"
   ],
   "rendered": {
@@ -82,5 +85,6 @@
     "testFile": "e2e/cancellation-refunds.spec.ts"
   },
   "specPath": "docs/slices/VS-16-CANCELLATION-REFUNDS.md",
-  "checklistPath": "docs/slices/VS-16-IMPLEMENTATION-CHECKLIST.md"
+  "checklistPath": "docs/slices/VS-16-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-16-NAVIGATION-VERIFICATION.md"
 }

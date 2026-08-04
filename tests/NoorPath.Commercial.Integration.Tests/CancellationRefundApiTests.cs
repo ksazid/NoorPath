@@ -9,6 +9,8 @@ using NoorPath.Booking;
 using NoorPath.Booking.Infrastructure;
 using NoorPath.Inventory;
 using NoorPath.Inventory.Infrastructure;
+using NoorPath.Operators;
+using NoorPath.Operators.Infrastructure;
 using NoorPath.Payments;
 using NoorPath.Payments.Infrastructure;
 using Xunit;
@@ -66,6 +68,17 @@ public sealed class CancellationRefundApiTests
         var cancellationId = cancellation.GetProperty("id").GetGuid();
         Assert.Equal("UnderReview", cancellation.GetProperty("customerStatus").GetString());
         Assert.Equal("vs16-test-policy-v1", cancellation.GetProperty("policyVersion").GetString());
+
+        const string foreignOperatorIdentity = "vs16-foreign-operator";
+        await SeedForeignOperatorAsync(
+            app,
+            foreignOperatorIdentity,
+            TestContext.Current.CancellationToken);
+        using var foreignOperator = app.CreateIdentityClient(foreignOperatorIdentity);
+        var hiddenFromForeignOperator = await foreignOperator.GetAsync(
+            $"/api/v1/operator/cancellations/{cancellationId:D}",
+            TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.NotFound, hiddenFromForeignOperator.StatusCode);
 
         var replay = await RequestCancellationAsync(
             owner,
@@ -171,6 +184,44 @@ public sealed class CancellationRefundApiTests
             Assert.Equal("refund_execution_disabled", refund.FailureCode);
             Assert.Equal(0m, refund.RefundedAmount);
         }
+    }
+
+    private static async Task SeedForeignOperatorAsync(
+        BookingPaymentApi app,
+        string accountId,
+        CancellationToken cancellationToken)
+    {
+        using var scope = app.Services.CreateScope();
+        var operators = scope.ServiceProvider.GetRequiredService<OperatorsDbContext>();
+        var now = DateTimeOffset.UtcNow;
+        const string operatorId = "operator-vs16-foreign";
+        var membership = new OperatorMembershipRecord
+        {
+            Id = Guid.NewGuid(),
+            OperatorId = operatorId,
+            AccountId = accountId,
+            Status = MembershipStatus.Active,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now
+        };
+        operators.AddRange(
+            new OperatorRecord
+            {
+                Id = operatorId,
+                DisplayName = "Foreign VS-16 Operator",
+                State = OperatorState.Approved,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now
+            },
+            membership);
+        operators.MembershipPermissions.Add(
+            new OperatorMembershipPermissionRecord
+            {
+                Id = Guid.NewGuid(),
+                MembershipId = membership.Id,
+                Permission = OperatorPermissions.AdminAccess
+            });
+        await operators.SaveChangesAsync(cancellationToken);
     }
 
     private static void ConfigurePolicy(BookingPaymentApi app)

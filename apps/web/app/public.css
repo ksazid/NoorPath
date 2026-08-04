@@ -1415,7 +1415,10 @@
   }
 
   .package-breadcrumbs {
-    display: none;
+    display: flex;
+    width: calc(100% - 32px);
+    margin: 0 auto;
+    padding-top: 8px;
   }
 
   .package-overview {

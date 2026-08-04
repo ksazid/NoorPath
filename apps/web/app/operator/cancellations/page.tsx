@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { FormEvent, useCallback, useState } from "react";
 import { useDeferredInitialLoad } from "../../../lib/use-deferred-initial-load";
-import { Icon, PublicFooter, PublicHeader } from "../../public-ui";
+import { Icon } from "../../public-ui";
+import OperatorWorkspaceShell from "../OperatorWorkspaceShell";
 
 type Refund = {
   refundId: string;
@@ -225,210 +226,202 @@ export default function CancellationReviewPage() {
   }
 
   return (
-    <div className="journey-page">
-      <PublicHeader mode="detail" />
-      <main id="main-content" className="journey-main">
-        <nav className="package-breadcrumbs" aria-label="Breadcrumb">
-          <Link href="/operator">Operator</Link>
-          <span>/</span>
-          <span aria-current="page">Cancellation review</span>
-        </nav>
-        <p className="public-eyebrow">Governed financial operations</p>
-        <h1>Cancellation &amp; refund review</h1>
-        <p className="journey-intro">
-          Review the immutable policy calculation, approve or reject the whole
-          booking request, and execute only the system-authorized refund.
-        </p>
+    <OperatorWorkspaceShell
+      title="Cancellation & refund review"
+      summary="Review immutable policy calculations, decide whole-booking requests, and execute only system-authorized refunds."
+    >
+      <nav className="package-breadcrumbs" aria-label="Breadcrumb">
+        <Link href="/operator">Operator</Link>
+        <span>/</span>
+        <span aria-current="page">Cancellation review</span>
+      </nav>
+      <p className="public-eyebrow">Governed financial operations</p>
 
-        <form
-          className="journey-panel"
-          onSubmit={(event) => void applyFilter(event)}
-        >
-          <label>
-            Cancellation state
-            <select
-              value={filter}
-              onChange={(event) => setFilter(event.target.value)}
-            >
-              <option value="">All states</option>
-              <option value="Requested">Requested</option>
-              <option value="Applied">Applied</option>
-              <option value="Rejected">Rejected</option>
-              <option value="Exception">Recovery required</option>
-            </select>
-          </label>
-          <button type="submit">Apply filter</button>
-        </form>
-
-        <div aria-live="polite">
-          {feedback ? <p role="alert">{feedback}</p> : null}
-          {state.kind === "loading" ? <p>Loading cancellation cases…</p> : null}
-          {state.kind === "denied" ? (
-            <p>You do not have cancellation review permission.</p>
-          ) : null}
-          {state.kind === "error" ? (
-            <section className="journey-state">
-              <h2>Cancellation queue temporarily unavailable</h2>
-              <button type="button" onClick={() => void load(filter)}>
-                Retry
-              </button>
-            </section>
-          ) : null}
-        </div>
-
-        {state.kind === "ready" && state.items.length === 0 ? (
-          <section className="journey-state">
-            <h2>No matching cancellation cases</h2>
-            <p>The operator-scoped queue is clear for this filter.</p>
-          </section>
-        ) : null}
-
-        {state.kind === "ready" ? (
-          <div className="documents-list" aria-label="Cancellation cases">
-            {state.items.map((item) => (
-              <article className="documents-card" key={item.cancellationId}>
-                <p className="public-eyebrow">{item.customerStatus}</p>
-                <h2>Cancellation request</h2>
-                <p>
-                  Requested{" "}
-                  {new Date(item.requestedAtUtc).toLocaleString("en-IN")}
-                </p>
-                <p>
-                  Maximum authorized entitlement:{" "}
-                  <strong>{money(item.currency, item.refundableAmount)}</strong>
-                </p>
-                <p>
-                  Policy {item.policyVersion} · Version {item.version}
-                </p>
-                {item.failureCode ? (
-                  <p>Recovery code: {item.failureCode}</p>
-                ) : null}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFeedback("");
-                    void openCase(item.cancellationId);
-                  }}
-                >
-                  Review case
-                </button>
-              </article>
-            ))}
-          </div>
-        ) : null}
-
-        {detail ? (
-          <section
-            className="journey-panel"
-            aria-labelledby="cancellation-case-title"
+      <form
+        className="journey-panel"
+        onSubmit={(event) => void applyFilter(event)}
+      >
+        <label>
+          Cancellation state
+          <select
+            value={filter}
+            onChange={(event) => setFilter(event.target.value)}
           >
-            <p className="public-eyebrow">Booking {detail.booking.reference}</p>
-            <h2 id="cancellation-case-title">
-              {detail.cancellation.customerStatus}
-            </h2>
-            <p>
-              Customer reason: {humanize(detail.cancellation.reasonCategory)}
-            </p>
+            <option value="">All states</option>
+            <option value="Requested">Requested</option>
+            <option value="Applied">Applied</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Exception">Recovery required</option>
+          </select>
+        </label>
+        <button type="submit">Apply filter</button>
+      </form>
 
-            <dl className="journey-money">
-              <div>
-                <dt>Settled payments</dt>
-                <dd>
-                  {money(
-                    detail.calculation.currency,
-                    detail.calculation.settledAmount,
-                  )}
-                </dd>
-              </div>
-              <div>
-                <dt>Policy deductions</dt>
-                <dd>
-                  {money(
-                    detail.calculation.currency,
-                    detail.calculation.percentageFee +
-                      detail.calculation.nonRefundableAmount,
-                  )}
-                </dd>
-              </div>
-              <div>
-                <dt>Authorized refund</dt>
-                <dd>
-                  {money(
-                    detail.calculation.currency,
-                    detail.calculation.refundableAmount,
-                  )}
-                </dd>
-              </div>
-            </dl>
-            <p>
-              Policy {detail.calculation.policyVersion} ·{" "}
-              {detail.calculation.daysBeforeDeparture} days before departure ·{" "}
-              {detail.calculation.policyTimeZoneId}
-            </p>
-            <p className="document-help">
-              <Icon name="shield-check" /> Amounts are read-only and derived
-              from authoritative settled-payment facts. Operators cannot enter a
-              replacement refund value.
-            </p>
-
-            {detail.refund ? (
-              <p>
-                Refund: {detail.refund.state} ·{" "}
-                {money(detail.refund.currency, detail.refund.refundedAmount)} of{" "}
-                {money(detail.refund.currency, detail.refund.entitledAmount)}{" "}
-                recorded
-              </p>
-            ) : null}
-
-            {detail.allowedActions.length ? (
-              <div className="support-actions">
-                <label>
-                  Decision or recovery reason
-                  <textarea
-                    value={reason}
-                    onChange={(event) => setReason(event.target.value)}
-                    minLength={5}
-                    maxLength={500}
-                    rows={4}
-                    required
-                  />
-                </label>
-                <div className="document-row" aria-label="Governed actions">
-                  {detail.allowedActions.map((action) => (
-                    <button
-                      type="button"
-                      key={action.code}
-                      disabled={working}
-                      onClick={() => void runAction(action)}
-                    >
-                      {working ? "Working…" : action.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <p>No operator action is currently available for this case.</p>
-            )}
-
-            <h3>Audit history</h3>
-            <ol className="journey-instalments">
-              {detail.audit.map((entry, index) => (
-                <li key={`${entry.occurredAtUtc}-${index}`}>
-                  <span>
-                    {humanize(entry.action)}
-                    <small>{entry.reason || "System transition"}</small>
-                  </span>
-                  <time dateTime={entry.occurredAtUtc}>
-                    {new Date(entry.occurredAtUtc).toLocaleString("en-IN")}
-                  </time>
-                </li>
-              ))}
-            </ol>
+      <div aria-live="polite">
+        {feedback ? <p role="alert">{feedback}</p> : null}
+        {state.kind === "loading" ? <p>Loading cancellation cases…</p> : null}
+        {state.kind === "denied" ? (
+          <p>You do not have cancellation review permission.</p>
+        ) : null}
+        {state.kind === "error" ? (
+          <section className="journey-state">
+            <h2>Cancellation queue temporarily unavailable</h2>
+            <button type="button" onClick={() => void load(filter)}>
+              Retry
+            </button>
           </section>
         ) : null}
-      </main>
-      <PublicFooter />
-    </div>
+      </div>
+
+      {state.kind === "ready" && state.items.length === 0 ? (
+        <section className="journey-state">
+          <h2>No matching cancellation cases</h2>
+          <p>The operator-scoped queue is clear for this filter.</p>
+        </section>
+      ) : null}
+
+      {state.kind === "ready" ? (
+        <div className="documents-list" aria-label="Cancellation cases">
+          {state.items.map((item) => (
+            <article className="documents-card" key={item.cancellationId}>
+              <p className="public-eyebrow">{item.customerStatus}</p>
+              <h2>Cancellation request</h2>
+              <p>
+                Requested{" "}
+                {new Date(item.requestedAtUtc).toLocaleString("en-IN")}
+              </p>
+              <p>
+                Maximum authorized entitlement:{" "}
+                <strong>{money(item.currency, item.refundableAmount)}</strong>
+              </p>
+              <p>
+                Policy {item.policyVersion} · Version {item.version}
+              </p>
+              {item.failureCode ? (
+                <p>Recovery code: {item.failureCode}</p>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => {
+                  setFeedback("");
+                  void openCase(item.cancellationId);
+                }}
+              >
+                Review case
+              </button>
+            </article>
+          ))}
+        </div>
+      ) : null}
+
+      {detail ? (
+        <section
+          className="journey-panel"
+          aria-labelledby="cancellation-case-title"
+        >
+          <p className="public-eyebrow">Booking {detail.booking.reference}</p>
+          <h2 id="cancellation-case-title">
+            {detail.cancellation.customerStatus}
+          </h2>
+          <p>Customer reason: {humanize(detail.cancellation.reasonCategory)}</p>
+
+          <dl className="journey-money">
+            <div>
+              <dt>Settled payments</dt>
+              <dd>
+                {money(
+                  detail.calculation.currency,
+                  detail.calculation.settledAmount,
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt>Policy deductions</dt>
+              <dd>
+                {money(
+                  detail.calculation.currency,
+                  detail.calculation.percentageFee +
+                    detail.calculation.nonRefundableAmount,
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt>Authorized refund</dt>
+              <dd>
+                {money(
+                  detail.calculation.currency,
+                  detail.calculation.refundableAmount,
+                )}
+              </dd>
+            </div>
+          </dl>
+          <p>
+            Policy {detail.calculation.policyVersion} ·{" "}
+            {detail.calculation.daysBeforeDeparture} days before departure ·{" "}
+            {detail.calculation.policyTimeZoneId}
+          </p>
+          <p className="document-help">
+            <Icon name="shield-check" /> Amounts are read-only and derived from
+            authoritative settled-payment facts. Operators cannot enter a
+            replacement refund value.
+          </p>
+
+          {detail.refund ? (
+            <p>
+              Refund: {detail.refund.state} ·{" "}
+              {money(detail.refund.currency, detail.refund.refundedAmount)} of{" "}
+              {money(detail.refund.currency, detail.refund.entitledAmount)}{" "}
+              recorded
+            </p>
+          ) : null}
+
+          {detail.allowedActions.length ? (
+            <div className="support-actions">
+              <label>
+                Decision or recovery reason
+                <textarea
+                  value={reason}
+                  onChange={(event) => setReason(event.target.value)}
+                  minLength={5}
+                  maxLength={500}
+                  rows={4}
+                  required
+                />
+              </label>
+              <div className="document-row" aria-label="Governed actions">
+                {detail.allowedActions.map((action) => (
+                  <button
+                    type="button"
+                    key={action.code}
+                    disabled={working}
+                    onClick={() => void runAction(action)}
+                  >
+                    {working ? "Working…" : action.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p>No operator action is currently available for this case.</p>
+          )}
+
+          <h3>Audit history</h3>
+          <ol className="journey-instalments">
+            {detail.audit.map((entry, index) => (
+              <li key={`${entry.occurredAtUtc}-${index}`}>
+                <span>
+                  {humanize(entry.action)}
+                  <small>{entry.reason || "System transition"}</small>
+                </span>
+                <time dateTime={entry.occurredAtUtc}>
+                  {new Date(entry.occurredAtUtc).toLocaleString("en-IN")}
+                </time>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
+    </OperatorWorkspaceShell>
   );
 }
 

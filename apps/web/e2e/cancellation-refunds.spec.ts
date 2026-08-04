@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import {
   expectMinimumTargets,
   expectNoA11yViolations,
@@ -26,7 +26,16 @@ const journey = {
     madinahNights: 5,
     travelRouteSummary: "Delhi to Jeddah · Madinah to Delhi",
   },
-  travellers: [{ fullName: "Amina Khan" }, { fullName: "Omar Khan" }],
+  travellers: [
+    {
+      travellerId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      fullName: "Amina Khan",
+    },
+    {
+      travellerId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      fullName: "Omar Khan",
+    },
+  ],
   commercial: {
     currency: "INR",
     total: 220000,
@@ -39,6 +48,15 @@ const journey = {
     bookingReference: "NP-20260803-CANCEL",
     correlationId: "safe-cancellation-correlation",
   },
+};
+
+const journeyListItem = {
+  bookingId,
+  bookingReference: journey.bookingReference,
+  travellerCount: journey.travellers.length,
+  currency: journey.commercial.currency,
+  total: journey.commercial.total,
+  confirmedAtUtc: journey.confirmedAtUtc,
 };
 
 const estimate = {
@@ -169,15 +187,70 @@ const caseDetail = {
   ],
 };
 
-test("customer reviews a server-calculated entitlement and submits mandatory review", async ({
-  page,
-}) => {
+async function mockJourneyDetails(page: Page) {
   await page.route(`**/api/v1/journeys/${bookingId}`, (route) =>
     route.fulfill({ json: journey }),
   );
   await page.route(`**/api/v1/bookings/${bookingId}/cancellation`, (route) =>
     route.fulfill({ json: estimate }),
   );
+}
+
+async function mockOperatorOverview(page: Page) {
+  await page.route(/\/api\/v1\/operator\/access$/, (route) =>
+    route.fulfill({
+      json: {
+        accountId: "operator-navigation-test",
+        operator: {
+          id: "operator-vs16",
+          displayName: "NoorPath VS-16 Operator",
+        },
+        permissions: ["operator.admin.access", "operator.support.manage"],
+      },
+    }),
+  );
+  await page.route(/\/api\/v1\/operator\/catalogue$/, (route) =>
+    route.fulfill({ json: { items: [] } }),
+  );
+  await page.route(/\/api\/v1\/operator\/visa$/, (route) =>
+    route.fulfill({ json: { items: [] } }),
+  );
+}
+
+test("customer reaches cancellation through My Journey and the in-page section link", async ({
+  page,
+}) => {
+  await page.route(/\/api\/v1\/journeys$/, (route) =>
+    route.fulfill({ json: { items: [journeyListItem] } }),
+  );
+  await mockJourneyDetails(page);
+
+  await page.goto("/journeys");
+  await page.getByRole("link", { name: /View journey/ }).click();
+  await expect(page).toHaveURL(new RegExp(`/bookings/${bookingId}/journey$`));
+
+  const cancellationLink = page.getByRole("link", {
+    name: "Review cancellation options",
+  });
+  await expect(cancellationLink).toHaveAttribute("href", "#cancellation");
+  await cancellationLink.click();
+  await expect(page).toHaveURL(/#cancellation$/);
+  await expect(page.locator("#cancellation")).toBeInViewport();
+  await expect(
+    page.getByRole("heading", { name: "Review before requesting" }),
+  ).toBeVisible();
+
+  await page
+    .getByRole("navigation", { name: "Breadcrumb" })
+    .getByRole("link", { name: "My Journey" })
+    .click();
+  await expect(page).toHaveURL(/\/journeys$/);
+});
+
+test("customer reviews a server-calculated entitlement and submits mandatory review", async ({
+  page,
+}) => {
+  await mockJourneyDetails(page);
   await page.route(
     `**/api/v1/bookings/${bookingId}/cancellation-requests`,
     (route) => route.fulfill({ status: 201, json: requested }),
@@ -210,9 +283,81 @@ test("customer reviews a server-calculated entitlement and submits mandatory rev
   await expectNoA11yViolations(page);
 });
 
+test("operator reaches cancellation review from overview and sees the sidebar link", async ({
+  page,
+}) => {
+  await mockOperatorOverview(page);
+  await page.route("**/api/v1/operator/cancellations?*", (route) =>
+    route.fulfill({ json: { items: [queueItem] } }),
+  );
+
+  await page.goto("/operator");
+  const sidebarLink = page
+    .getByRole("complementary", { name: "Operator navigation" })
+    .getByRole("link", { name: "Cancellations" });
+  await expect(sidebarLink).toHaveAttribute("href", "/operator/cancellations");
+
+  await page.getByRole("link", { name: /Cancellations & refunds/ }).click();
+  await expect(page).toHaveURL(/\/operator\/cancellations$/);
+  await expect(
+    page.getByRole("heading", { name: "Cancellation & refund review" }),
+  ).toBeVisible();
+
+  await page
+    .getByRole("navigation", { name: "Breadcrumb" })
+    .getByRole("link", { name: "Operator" })
+    .click();
+  await expect(page).toHaveURL(/\/operator$/);
+
+  await sidebarLink.click();
+  await expect(page).toHaveURL(/\/operator\/cancellations$/);
+  await expect(
+    page.getByRole("heading", { name: "Cancellation & refund review" }),
+  ).toBeVisible();
+});
+
+test("Operational Support exposes a working cancellation review link", async ({
+  page,
+}) => {
+  await mockOperatorOverview(page);
+  await page.route("**/api/v1/operator/support?*", (route) =>
+    route.fulfill({
+      json: {
+        items: [
+          {
+            bookingId,
+            bookingReference: journey.bookingReference,
+            category: "cancellation",
+            title: "Cancellation needs recovery",
+            code: "inventory_release_failed",
+            updatedAtUtc: "2026-08-03T19:00:00Z",
+            actionLabel: "Open cancellation review",
+            actionTarget: "/operator/cancellations",
+          },
+        ],
+      },
+    }),
+  );
+  await page.route("**/api/v1/operator/cancellations?*", (route) =>
+    route.fulfill({ json: { items: [queueItem] } }),
+  );
+
+  await page.goto("/operator/support");
+  const action = page.getByRole("link", {
+    name: "Open cancellation review",
+  });
+  await expect(action).toHaveAttribute("href", "/operator/cancellations");
+  await action.click();
+  await expect(page).toHaveURL(/\/operator\/cancellations$/);
+  await expect(
+    page.getByRole("heading", { name: "Cancellation & refund review" }),
+  ).toBeVisible();
+});
+
 test("operator receives recoverable stale-version feedback without editing the amount", async ({
   page,
 }) => {
+  await mockOperatorOverview(page);
   let detailReads = 0;
   await page.route("**/api/v1/operator/cancellations?*", (route) =>
     route.fulfill({ json: { items: [queueItem] } }),
@@ -271,6 +416,7 @@ test("operator receives recoverable stale-version feedback without editing the a
 test("authorized refund remains safe when provider execution is disabled", async ({
   page,
 }) => {
+  await mockOperatorOverview(page);
   const authorized = {
     ...caseDetail,
     booking: { ...caseDetail.booking, state: "Cancelled" },
@@ -323,4 +469,35 @@ test("authorized refund remains safe when provider execution is disabled", async
       .filter({ hasText: "production execution is not enabled" }),
   ).toBeVisible();
   await expect(page.getByText(/₹0 of ₹49,000 recorded/)).toBeVisible();
+});
+
+test("Platform Administrator opening cancellation review is guided to admin", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/operator/access", (route) =>
+    route.fulfill({
+      status: 403,
+      contentType: "application/json",
+      body: JSON.stringify({ code: "forbidden" }),
+    }),
+  );
+  await page.route("**/api/v1/platform/access", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ accountId: "platform-administrator" }),
+    }),
+  );
+
+  await page.goto("/operator/cancellations");
+
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Use NoorPath administration",
+  );
+  await expect(
+    page.getByRole("link", { name: "Open admin workspace" }),
+  ).toHaveAttribute("href", "/admin");
+  await expectNoA11yViolations(page);
+  await expectMinimumTargets(page);
+  await expectNoHorizontalOverflow(page);
 });

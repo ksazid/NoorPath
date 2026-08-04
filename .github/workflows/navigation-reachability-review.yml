@@ -1,0 +1,85 @@
+name: Navigation Reachability Review
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  navigation-review:
+    name: Navigation reachability review
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'certify')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: noorpath_navigation_test
+          POSTGRES_USER: noorpath
+          POSTGRES_PASSWORD: ci-local-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U noorpath -d noorpath_navigation_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      ASPNETCORE_ENVIRONMENT: Test
+      Authentication__Mode: Test
+      ConnectionStrings__NoorPath: Host=127.0.0.1;Port=5432;Database=noorpath_navigation_test;Username=noorpath;Password=ci-local-only-password
+      Database__MigrateOnStartup: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve slice navigation contract
+        id: slice
+        run: node scripts/slice.mjs resolve --branch "${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}" --optional --github-output
+      - name: Record non-slice change
+        if: steps.slice.outputs.slice_id == 'NONE'
+        run: echo "No slice navigation contract is declared for this branch."
+      - name: Verify completed navigation matrix
+        if: steps.slice.outputs.slice_id != 'NONE'
+        run: >-
+          node scripts/navigation-verification.mjs verify
+          --branch "${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+      - uses: actions/setup-node@v4
+        if: steps.slice.outputs.enabled == 'true'
+        with:
+          node-version-file: .node-version
+      - uses: actions/setup-dotnet@v5
+        if: steps.slice.outputs.enabled == 'true'
+        with:
+          global-json-file: global.json
+      - run: corepack enable
+        if: steps.slice.outputs.enabled == 'true'
+      - run: pnpm install --frozen-lockfile
+        if: steps.slice.outputs.enabled == 'true'
+      - name: Install desktop and mobile browser engines
+        if: steps.slice.outputs.enabled == 'true'
+        run: pnpm --dir apps/web exec playwright install --with-deps chromium webkit
+      - name: Run slice click-through navigation acceptance
+        if: steps.slice.outputs.enabled == 'true'
+        run: >-
+          pnpm --dir apps/web exec playwright test
+          "${{ steps.slice.outputs.test_file }}"
+          --project=desktop-chromium
+          --project=mobile-390
+      - name: Upload navigation evidence
+        if: always() && steps.slice.outputs.enabled == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.slice.outputs.slice_id }}-navigation-reachability
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            apps/web/test-results
+            apps/web/playwright-report
