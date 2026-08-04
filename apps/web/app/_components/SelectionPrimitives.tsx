@@ -5,9 +5,14 @@ import type {
 } from "react";
 
 function describedBy(id: string, description?: string, error?: string) {
-  return [description ? `${id}-description` : null, error ? `${id}-error` : null]
-    .filter(Boolean)
-    .join(" ") || undefined;
+  return (
+    [
+      description ? `${id}-description` : null,
+      error ? `${id}-error` : null,
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined
+  );
 }
 
 export function SelectField({
