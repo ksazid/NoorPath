@@ -6,6 +6,7 @@ import {
   StatusBadge,
 } from "../_components/DesignSystem";
 import { NoorPathIcon } from "../_components/NoorPathIcon";
+import { CustomerShell, StaffShell } from "../_components/Shells";
 
 describe("VS-18 design-system foundation", () => {
   it("keeps the approved Package Details section order fixed", () => {
@@ -29,10 +30,12 @@ describe("VS-18 design-system foundation", () => {
     ]);
   });
 
-  it("exports the shared component and icon primitives", () => {
+  it("exports the shared component, icon and shell primitives", () => {
     expect(ActionButton).toBeTypeOf("function");
     expect(StatusBadge).toBeTypeOf("function");
     expect(OccupancyAvatarGroup).toBeTypeOf("function");
     expect(NoorPathIcon).toBeTypeOf("function");
+    expect(CustomerShell).toBeTypeOf("function");
+    expect(StaffShell).toBeTypeOf("function");
   });
 });
