@@ -40,7 +40,9 @@ public static class OperationalSupportEndpoints
         var principal = http.User.GetCurrentPrincipal();
         return principal is null
             ? null
-            : await operatorAccess.FindActiveMembershipAsync(principal.AccountId, cancellationToken);
+            : await operatorAccess.FindActiveMembershipAsync(
+                principal.AccountId,
+                cancellationToken);
     }
 
     private static async Task<IResult> Queue(
@@ -84,6 +86,15 @@ public static class OperationalSupportEndpoints
             .Where(item => bookingIds.Contains(item.BookingId))
             .OrderByDescending(item => item.CreatedAtUtc)
             .ToArrayAsync(cancellationToken);
+        var cancellationRows = await bookings.CancellationRequests.AsNoTracking()
+            .Where(item => bookingIds.Contains(item.BookingId))
+            .OrderByDescending(item => item.RequestedAtUtc)
+            .ToArrayAsync(cancellationToken);
+        var cancellationIds = cancellationRows.Select(item => item.Id).ToArray();
+        var refundRows = await payments.Refunds.AsNoTracking()
+            .Where(item => cancellationIds.Contains(item.CancellationRequestId))
+            .OrderByDescending(item => item.CreatedAtUtc)
+            .ToArrayAsync(cancellationToken);
         var requirements = await documents.Requirements.AsNoTracking()
             .Where(item => bookingIds.Contains(item.BookingId))
             .ToArrayAsync(cancellationToken);
@@ -100,31 +111,141 @@ public static class OperationalSupportEndpoints
         foreach (var booking in bookingRows)
         {
             if (booking.State == BookingState.ConfirmationException)
-                items.Add(new(booking.Id, booking.Reference, "confirmation", "Confirmation needs recovery", booking.ConfirmationExceptionCode ?? "confirmation_exception", booking.UpdatedAtUtc, "Retry confirmation", $"/api/v1/operator/bookings/{booking.Id:D}/confirmation/retry"));
+            {
+                items.Add(new(
+                    booking.Id,
+                    booking.Reference,
+                    "confirmation",
+                    "Confirmation needs recovery",
+                    booking.ConfirmationExceptionCode ?? "confirmation_exception",
+                    booking.UpdatedAtUtc,
+                    "Retry confirmation",
+                    $"/api/v1/operator/bookings/{booking.Id:D}/confirmation/retry"));
+            }
 
             var latestPayment = paymentRows.FirstOrDefault(item => item.BookingId == booking.Id);
             if (latestPayment?.State is PaymentAttemptState.Failed or PaymentAttemptState.RequiresAction)
-                items.Add(new(booking.Id, booking.Reference, "payment", latestPayment.State == PaymentAttemptState.Failed ? "Payment failed" : "Payment requires action", latestPayment.FailureCode ?? latestPayment.State.ToString(), latestPayment.UpdatedAtUtc, "Review payment", null));
-
-            foreach (var requirement in requirements.Where(item => item.BookingId == booking.Id))
             {
-                var latest = submissions.FirstOrDefault(item => item.RequirementId == requirement.Id);
-                if (latest is null)
-                    continue;
-                if (latest.State == SubmissionState.Rejected || latest.MalwareStatus != MalwareStatus.Clean)
-                    items.Add(new(booking.Id, booking.Reference, "documents", latest.State == SubmissionState.Rejected ? "Document correction required" : "Document safety review required", latest.State == SubmissionState.Rejected ? "document_rejected" : "document_not_safe", latest.CreatedAtUtc, "Open document review", "/operator/documents"));
+                items.Add(new(
+                    booking.Id,
+                    booking.Reference,
+                    "payment",
+                    latestPayment.State == PaymentAttemptState.Failed
+                        ? "Payment failed"
+                        : "Payment requires action",
+                    latestPayment.FailureCode ?? latestPayment.State.ToString(),
+                    latestPayment.UpdatedAtUtc,
+                    "Review payment",
+                    null));
             }
 
-            foreach (var visaCase in visaRows.Where(item => item.BookingId == booking.Id && item.Status is VisaStatus.ActionRequired or VisaStatus.Rejected))
-                items.Add(new(booking.Id, booking.Reference, "visa", visaCase.Status == VisaStatus.ActionRequired ? "Visa action required" : "Visa rejected", visaCase.Status.ToString(), visaCase.UpdatedAtUtc, "Open visa case", "/operator/visa"));
+            var cancellation = cancellationRows.FirstOrDefault(
+                item => item.BookingId == booking.Id);
+            if (cancellation?.State == BookingCancellationState.Exception)
+            {
+                items.Add(new(
+                    booking.Id,
+                    booking.Reference,
+                    "cancellation",
+                    "Cancellation needs recovery",
+                    cancellation.FailureCode ?? "cancellation_exception",
+                    cancellation.UpdatedAtUtc,
+                    "Open cancellation review",
+                    "/operator/cancellations"));
+            }
+
+            var refund = cancellation is null
+                ? null
+                : refundRows.FirstOrDefault(
+                    item => item.CancellationRequestId == cancellation.Id);
+            if (refund?.State == RefundState.Failed)
+            {
+                items.Add(new(
+                    booking.Id,
+                    booking.Reference,
+                    "refund",
+                    "Refund needs recovery",
+                    refund.FailureCode ?? "refund_failed",
+                    refund.UpdatedAtUtc,
+                    "Open cancellation review",
+                    "/operator/cancellations"));
+            }
+            else if (refund?.State == RefundState.PartiallyRefunded)
+            {
+                items.Add(new(
+                    booking.Id,
+                    booking.Reference,
+                    "refund",
+                    "Refund partially completed",
+                    "partial_refund",
+                    refund.UpdatedAtUtc,
+                    "Open cancellation review",
+                    "/operator/cancellations"));
+            }
+
+            foreach (var requirement in requirements.Where(
+                         item => item.BookingId == booking.Id))
+            {
+                var latest = submissions.FirstOrDefault(
+                    item => item.RequirementId == requirement.Id);
+                if (latest is null)
+                    continue;
+                if (latest.State == SubmissionState.Rejected
+                    || latest.MalwareStatus != MalwareStatus.Clean)
+                {
+                    items.Add(new(
+                        booking.Id,
+                        booking.Reference,
+                        "documents",
+                        latest.State == SubmissionState.Rejected
+                            ? "Document correction required"
+                            : "Document safety review required",
+                        latest.State == SubmissionState.Rejected
+                            ? "document_rejected"
+                            : "document_not_safe",
+                        latest.CreatedAtUtc,
+                        "Open document review",
+                        "/operator/documents"));
+                }
+            }
+
+            foreach (var visaCase in visaRows.Where(item =>
+                         item.BookingId == booking.Id
+                         && item.Status is VisaStatus.ActionRequired or VisaStatus.Rejected))
+            {
+                items.Add(new(
+                    booking.Id,
+                    booking.Reference,
+                    "visa",
+                    visaCase.Status == VisaStatus.ActionRequired
+                        ? "Visa action required"
+                        : "Visa rejected",
+                    visaCase.Status.ToString(),
+                    visaCase.UpdatedAtUtc,
+                    "Open visa case",
+                    "/operator/visa"));
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(category))
-            items = items.Where(item => string.Equals(item.Category, category.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+        {
+            items = items.Where(item => string.Equals(
+                    item.Category,
+                    category.Trim(),
+                    StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
 
         http.RequestServices.GetRequiredService<ILogger<Program>>()
-            .LogInformation("Operational support queue outcome=success operatorId={OperatorId} count={Count} correlationId={CorrelationId}", access.OperatorId, items.Count, http.TraceIdentifier);
-        return Results.Ok(new { items = items.OrderBy(item => item.UpdatedAtUtc).ToArray() });
+            .LogInformation(
+                "Operational support queue outcome=success operatorId={OperatorId} count={Count} correlationId={CorrelationId}",
+                access.OperatorId,
+                items.Count,
+                http.TraceIdentifier);
+        return Results.Ok(new
+        {
+            items = items.OrderByDescending(item => item.UpdatedAtUtc).ToArray()
+        });
     }
 
     private static async Task<IResult> Detail(
@@ -142,15 +263,55 @@ public static class OperationalSupportEndpoints
             return Results.Forbid();
 
         var booking = await bookings.Bookings.AsNoTracking()
-            .SingleOrDefaultAsync(item => item.Id == bookingId && item.OperatorId == access.OperatorId, cancellationToken);
+            .SingleOrDefaultAsync(
+                item => item.Id == bookingId && item.OperatorId == access.OperatorId,
+                cancellationToken);
         if (booking is null)
             return Results.NotFound();
 
         var payment = await payments.PaymentAttempts.AsNoTracking()
             .Where(item => item.BookingId == bookingId)
             .OrderByDescending(item => item.CreatedAtUtc)
-            .Select(item => new { state = item.State.ToString(), item.FailureCode, item.UpdatedAtUtc })
+            .Select(item => new
+            {
+                state = item.State.ToString(),
+                item.FailureCode,
+                item.UpdatedAtUtc
+            })
             .FirstOrDefaultAsync(cancellationToken);
+        var cancellation = await bookings.CancellationRequests.AsNoTracking()
+            .Where(item => item.BookingId == bookingId)
+            .OrderByDescending(item => item.RequestedAtUtc)
+            .Select(item => new
+            {
+                item.Id,
+                state = item.State.ToString(),
+                reasonCategory = item.ReasonCategory.ToString(),
+                item.PolicyVersion,
+                item.RefundableAmount,
+                item.Currency,
+                item.FailureCode,
+                item.Version,
+                item.UpdatedAtUtc
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+        var refund = cancellation is null
+            ? null
+            : await payments.Refunds.AsNoTracking()
+                .Where(item => item.CancellationRequestId == cancellation.Id)
+                .OrderByDescending(item => item.CreatedAtUtc)
+                .Select(item => new
+                {
+                    item.Id,
+                    state = item.State.ToString(),
+                    item.Amount,
+                    item.RefundedAmount,
+                    item.Currency,
+                    item.FailureCode,
+                    item.Version,
+                    item.UpdatedAtUtc
+                })
+                .FirstOrDefaultAsync(cancellationToken);
         var documentRequirements = await documents.Requirements.AsNoTracking()
             .Where(item => item.BookingId == bookingId)
             .ToArrayAsync(cancellationToken);
@@ -161,24 +322,68 @@ public static class OperationalSupportEndpoints
             .ToArrayAsync(cancellationToken);
         var documentSummary = documentRequirements.Select(requirement =>
         {
-            var latest = documentSubmissions.FirstOrDefault(item => item.RequirementId == requirement.Id);
-            return new { kind = requirement.Kind.ToString(), state = latest?.State.ToString() ?? "Missing", malwareStatus = latest?.MalwareStatus.ToString() ?? "Unknown", latest?.ReviewReason, latest?.Version };
+            var latest = documentSubmissions.FirstOrDefault(
+                item => item.RequirementId == requirement.Id);
+            return new
+            {
+                kind = requirement.Kind.ToString(),
+                state = latest?.State.ToString() ?? "Missing",
+                malwareStatus = latest?.MalwareStatus.ToString() ?? "Unknown",
+                latest?.ReviewReason,
+                latest?.Version
+            };
         });
         var visaSummary = await visa.Cases.AsNoTracking()
             .Where(item => item.BookingId == bookingId)
-            .Select(item => new { item.TravellerId, status = item.Status.ToString(), item.CustomerAction, item.Version, item.UpdatedAtUtc })
+            .Select(item => new
+            {
+                item.TravellerId,
+                status = item.Status.ToString(),
+                item.CustomerAction,
+                item.Version,
+                item.UpdatedAtUtc
+            })
             .ToArrayAsync(cancellationToken);
 
         object[] allowedActions = booking.State == BookingState.ConfirmationException
-            ? new object[] { new { code = "retry_confirmation", label = "Retry confirmation", target = $"/api/v1/operator/bookings/{booking.Id:D}/confirmation/retry" } }
-            : Array.Empty<object>();
+            ?
+            [
+                new
+                {
+                    code = "retry_confirmation",
+                    label = "Retry confirmation",
+                    target = $"/api/v1/operator/bookings/{booking.Id:D}/confirmation/retry"
+                }
+            ]
+            : [];
+        var navigationActions = new List<object>();
+        if (cancellation is not null)
+        {
+            navigationActions.Add(new
+            {
+                code = "open_cancellation_review",
+                label = "Open cancellation review",
+                target = "/operator/cancellations"
+            });
+        }
+
         return Results.Ok(new
         {
-            booking = new { booking.Id, booking.Reference, state = booking.State.ToString(), booking.ConfirmationExceptionCode, booking.UpdatedAtUtc },
+            booking = new
+            {
+                booking.Id,
+                booking.Reference,
+                state = booking.State.ToString(),
+                booking.ConfirmationExceptionCode,
+                booking.UpdatedAtUtc
+            },
             payment,
+            cancellation,
+            refund,
             documents = documentSummary,
             visa = visaSummary,
-            allowedActions
+            allowedActions,
+            navigationActions
         });
     }
 }
