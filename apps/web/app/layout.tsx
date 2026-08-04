@@ -6,6 +6,7 @@ import "./styles.css";
 import "./design-system.css";
 import "./primitives.css";
 import "./shells.css";
+import "./shell-slots.css";
 import "./composer.css";
 import "./commercial.css";
 import "./payment-plan.css";
