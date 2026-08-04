@@ -109,6 +109,11 @@
   line-height: var(--line-height-body);
 }
 
+.np-showcase__skeleton {
+  display: grid;
+  gap: var(--space-3);
+}
+
 .np-skeleton {
   display: block;
   overflow: hidden;
