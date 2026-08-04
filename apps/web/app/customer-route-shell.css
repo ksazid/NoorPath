@@ -112,6 +112,11 @@
 }
 
 .np-route-information section a:not(.auth-primary) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 6px;
+  margin-inline: -6px;
   color: var(--color-text-accent);
   font-weight: 700;
 }
