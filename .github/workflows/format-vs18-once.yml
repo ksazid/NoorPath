@@ -1,0 +1,44 @@
+name: Format VS-18 Once
+
+on:
+  push:
+    branches:
+      - slice/design-system-foundation
+    paths:
+      - .github/workflows/format-vs18-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: slice/design-system-foundation
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Format reported VS-18 files
+        run: |
+          pnpm --dir apps/web exec prettier --write \
+            app/_components/DesignSystem.tsx \
+            app/_components/FormPrimitives.tsx \
+            app/_components/SelectionPrimitives.tsx \
+            app/_components/Shells.tsx \
+            app/design-system/page.tsx \
+            app/design-system/staff-shell/page.tsx \
+            app/interaction-primitives.css \
+            app/shells.css
+          git rm .github/workflows/format-vs18-once.yml
+      - name: Commit exact formatter output
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web/app .github/workflows/format-vs18-once.yml
+          git commit -m "Format VS-18 foundation files"
+          git push origin HEAD:slice/design-system-foundation
