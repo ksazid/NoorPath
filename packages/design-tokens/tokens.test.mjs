@@ -45,7 +45,7 @@ test("semantic token JSON and CSS exports remain available", () => {
   assert.equal(tokenJson.space[4], "1rem");
 
   for (const token of requiredCssTokens) {
-    assert.match(tokenCss, new RegExp(`${token.replaceAll("-", "\\-")}:`));
+    assert.ok(tokenCss.includes(`${token}:`), `${token} is not exported`);
   }
 });
 
