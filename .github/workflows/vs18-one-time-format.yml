@@ -1,0 +1,65 @@
+name: VS-18 One-Time Format
+
+on:
+  push:
+    branches:
+      - slice/design-system-foundation
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vs18-one-time-format
+  cancel-in-progress: true
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: slice/design-system-foundation
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+
+      - name: Format VS-18 sources
+        run: |
+          pnpm --dir apps/web exec prettier --write \
+            app/_components/DesignSystem.tsx \
+            app/_components/FormPrimitives.tsx \
+            app/_components/SelectionPrimitives.tsx \
+            app/_components/Shells.tsx \
+            app/design-system/page.tsx \
+            app/design-system/staff-shell/page.tsx \
+            app/interaction-primitives.css \
+            app/shells.css
+
+      - name: Commit exact formatting result
+        run: |
+          files=(
+            apps/web/app/_components/DesignSystem.tsx
+            apps/web/app/_components/FormPrimitives.tsx
+            apps/web/app/_components/SelectionPrimitives.tsx
+            apps/web/app/_components/Shells.tsx
+            apps/web/app/design-system/page.tsx
+            apps/web/app/design-system/staff-shell/page.tsx
+            apps/web/app/interaction-primitives.css
+            apps/web/app/shells.css
+          )
+
+          if git diff --quiet -- "${files[@]}"; then
+            echo "No formatting changes required."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "${files[@]}"
+          git commit -m "VS-18: format design system sources"
+          git push origin HEAD:refs/heads/slice/design-system-foundation
