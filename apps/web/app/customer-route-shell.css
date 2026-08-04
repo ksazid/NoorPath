@@ -67,6 +67,7 @@
   padding-block: clamp(40px, 7vw, 88px);
 }
 
+/* Legal and support breadcrumbs retain a full touch target, not text-only size. */
 .np-route-information .package-breadcrumbs a {
   display: inline-flex;
   align-items: center;
