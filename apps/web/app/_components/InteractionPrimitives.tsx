@@ -2,6 +2,7 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { NoorPathIcon, type NoorPathIconName } from "./NoorPathIcon";
 
 export function IconButton({
+  className = "",
   icon,
   label,
   ...buttonProps
@@ -12,7 +13,7 @@ export function IconButton({
   return (
     <button
       aria-label={label}
-      className="np-icon-button"
+      className={`np-icon-button ${className}`.trim()}
       title={label}
       {...buttonProps}
     >
