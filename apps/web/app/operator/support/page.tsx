@@ -25,6 +25,27 @@ type Detail = {
     updatedAtUtc: string;
   };
   payment?: { state: string; failureCode?: string; updatedAtUtc: string };
+  cancellation?: {
+    id: string;
+    state: string;
+    reasonCategory: string;
+    policyVersion: string;
+    refundableAmount: number;
+    currency: string;
+    failureCode?: string;
+    version: number;
+    updatedAtUtc: string;
+  };
+  refund?: {
+    id: string;
+    state: string;
+    amount: number;
+    refundedAmount: number;
+    currency: string;
+    failureCode?: string;
+    version: number;
+    updatedAtUtc: string;
+  };
   documents: {
     kind: string;
     state: string;
@@ -40,6 +61,7 @@ type Detail = {
     updatedAtUtc: string;
   }[];
   allowedActions: { code: string; label: string; target: string }[];
+  navigationActions: { code: string; label: string; target: string }[];
 };
 
 const headers = (json = false): HeadersInit => ({
@@ -180,13 +202,15 @@ export default function OperationalSupportPage() {
               <option value="payment">Payment</option>
               <option value="documents">Documents</option>
               <option value="visa">Visa</option>
+              <option value="cancellation">Cancellation</option>
+              <option value="refund">Refund</option>
             </select>
           </label>
           <button type="submit">Search exceptions</button>
         </form>
 
         <div aria-live="polite">
-          {message ? <p>{message}</p> : null}
+          {message ? <p role="alert">{message}</p> : null}
           {state.kind === "loading" ? (
             <p>Loading operational exceptions…</p>
           ) : null}
@@ -209,7 +233,7 @@ export default function OperationalSupportPage() {
         ) : null}
 
         {state.kind === "ready" ? (
-          <div className="documents-list">
+          <div className="documents-list" aria-label="Operational exceptions">
             {state.items.map((item) => (
               <article
                 className="documents-card"
@@ -222,7 +246,14 @@ export default function OperationalSupportPage() {
                 <time dateTime={item.updatedAtUtc}>
                   Updated {new Date(item.updatedAtUtc).toLocaleString("en-IN")}
                 </time>
-                <button onClick={() => void openCase(item)}>Review case</button>
+                <div className="document-row support-actions">
+                  <button type="button" onClick={() => void openCase(item)}>
+                    Review case
+                  </button>
+                  {isNavigationTarget(item.actionTarget) ? (
+                    <Link href={item.actionTarget}>{item.actionLabel}</Link>
+                  ) : null}
+                </div>
               </article>
             ))}
           </div>
@@ -252,6 +283,44 @@ export default function OperationalSupportPage() {
                   }`
                 : "No payment attempt recorded."}
             </p>
+
+            <h3>Cancellation</h3>
+            {detail.cancellation ? (
+              <div>
+                <p>
+                  {detail.cancellation.state} · policy{" "}
+                  {detail.cancellation.policyVersion}
+                </p>
+                <p>
+                  Maximum entitlement:{" "}
+                  {money(
+                    detail.cancellation.currency,
+                    detail.cancellation.refundableAmount,
+                  )}
+                </p>
+                {detail.cancellation.failureCode ? (
+                  <p>Recovery code: {detail.cancellation.failureCode}</p>
+                ) : null}
+              </div>
+            ) : (
+              <p>No cancellation request recorded.</p>
+            )}
+
+            <h3>Refund</h3>
+            {detail.refund ? (
+              <div>
+                <p>
+                  {detail.refund.state} ·{" "}
+                  {money(detail.refund.currency, detail.refund.refundedAmount)} of{" "}
+                  {money(detail.refund.currency, detail.refund.amount)} recorded
+                </p>
+                {detail.refund.failureCode ? (
+                  <p>Recovery code: {detail.refund.failureCode}</p>
+                ) : null}
+              </div>
+            ) : (
+              <p>No refund record recorded.</p>
+            )}
 
             <h3>Documents</h3>
             {detail.documents.length ? (
@@ -285,15 +354,21 @@ export default function OperationalSupportPage() {
 
             <div
               className="document-row support-actions"
-              aria-label="Approved recovery actions"
+              aria-label="Approved recovery and navigation actions"
             >
               {detail.allowedActions.map((action) => (
                 <button
+                  type="button"
                   key={action.code}
                   onClick={() => void runAction(action)}
                 >
                   {action.label}
                 </button>
+              ))}
+              {detail.navigationActions.map((action) => (
+                <Link key={action.code} href={action.target}>
+                  {action.label}
+                </Link>
               ))}
               <Link href="/operator/documents">Open document review</Link>
               <Link href="/operator/visa">Open visa processing</Link>
@@ -304,4 +379,16 @@ export default function OperationalSupportPage() {
       <PublicFooter />
     </div>
   );
+}
+
+function isNavigationTarget(target?: string): target is string {
+  return Boolean(target?.startsWith("/") && !target.startsWith("/api/"));
+}
+
+function money(currency: string, amount: number) {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(amount);
 }
