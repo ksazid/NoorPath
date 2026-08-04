@@ -293,7 +293,7 @@ test("operator reaches cancellation review from overview and sees the sidebar li
 
   await page.goto("/operator");
   const sidebarLink = page
-    .getByRole("navigation", { name: "Operator navigation" })
+    .getByRole("complementary", { name: "Operator navigation" })
     .getByRole("link", { name: "Cancellations" });
   await expect(sidebarLink).toHaveAttribute("href", "/operator/cancellations");
 
@@ -308,6 +308,12 @@ test("operator reaches cancellation review from overview and sees the sidebar li
     .getByRole("link", { name: "Operator" })
     .click();
   await expect(page).toHaveURL(/\/operator$/);
+
+  await sidebarLink.click();
+  await expect(page).toHaveURL(/\/operator\/cancellations$/);
+  await expect(
+    page.getByRole("heading", { name: "Cancellation & refund review" }),
+  ).toBeVisible();
 });
 
 test("Operational Support exposes a working cancellation review link", async ({

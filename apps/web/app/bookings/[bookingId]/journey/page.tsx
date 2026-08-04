@@ -152,7 +152,9 @@ function Dashboard({ journey: j }: { journey: Journey }) {
           <p className="public-eyebrow">Confirmed · {j.bookingReference}</p>
           <h1>{j.journey.packageName}</h1>
           <p>{j.journey.travelRouteSummary}</p>
-          <Link href="#cancellation">Review cancellation options</Link>
+          <Link className="journey-section-link" href="#cancellation">
+            Review cancellation options
+          </Link>
         </div>
         <span className="journey-confirmed">
           <Icon name="seal-check" /> Confirmed
