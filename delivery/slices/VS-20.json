@@ -1,0 +1,71 @@
+{
+  "id": "VS-20",
+  "title": "Identity Test Environment Completion",
+  "slug": "identity-test-environment-completion",
+  "outcome": "The Auth0-enabled NoorPath release environment can execute every customer, operator and platform identity path because the Documents persistence module is registered, discoverable, migrated and covered by the permanent migration guardrails.",
+  "actor": "Authenticated NoorPath test customers, approved operator members, platform administrators and release reviewers validating protected journeys.",
+  "dependsOn": ["VS-12", "VS-19"],
+  "modules": [
+    "Documents owns document requirement, submission and audit persistence.",
+    "Accounts continues to own Auth0 sessions, normalized AccountId derivation and return-to behavior.",
+    "Operators continues to own active membership and permission checks.",
+    "Release infrastructure owns test-only identity provisioning, managed allow-lists and deployment validation."
+  ],
+  "routes": [
+    "Authenticated customer -> My Journey -> owned booking -> documents and visa status",
+    "Approved operator member -> operator workspace -> document, visa, support and cancellation queues",
+    "Platform administrator -> protected platform and publication routes",
+    "Foreign customer -> another customer's booking -> safe not-found response",
+    "Unauthenticated visitor -> protected deep link -> Auth0 sign-in -> exact return destination"
+  ],
+  "acceptance": [
+    "DocumentsDbContext is registered in the migration module registry.",
+    "The Documents migration has generated EF designer metadata and exactly one frozen model snapshot.",
+    "A fresh Documents test database accepts all registered migrations and has no pending model changes.",
+    "The deployed Neon database contains the documents requirements, submissions and audit tables.",
+    "The real Auth0 smoke-test account has an active approved operator membership with the four approved permissions and explicit platform allow-list access.",
+    "The account can access its owned demo journey while foreign demo journeys remain inaccessible.",
+    "Customer Documents, Operator Documents and Operational Support no longer fail because of absent persistence objects.",
+    "Existing document policy, malware, private-storage and authorization behavior remains unchanged.",
+    "No UI page, route contract, styling, commercial policy or customer production data is modified.",
+    "Identity evidence belongs to the exact deployed commit and records any genuinely external blocked step without treating it as passed.",
+    "Product Owner approval is required before merge; deployment remains limited to the NoorPath release/test environment."
+  ],
+  "policyDecisionsRequired": [
+    "Use the existing Auth0 Google identity only as an all-access smoke-test account.",
+    "Keep Delhi and Mumbai demo journeys as foreign-account isolation fixtures.",
+    "Do not enable production document storage, cancellation execution or payment execution in this slice."
+  ],
+  "exclusions": [
+    "Customer or staff page redesign.",
+    "Auth0 tenant redesign, phone OTP or account recovery.",
+    "New role administration or operator-provisioning UI.",
+    "Document upload storage enablement or real passport data.",
+    "Payment provider, refund execution or cancellation-policy changes.",
+    "Real customer production launch."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "migration",
+    "security",
+    "authorization",
+    "privacy",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "rendered-regression",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": false
+  },
+  "specPath": "docs/slices/VS-20-IDENTITY-TEST-ENVIRONMENT-COMPLETION.md",
+  "checklistPath": "docs/slices/VS-20-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-20-NAVIGATION-VERIFICATION.md"
+}

@@ -57,6 +57,13 @@
       "environment": "NOORPATH_TRAVELLER_TEST_DB"
     },
     {
+      "name": "Documents",
+      "project": "src/Modules/NoorPath.Documents.Infrastructure/NoorPath.Documents.Infrastructure.csproj",
+      "context": "DocumentsDbContext",
+      "database": "noorpath_documents_test",
+      "environment": "NOORPATH_DOCUMENTS_TEST_DB"
+    },
+    {
       "name": "Visa",
       "project": "src/Modules/NoorPath.Visa.Infrastructure/NoorPath.Visa.Infrastructure.csproj",
       "context": "VisaDbContext",
