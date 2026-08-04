@@ -124,22 +124,21 @@ test("canonical staff shell groups navigation and reflows to a drawer", async ({
   ).toBeVisible();
 
   const initialWidth = page.viewportSize()?.width ?? 1363;
+  const activeNavigation =
+    initialWidth <= 900
+      ? page.locator(".np-staff-menu__panel")
+      : page.locator(".np-staff-sidebar");
+
   if (initialWidth <= 900) {
     await page.getByText("Workspace navigation", { exact: true }).click();
-    await expect(
-      page
-        .locator(".np-staff-menu__panel")
-        .getByRole("navigation", { name: "Staff navigation" }),
-    ).toBeVisible();
-  } else {
-    await expect(
-      page
-        .locator(".np-staff-sidebar")
-        .getByRole("navigation", { name: "Staff navigation" }),
-    ).toBeVisible();
   }
 
-  await expect(page.getByText("Administration").first()).toBeVisible();
+  await expect(
+    activeNavigation.getByRole("navigation", { name: "Staff navigation" }),
+  ).toBeVisible();
+  await expect(
+    activeNavigation.getByText("Administration", { exact: true }),
+  ).toBeVisible();
   await expectNoA11yViolations(page);
   await expectMinimumTargets(page);
   await expectNoHorizontalOverflow(page);
