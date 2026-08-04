@@ -13,6 +13,17 @@ import {
   SupportAction,
   TextField,
 } from "../_components/FormPrimitives";
+import {
+  IconButton,
+  MetricCard,
+  StickyActionBar,
+} from "../_components/InteractionPrimitives";
+import {
+  CheckboxField,
+  RadioCard,
+  SelectField,
+  ToggleField,
+} from "../_components/SelectionPrimitives";
 import { requireDesignSystemShowcase } from "./requireShowcase";
 
 export const metadata: Metadata = {
@@ -44,6 +55,7 @@ export default function DesignSystemPage() {
           <ActionButton variant="destructive">Cancel request</ActionButton>
           <ActionButton pending>Saving</ActionButton>
           <ActionButton disabled>Unavailable</ActionButton>
+          <IconButton icon="search" label="Search packages" />
         </div>
       </section>
 
@@ -55,6 +67,27 @@ export default function DesignSystemPage() {
           <StatusBadge tone="danger">Rejected</StatusBadge>
           <StatusBadge tone="info">Waiting for operator</StatusBadge>
           <StatusBadge>Not started</StatusBadge>
+        </div>
+      </section>
+
+      <section className="np-showcase__section" aria-labelledby="metrics-title">
+        <h2 id="metrics-title">Commercial metrics</h2>
+        <div className="np-showcase__grid">
+          <MetricCard
+            label="Total package price"
+            value="₹1,00,000"
+            description="Per pilgrim for Triple Sharing"
+          />
+          <MetricCard
+            label="Reserve today"
+            value="₹20,000"
+            description="Due to reserve the selected seats"
+          />
+          <MetricCard
+            label="Remaining journey balance"
+            value="₹80,000"
+            description="Shown with the full payment schedule"
+          />
         </div>
       </section>
 
@@ -127,6 +160,55 @@ export default function DesignSystemPage() {
         </div>
       </section>
 
+      <section className="np-showcase__section" aria-labelledby="selection-title">
+        <h2 id="selection-title">Selection controls</h2>
+        <div className="np-showcase__grid">
+          <SurfaceCard>
+            <SelectField
+              id="payment-choice"
+              label="Journey payment option"
+              description="The full schedule is shown before reservation."
+              defaultValue="milestones"
+              options={[
+                { label: "Full Payment at Booking", value: "full" },
+                {
+                  label: "Reservation + One Remaining Payment",
+                  value: "remaining",
+                },
+                {
+                  label: "Reservation + Payment Milestones",
+                  value: "milestones",
+                },
+              ]}
+            />
+          </SurfaceCard>
+          <SurfaceCard>
+            <fieldset className="np-selection-group">
+              <legend>Room preference</legend>
+              <RadioCard name="room-preference" value="double">
+                Double Sharing
+              </RadioCard>
+              <RadioCard defaultChecked name="room-preference" value="triple">
+                Triple Sharing
+              </RadioCard>
+            </fieldset>
+          </SurfaceCard>
+          <SurfaceCard>
+            <div className="np-selection-group">
+              <CheckboxField
+                defaultChecked
+                label="Send journey updates"
+                description="Receive important booking and departure updates."
+              />
+              <ToggleField
+                label="Show completed milestones"
+                description="Keep completed stages visible in My Journey."
+              />
+            </div>
+          </SurfaceCard>
+        </div>
+      </section>
+
       <section className="np-showcase__section" aria-labelledby="journey-title">
         <h2 id="journey-title">Journey progress</h2>
         <SurfaceCard>
@@ -182,6 +264,17 @@ export default function DesignSystemPage() {
           />
         </div>
       </section>
+
+      <StickyActionBar
+        summary={
+          <>
+            <strong>₹20,000 due now</strong>
+            <span>Remaining journey balance ₹80,000</span>
+          </>
+        }
+        support={<IconButton icon="phone" label="Request a callback" />}
+        action={<ActionButton>Reserve Your Seats</ActionButton>}
+      />
     </main>
   );
 }
