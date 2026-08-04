@@ -85,7 +85,9 @@ function validateRegistrations() {
 
 function verifyMatrix(manifest) {
   if (!manifest) {
-    console.log("No slice resolved; navigation certification is not applicable.");
+    console.log(
+      "No slice resolved; navigation certification is not applicable.",
+    );
     return;
   }
 
@@ -117,7 +119,9 @@ function verifyMatrix(manifest) {
       return summary;
     }, {});
     throw new Error(
-      `${manifest.id}: navigation certification blocked by ${Object.entries(counts)
+      `${manifest.id}: navigation certification blocked by ${Object.entries(
+        counts,
+      )
         .map(([outcome, count]) => `${count} ${outcome}`)
         .join(", ")} row(s) in ${manifest.navigationPath}`,
     );
