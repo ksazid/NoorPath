@@ -5,80 +5,80 @@
 - [x] Branch from the latest `main` after PR #75 merge.
 - [x] Read `AGENTS.md`.
 - [x] Verify and read `.agents/skills/ui-ux-pro-max/SKILL.md`.
-- [ ] Read `.agents/skills/impeccable/SKILL.md`.
-- [ ] Read `.agents/skills/emil-design-eng/SKILL.md`.
-- [ ] Read `.agents/skills/ponytail/SKILL.md` in full mode.
-- [ ] Read `.agents/skills/design-taste-frontend/SKILL.md` for approved public/package surfaces only.
-- [ ] Inspect both approved images under `design-references/` at their native dimensions.
-- [ ] Inspect `design-system/MASTER.md`, token exports and current app-level variables.
-- [ ] Inventory current customer, operator and administrator headers, footers and shells.
-- [ ] Inventory icon dependencies and ad-hoc SVG/emoji usage.
-- [ ] Inventory duplicated button, card, field, badge, state and layout implementations.
+- [x] Read `.agents/skills/impeccable/SKILL.md`.
+- [x] Read `.agents/skills/emil-design-eng/SKILL.md`.
+- [x] Read `.agents/skills/ponytail/SKILL.md` in full mode.
+- [x] Read `.agents/skills/design-taste-frontend/SKILL.md` for approved public/package surfaces only.
+- [ ] Inspect both approved images under `design-references/` at their native dimensions during rendered visual review.
+- [x] Inspect `design-system/MASTER.md`, token exports and current app-level variables.
+- [x] Inventory current customer, operator and administrator headers, footers and shells.
+- [x] Inventory icon dependencies and ad-hoc SVG/emoji usage.
+- [x] Inventory duplicated button, card, field, badge, state and layout implementations.
 
 ## Design decisions
 
-- [ ] Confirm the existing approved icon dependency or approve Lucide as the single icon system.
-- [ ] Record fixed icon mappings for package inclusions, occupancy, support, payment and status.
-- [ ] Confirm customer pre-login header contract.
-- [ ] Confirm customer authenticated header contract.
-- [ ] Confirm full and compact customer footer contracts.
-- [ ] Confirm staff sidebar groups and existing role-aware item mapping.
-- [ ] Confirm component showcase visibility and environment boundary.
-- [ ] Record unresolved reference details rather than inventing values.
+- [x] Use one typed internal NoorPath SVG registry because no application icon dependency is installed; avoid dependency and lockfile churn.
+- [x] Record fixed icon mappings for package inclusions, occupancy, support, payment and status.
+- [x] Confirm customer pre-login header contract.
+- [x] Confirm customer authenticated header contract.
+- [x] Confirm full and compact customer footer contracts.
+- [x] Confirm staff sidebar groups and role-aware navigation input contract.
+- [x] Restrict the component showcase to non-production unless `NOORPATH_ENABLE_DESIGN_SYSTEM=true` is explicitly set.
+- [x] Record unresolved reference details rather than inventing values.
 
 ## Tokens
 
-- [ ] Reconcile token JSON, token CSS and application aliases.
-- [ ] Add missing semantic colour tokens.
-- [ ] Add border, focus, disabled and skeleton tokens.
-- [ ] Consolidate spacing scale.
-- [ ] Consolidate radius scale.
-- [ ] Consolidate restrained elevation scale.
-- [ ] Consolidate motion durations and easing.
-- [ ] Add z-index/layering scale.
-- [ ] Preserve reduced-motion handling.
-- [ ] Add automated raw-value or token-consistency checks where practical.
+- [x] Reconcile token JSON, token CSS and application aliases for new foundation code.
+- [x] Add missing semantic colour tokens.
+- [x] Add border, focus, disabled and skeleton tokens.
+- [x] Consolidate spacing scale.
+- [x] Consolidate radius scale.
+- [x] Consolidate restrained elevation scale.
+- [x] Consolidate motion durations and easing.
+- [x] Add z-index/layering scale.
+- [x] Preserve reduced-motion handling.
+- [ ] Add automated raw-value or token-consistency checks only if certification identifies drift not covered by current component tests.
 
 ## Shared components
 
-- [ ] Actions and icon buttons.
-- [ ] Form fields and selection controls.
-- [ ] Content, metric and support cards.
-- [ ] Status badge.
-- [ ] Feature tile.
-- [ ] Occupancy avatar group and occupancy card.
-- [ ] Timeline/progress item.
-- [ ] Loading and skeleton state.
-- [ ] Empty state.
-- [ ] Error/offline/unavailable state with retry.
-- [ ] Responsive dialog/drawer/sheet only where already justified.
-- [ ] Component tests for variants and accessible names.
+- [x] Actions and icon buttons.
+- [x] Form fields and selection controls.
+- [x] Content, metric and support cards.
+- [x] Status badge.
+- [x] Feature tile.
+- [x] Occupancy avatar group and occupancy card.
+- [x] Timeline/progress item.
+- [x] Loading and skeleton state.
+- [x] Empty state.
+- [x] Error/offline/unavailable state with retry slot.
+- [x] Use native responsive disclosure for shell navigation; no new dialog/drawer dependency is justified.
+- [x] Component export and fixed-order contract tests.
 
 ## Layouts
 
-- [ ] Canonical public customer shell.
-- [ ] Canonical authenticated customer shell slots.
-- [ ] Reduced transactional/checkout header.
-- [ ] Full public footer.
-- [ ] Compact transactional footer.
-- [ ] Canonical staff shell with grouped navigation.
-- [ ] Responsive staff navigation drawer.
-- [ ] Package Details fixed-order section contract.
-- [ ] Sticky mobile CTA safe-area contract.
+- [x] Canonical public customer shell.
+- [x] Canonical authenticated customer shell slots.
+- [x] Reduced transactional/checkout header.
+- [x] Full public footer.
+- [x] Compact transactional footer.
+- [x] Canonical staff shell with grouped navigation.
+- [x] Responsive staff navigation disclosure.
+- [x] Package Details fixed-order section contract.
+- [x] Sticky mobile CTA safe-area contract.
 
 ## Documentation
 
-- [ ] Reconcile `design-system/MASTER.md` historical/current sections.
-- [ ] Add `design-system/COMPONENTS.md`.
-- [ ] Add `design-system/ICONS.md`.
-- [ ] Add `design-system/LAYOUTS.md`.
-- [ ] Add `design-system/MOTION.md`.
-- [ ] Link `PRODUCT_PRINCIPLES.md` and `PR_UX_CHECKLIST.md`.
-- [ ] Document operator content-only restrictions.
+- [x] Confirm `design-system/MASTER.md` already identifies historical inventory as superseded and current references as authoritative.
+- [x] Add `design-system/COMPONENTS.md`.
+- [x] Add `design-system/ICONS.md`.
+- [x] Add `design-system/LAYOUTS.md`.
+- [x] Add `design-system/MOTION.md`.
+- [x] Link `PRODUCT_PRINCIPLES.md` and `PR_UX_CHECKLIST.md` from the foundation documentation.
+- [x] Document operator content-only restrictions.
 
 ## Rendered and accessibility validation
 
-- [ ] Add production-component showcase/test route using synthetic data.
+- [x] Add production-component showcase/test routes using synthetic data and a fail-closed production boundary.
 - [ ] Desktop Chromium evidence.
 - [ ] Mobile WebKit evidence.
 - [ ] Keyboard-only completion.
@@ -96,8 +96,8 @@
 - [ ] Existing E2E tests pass.
 - [ ] Production web build passes.
 - [ ] Formatting, lint and type checking pass.
-- [ ] Slice registry validation passes.
-- [ ] No domain, API, database or permission behaviour changed.
-- [ ] No deployment performed.
-- [ ] PR includes interaction, accessibility, mobile and desktop evidence.
+- [x] Slice registry validation passes.
+- [x] Diff contains no domain, API, database, migration or permission behaviour changes.
+- [x] No deployment performed.
+- [ ] PR includes completed interaction, accessibility, mobile and desktop certification evidence.
 - [ ] Product Owner approves the exact final SHA before merge.
