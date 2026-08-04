@@ -3,6 +3,9 @@
   top: var(--space-3);
   left: var(--space-3);
   z-index: var(--layer-toast);
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-sm);
   background: var(--color-surface-inverse);
@@ -16,6 +19,9 @@
 }
 
 .np-brand {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   color: var(--color-text-primary);
   font-family: var(--font-family-display);
   font-size: var(--font-size-xl);
