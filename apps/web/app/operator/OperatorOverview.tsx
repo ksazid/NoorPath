@@ -48,7 +48,11 @@ export default function OperatorOverview() {
         items: CatalogueItem[];
       };
       const visa = (await visaResponse.json()) as { items: VisaItem[] };
-      setState({ kind: "ready", catalogue: catalogue.items, visa: visa.items });
+      setState({
+        kind: "ready",
+        catalogue: catalogue.items,
+        visa: visa.items,
+      });
     } catch {
       setState({ kind: "error" });
     }
@@ -61,7 +65,9 @@ export default function OperatorOverview() {
     return [
       {
         label: "Packages",
-        value: new Set(state.catalogue.map((item) => item.packageTemplateId)).size,
+        value: new Set(
+          state.catalogue.map((item) => item.packageTemplateId),
+        ).size,
         href: "/operator/packages",
       },
       {
@@ -87,7 +93,10 @@ export default function OperatorOverview() {
       title="Operator administration"
       summary="Manage packages, departures, traveller readiness, and operational work within your approved operator scope."
     >
-      <section className="account-welcome" aria-labelledby="operator-ready-title">
+      <section
+        className="account-welcome"
+        aria-labelledby="operator-ready-title"
+      >
         <h2 id="operator-ready-title">Your secure workspace is ready</h2>
         <p>
           Live operator-scoped information now appears here. Use the navigation
@@ -103,14 +112,21 @@ export default function OperatorOverview() {
         </div>
       </section>
 
-      <section className="operator-section" aria-labelledby="operator-metrics-title">
+      <section
+        className="operator-section"
+        aria-labelledby="operator-metrics-title"
+      >
         <div className="operator-section-heading">
           <div>
             <p className="auth-eyebrow">Live workload</p>
             <h2 id="operator-metrics-title">Operational overview</h2>
           </div>
           {state.kind === "error" ? (
-            <button type="button" className="auth-secondary" onClick={load}>
+            <button
+              type="button"
+              className="auth-secondary"
+              onClick={load}
+            >
               Retry
             </button>
           ) : null}
@@ -126,7 +142,11 @@ export default function OperatorOverview() {
         {metrics ? (
           <div className="operator-metric-grid">
             {metrics.map((metric) => (
-              <Link className="operator-metric-card" href={metric.href} key={metric.label}>
+              <Link
+                className="operator-metric-card"
+                href={metric.href}
+                key={metric.label}
+              >
                 <strong>{metric.value}</strong>
                 <span>{metric.label}</span>
               </Link>
@@ -135,7 +155,10 @@ export default function OperatorOverview() {
         ) : null}
       </section>
 
-      <section className="operator-section" aria-labelledby="operator-work-title">
+      <section
+        className="operator-section"
+        aria-labelledby="operator-work-title"
+      >
         <p className="auth-eyebrow">Work areas</p>
         <h2 id="operator-work-title">Continue operational work</h2>
         <div className="operator-action-grid">
