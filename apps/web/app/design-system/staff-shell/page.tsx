@@ -68,7 +68,9 @@ export default function StaffShellExamplePage() {
         <SurfaceCard>
           <StatusBadge tone="info">12 upcoming</StatusBadge>
           <h2>Departures</h2>
-          <p>Capacity, payment and document readiness remain visible together.</p>
+          <p>
+            Capacity, payment and document readiness remain visible together.
+          </p>
         </SurfaceCard>
         <SurfaceCard>
           <StatusBadge tone="success">Healthy</StatusBadge>

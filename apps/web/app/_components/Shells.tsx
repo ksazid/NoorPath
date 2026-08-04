@@ -109,10 +109,7 @@ export function CustomerShell({
         ) : (
           <>
             <div className="np-customer-navigation--desktop">
-              <CustomerNavigation
-                activePath={activePath}
-                items={navigation}
-              />
+              <CustomerNavigation activePath={activePath} items={navigation} />
               {mode === "authenticated" ? (
                 <Link className="np-profile-link" href="/account">
                   {profileLabel}
@@ -146,7 +143,10 @@ export function CustomerShell({
             <p>A calm, transparent path for your Umrah journey.</p>
           </div>
           {footerGroups.map((group) => (
-            <section key={group.title} aria-labelledby={`footer-${group.title}`}>
+            <section
+              key={group.title}
+              aria-labelledby={`footer-${group.title}`}
+            >
               <h2 id={`footer-${group.title}`}>{group.title}</h2>
               <nav aria-label={`${group.title} links`}>
                 {group.links.map((link) => (

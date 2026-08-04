@@ -91,7 +91,10 @@ export default function DesignSystemPage() {
         </div>
       </section>
 
-      <section className="np-showcase__section" aria-labelledby="features-title">
+      <section
+        className="np-showcase__section"
+        aria-labelledby="features-title"
+      >
         <h2 id="features-title">Package features</h2>
         <div className="np-showcase__grid">
           <FeatureTile
@@ -112,7 +115,10 @@ export default function DesignSystemPage() {
         </div>
       </section>
 
-      <section className="np-showcase__section" aria-labelledby="occupancy-title">
+      <section
+        className="np-showcase__section"
+        aria-labelledby="occupancy-title"
+      >
         <h2 id="occupancy-title">Room occupancy</h2>
         <div className="np-showcase__grid">
           <OccupancyCard
@@ -160,7 +166,10 @@ export default function DesignSystemPage() {
         </div>
       </section>
 
-      <section className="np-showcase__section" aria-labelledby="selection-title">
+      <section
+        className="np-showcase__section"
+        aria-labelledby="selection-title"
+      >
         <h2 id="selection-title">Selection controls</h2>
         <div className="np-showcase__grid">
           <SurfaceCard>

@@ -1,8 +1,4 @@
-import type {
-  ButtonHTMLAttributes,
-  HTMLAttributes,
-  ReactNode,
-} from "react";
+import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from "react";
 import { NoorPathIcon, type NoorPathIconName } from "./NoorPathIcon";
 
 export const PACKAGE_DETAIL_SECTION_ORDER = [
@@ -28,10 +24,7 @@ export type PackageDetailSectionId =
   (typeof PACKAGE_DETAIL_SECTION_ORDER)[number];
 
 export type ActionVariant =
-  | "primary"
-  | "secondary"
-  | "tertiary"
-  | "destructive";
+  "primary" | "secondary" | "tertiary" | "destructive";
 
 export function ActionButton({
   children,
@@ -69,12 +62,7 @@ export function SurfaceCard({
   );
 }
 
-export type StatusTone =
-  | "success"
-  | "warning"
-  | "danger"
-  | "info"
-  | "neutral";
+export type StatusTone = "success" | "warning" | "danger" | "info" | "neutral";
 
 const statusIcons: Record<StatusTone, NoorPathIconName> = {
   success: "check",
@@ -153,12 +141,15 @@ export function OccupancyCard({
   title: string;
 }) {
   return (
-    <article
-      className={`np-occupancy-card${selected ? " is-selected" : ""}`}
-    >
+    <article className={`np-occupancy-card${selected ? " is-selected" : ""}`}>
       <div className="np-occupancy-card__heading">
-        <OccupancyAvatarGroup count={count} label={`${title}: ${description}`} />
-        {selected ? <StatusBadge tone="success">Recommended</StatusBadge> : null}
+        <OccupancyAvatarGroup
+          count={count}
+          label={`${title}: ${description}`}
+        />
+        {selected ? (
+          <StatusBadge tone="success">Recommended</StatusBadge>
+        ) : null}
       </div>
       <h3>{title}</h3>
       <p>{description}</p>
@@ -167,12 +158,7 @@ export function OccupancyCard({
 }
 
 export type StateKind =
-  | "loading"
-  | "empty"
-  | "error"
-  | "offline"
-  | "unavailable"
-  | "success";
+  "loading" | "empty" | "error" | "offline" | "unavailable" | "success";
 
 const stateIcons: Record<StateKind, NoorPathIconName> = {
   loading: "info",
@@ -237,7 +223,9 @@ export function TimelineItem({
       </span>
       <div>
         <strong>{label}</strong>
-        {children ? <div className="np-timeline__detail">{children}</div> : null}
+        {children ? (
+          <div className="np-timeline__detail">{children}</div>
+        ) : null}
       </div>
     </li>
   );

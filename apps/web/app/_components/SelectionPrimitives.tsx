@@ -6,10 +6,7 @@ import type {
 
 function describedBy(id: string, description?: string, error?: string) {
   return (
-    [
-      description ? `${id}-description` : null,
-      error ? `${id}-error` : null,
-    ]
+    [description ? `${id}-description` : null, error ? `${id}-error` : null]
       .filter(Boolean)
       .join(" ") || undefined
   );
