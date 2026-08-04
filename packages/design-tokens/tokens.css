@@ -3,21 +3,103 @@
   --color-brand-kaaba: #171715;
   --color-brand-kiswah: #b89548;
   --color-brand-madinah: #176b50;
+  --color-brand-madinah-deep: #0e563e;
   --color-brand-sand: #cba77b;
+
   --color-surface-canvas: #fbf9f5;
+  --color-surface-subtle: #f7f2e8;
   --color-surface-raised: #ffffff;
+  --color-surface-inverse: #171715;
+  --color-surface-overlay: rgba(23, 23, 21, 0.56);
+
   --color-text-primary: #1d211f;
   --color-text-secondary: #5d645f;
+  --color-text-muted: #6a706c;
+  --color-text-inverse: #ffffff;
+  --color-text-accent: #74521d;
+
+  --color-border-subtle: #eee7db;
+  --color-border-default: #e3dacc;
+  --color-border-strong: #c9bdaa;
+
+  --color-focus-ring: #176b50;
+  --color-focus-ring-soft: rgba(23, 107, 80, 0.28);
+
+  --color-action-primary: #176b50;
+  --color-action-primary-hover: #0e563e;
+  --color-action-primary-text: #ffffff;
+  --color-action-secondary: #ffffff;
+  --color-action-secondary-hover: #f7f2e8;
+  --color-action-secondary-text: #1d211f;
+
+  --color-status-success: #267a58;
+  --color-status-success-surface: #eaf5ef;
+  --color-status-warning: #7a470d;
+  --color-status-warning-surface: #fff3df;
+  --color-status-danger: #b33a3a;
+  --color-status-danger-surface: #fbeaea;
+  --color-status-info: #356a8a;
+  --color-status-info-surface: #eaf2f7;
+  --color-status-neutral: #5d645f;
+  --color-status-neutral-surface: #f1f2f1;
+
+  --color-disabled-surface: #eceae5;
+  --color-disabled-text: #8b8f8c;
+  --color-disabled-border: #d8d5cf;
+  --color-skeleton-base: #eee9df;
+  --color-skeleton-highlight: #f7f3ec;
+
+  --font-family-display: Georgia, "Times New Roman", serif;
   --font-family-sans:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 2rem;
+  --font-size-3xl: clamp(2.5rem, 5vw, 4.25rem);
+  --line-height-tight: 1.1;
+  --line-height-body: 1.6;
+  --line-height-relaxed: 1.75;
+
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
   --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
   --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
   --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  --radius-sm: 0.5rem;
   --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 6px 20px rgba(48, 38, 20, 0.06);
+  --shadow-md: 0 14px 50px rgba(48, 38, 20, 0.08);
+  --shadow-lg: 0 24px 70px rgba(48, 38, 20, 0.12);
+
   --motion-fast: 120ms;
   --motion-standard: 200ms;
+  --motion-slow: 320ms;
   --motion-easing: cubic-bezier(0.2, 0, 0, 1);
+  --motion-easing-out: cubic-bezier(0.23, 1, 0.32, 1);
+
+  --layer-base: 0;
+  --layer-raised: 10;
+  --layer-sticky: 20;
+  --layer-drawer: 40;
+  --layer-modal: 100;
+  --layer-toast: 1000;
 }
 
 @media (prefers-reduced-motion: reduce) {

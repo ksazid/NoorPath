@@ -43,7 +43,10 @@ export default defineConfig({
       url: "http://127.0.0.1:3000",
       reuseExistingServer: !ci,
       timeout: 180_000,
-      env: { NOORPATH_API_URL: "http://127.0.0.1:5080" },
+      env: {
+        NOORPATH_API_URL: "http://127.0.0.1:5080",
+        NOORPATH_ENABLE_DESIGN_SYSTEM_SHOWCASE: "true",
+      },
     },
   ],
 });
