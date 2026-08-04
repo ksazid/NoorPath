@@ -7,7 +7,10 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const manifestDir = join(root, "delivery", "slices");
 const navigationGate = "navigation-reachability";
-const firstRequiredSliceNumber = 16;
+// VS-16 and VS-17 opt in explicitly for retrospective verification.
+// VS-18 established internal design-system primitives without adopting live navigation.
+// Every new product slice from VS-19 onward must register navigation verification.
+const firstRequiredSliceNumber = 19;
 const outcomePattern =
   /\|\s*(PENDING|VERIFIED|BLOCKED_IDENTITY|NOT_APPLICABLE|FAILED)\s*\|/gi;
 
