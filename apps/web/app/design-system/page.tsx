@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import {
   ActionButton,
   FeatureTile,
@@ -9,9 +9,12 @@ import {
   TimelineItem,
 } from "../_components/DesignSystem";
 
-export default function DesignSystemPage() {
-  if (process.env.NODE_ENV === "production") notFound();
+export const metadata: Metadata = {
+  title: "NoorPath Design System",
+  robots: { index: false, follow: false },
+};
 
+export default function DesignSystemPage() {
   return (
     <main className="np-showcase" id="main-content">
       <header className="np-showcase__header">
