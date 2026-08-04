@@ -22,7 +22,17 @@
 
 .np-staff-header__search input {
   width: 100%;
-  min-height: 42px;
+  min-height: 44px;
+}
+
+.np-customer-footer nav a,
+.np-staff-nav-group a {
+  min-height: 44px;
+}
+
+.np-customer-footer nav a {
+  display: flex;
+  align-items: center;
 }
 
 @media (max-width: 760px) {
