@@ -464,3 +464,34 @@ test("authorized refund remains safe when provider execution is disabled", async
   ).toBeVisible();
   await expect(page.getByText(/₹0 of ₹49,000 recorded/)).toBeVisible();
 });
+
+test("Platform Administrator opening cancellation review is guided to admin", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/operator/access", (route) =>
+    route.fulfill({
+      status: 403,
+      contentType: "application/json",
+      body: JSON.stringify({ code: "forbidden" }),
+    }),
+  );
+  await page.route("**/api/v1/platform/access", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ accountId: "platform-administrator" }),
+    }),
+  );
+
+  await page.goto("/operator/cancellations");
+
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Use NoorPath administration",
+  );
+  await expect(
+    page.getByRole("link", { name: "Open admin workspace" }),
+  ).toHaveAttribute("href", "/admin");
+  await expectNoA11yViolations(page);
+  await expectMinimumTargets(page);
+  await expectNoHorizontalOverflow(page);
+});
