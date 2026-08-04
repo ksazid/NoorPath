@@ -55,8 +55,11 @@
     "security",
     "authorization",
     "privacy",
+    "journey-linking",
     "navigation-reachability",
     "telemetry",
+    "accessibility",
+    "rendered-regression",
     "product-owner"
   ],
   "rendered": {
