@@ -1,0 +1,74 @@
+.np-route-shell {
+  min-height: 100dvh;
+}
+
+.np-route-brand {
+  width: min(184px, 42vw);
+  overflow: hidden;
+}
+
+.np-route-brand img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.np-route-shell__content {
+  min-width: 0;
+  outline: none;
+}
+
+/* Existing customer pages retain their domain markup while the shared route
+   adapter owns the global header and footer. Staff routes are never wrapped. */
+.np-route-shell__content .public-topbar,
+.np-route-shell__content .public-footer {
+  display: none !important;
+}
+
+.np-route-shell__content .public-page,
+.np-route-shell__content .journey-page {
+  min-height: auto;
+}
+
+.np-route-shell--authenticated .account-header,
+.np-route-shell--authenticated .account-sidebar {
+  display: none;
+}
+
+.np-route-shell--authenticated .account-shell {
+  display: block;
+  min-height: 0;
+}
+
+.np-route-shell--authenticated .account-content {
+  margin-inline: auto;
+}
+
+.np-route-shell--authenticated .account-gate > .auth-brand,
+.np-route-shell--transactional .auth-page > .auth-brand {
+  display: none;
+}
+
+.np-route-shell--transactional .auth-page,
+.np-route-shell--authenticated .account-gate {
+  min-height: calc(100dvh - 144px);
+}
+
+.np-route-shell--transactional .booking-page,
+.np-route-shell--transactional .inventory-hold-page,
+.np-route-shell--transactional .journey-page {
+  min-height: auto;
+}
+
+.np-route-shell .np-customer-header a:focus-visible,
+.np-route-shell .np-customer-footer a:focus-visible,
+.np-route-shell .np-customer-menu summary:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .np-route-brand {
+    width: min(150px, 46vw);
+  }
+}
