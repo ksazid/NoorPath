@@ -69,7 +69,10 @@ export default function OperatorWorkspaceShell({
       }
 
       if (response.status === 403) {
-        const platformResponse = await fetch("/api/v1/platform/access", request);
+        const platformResponse = await fetch(
+          "/api/v1/platform/access",
+          request,
+        );
         setState(
           platformResponse.ok
             ? { kind: "platform-administrator" }
@@ -148,11 +151,7 @@ export default function OperatorWorkspaceShell({
             </Link>
           ) : null}
           {state.kind === "error" ? (
-            <button
-              className="auth-primary"
-              type="button"
-              onClick={loadAccess}
-            >
+            <button className="auth-primary" type="button" onClick={loadAccess}>
               Try again
             </button>
           ) : null}

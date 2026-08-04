@@ -65,9 +65,8 @@ export default function OperatorOverview() {
     return [
       {
         label: "Packages",
-        value: new Set(
-          state.catalogue.map((item) => item.packageTemplateId),
-        ).size,
+        value: new Set(state.catalogue.map((item) => item.packageTemplateId))
+          .size,
         href: "/operator/packages",
       },
       {
@@ -122,11 +121,7 @@ export default function OperatorOverview() {
             <h2 id="operator-metrics-title">Operational overview</h2>
           </div>
           {state.kind === "error" ? (
-            <button
-              type="button"
-              className="auth-secondary"
-              onClick={load}
-            >
+            <button type="button" className="auth-secondary" onClick={load}>
               Retry
             </button>
           ) : null}
@@ -176,7 +171,9 @@ export default function OperatorOverview() {
           </Link>
           <Link href="/operator/support">
             <strong>Operational support</strong>
-            <span>Resolve booking, payment, document, and visa exceptions.</span>
+            <span>
+              Resolve booking, payment, document, and visa exceptions.
+            </span>
           </Link>
           <Link href="/operator/cancellations">
             <strong>Cancellations &amp; refunds</strong>
@@ -184,7 +181,9 @@ export default function OperatorOverview() {
           </Link>
           <Link href="/operator/account">
             <strong>Account access</strong>
-            <span>See the operator identity and permissions in this session.</span>
+            <span>
+              See the operator identity and permissions in this session.
+            </span>
           </Link>
         </div>
       </section>

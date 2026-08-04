@@ -116,11 +116,7 @@ export default function OperatorCollectionPage({
         {state.kind === "error" ? (
           <div className="operator-inline-state">
             <p>{title} are temporarily unavailable.</p>
-            <button
-              className="auth-secondary"
-              type="button"
-              onClick={load}
-            >
+            <button className="auth-secondary" type="button" onClick={load}>
               Retry
             </button>
           </div>
@@ -142,10 +138,7 @@ export default function OperatorCollectionPage({
               const next = departures[0];
               const origins = [...new Set(departures.map((x) => x.origin))];
               return (
-                <article
-                  className="operator-card"
-                  key={item.packageTemplateId}
-                >
+                <article className="operator-card" key={item.packageTemplateId}>
                   <div>
                     <p className="auth-eyebrow">Package</p>
                     <h3>{item.packageName}</h3>
