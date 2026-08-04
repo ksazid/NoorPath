@@ -313,6 +313,7 @@ test("operator reaches cancellation review from overview and sees the sidebar li
 test("Operational Support exposes a working cancellation review link", async ({
   page,
 }) => {
+  await mockOperatorOverview(page);
   await page.route("**/api/v1/operator/support?*", (route) =>
     route.fulfill({
       json: {
@@ -350,6 +351,7 @@ test("Operational Support exposes a working cancellation review link", async ({
 test("operator receives recoverable stale-version feedback without editing the amount", async ({
   page,
 }) => {
+  await mockOperatorOverview(page);
   let detailReads = 0;
   await page.route("**/api/v1/operator/cancellations?*", (route) =>
     route.fulfill({ json: { items: [queueItem] } }),
@@ -408,6 +410,7 @@ test("operator receives recoverable stale-version feedback without editing the a
 test("authorized refund remains safe when provider execution is disabled", async ({
   page,
 }) => {
+  await mockOperatorOverview(page);
   const authorized = {
     ...caseDetail,
     booking: { ...caseDetail.booking, state: "Cancelled" },
