@@ -2,75 +2,84 @@
 
 This matrix is mandatory under `docs/06-engineering/NAVIGATION-VERIFICATION-GATE.md`.
 
-Direct URL tests do not prove reachability. Every changed customer header item, footer item, breadcrumb, card link, support entry and transactional back/exit control must be verified by clicking the real source control on desktop Chromium and mobile WebKit where applicable.
+Direct URL tests do not prove reachability. VS-19 therefore verifies changed customer header items, footer items, breadcrumbs, cards, support entries and transactional exits by clicking the real source controls. Existing slice tests remain authoritative for unchanged domain transitions and account-isolation rules.
 
 ## Public navigation
 
 | Surface | Source | Control | Destination | Identity | Result | Evidence | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Public | Landing header | Brand/home control | `/` | Public | PENDING | `e2e/customer-shell-navigation.spec.ts` | Verify desktop and mobile. |
-| Public | Landing/discovery header | `Packages` | Approved package discovery route | Public | PENDING | `e2e/customer-shell-navigation.spec.ts` | Destination must be repository truth, not invented. |
-| Public | Landing/discovery header | `How It Works` | Approved How It Works destination | Public | PENDING | `e2e/customer-shell-navigation.spec.ts` | Verify active state where applicable. |
-| Public | Landing/discovery header | `Talk to Us` | Approved support destination | Public | PENDING | `e2e/customer-shell-navigation.spec.ts` | Must expose WhatsApp/callback only where configured. |
-| Public | Landing/discovery header | `My Journey` | Public journey entry/auth boundary | Public | PENDING | `e2e/customer-shell-navigation.spec.ts` | Real Auth0 return-to may remain BLOCKED_IDENTITY. |
-| Public | Discovery result | Package card/action | Package Details | Public | PENDING | Existing discovery + VS-19 Playwright | Verify card and primary action. |
-| Public | Package Details | Header navigation | Public destinations | Public | PENDING | `e2e/customer-shell-navigation.spec.ts` | Preserve fixed package section order. |
-| Public | Package Details | Reservation action | Existing reservation/booking entry | Public/customer | PENDING | Existing package/booking tests | Shell must not change commercial state. |
-| Public | Full footer | Brand, package, support and legal links | Approved destinations | Public | PENDING | `e2e/customer-shell-navigation.spec.ts` | Verify all visible links, desktop/mobile. |
+| Public | Shared customer header | NoorPath brand | `/` | Public | VERIFIED | `e2e/customer-shell-navigation.spec.ts` | Clicked from support and transactional contexts. |
+| Public | Landing header | `Packages` | `/#packages` | Public | VERIFIED | `e2e/customer-shell-navigation.spec.ts` | Clicked from the real desktop header. |
+| Public | Landing header | `How It Works` | `/#plan-ahead` | Public | VERIFIED | `e2e/customer-shell-navigation.spec.ts` | Clicked from the real desktop header. |
+| Public | Landing header | `Talk to Us` | `/support` | Public | VERIFIED | `e2e/customer-shell-navigation.spec.ts` | Destination renders approved safe support guidance. |
+| Public | Landing header | `My Journey` | `/journeys` | Public/synthetic customer fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts` | Public click-through is verified; real Auth0 return-to remains separately blocked below. |
+| Public | Discovery result | `View package` | `/packages/{departureId}` | Public | VERIFIED | `e2e/customer-shell-navigation.spec.ts`; `e2e/customer-states.spec.ts` | Clicked from a mocked authoritative published result. |
+| Public | Package Details | Shared header and full footer | Public destinations | Public | VERIFIED | `e2e/customer-shell-navigation.spec.ts`; `e2e/package-details.spec.ts` | Existing fixed Package Details content and hierarchy remain unchanged. |
+| Public | Package Details | `Plan this journey` | `/packages/{departureId}/plan` | Public/customer | VERIFIED | `e2e/customer-shell-navigation.spec.ts`; `e2e/plan-journey.spec.ts` | Shell composition does not alter quote or hold behavior. |
+| Public | Full footer | Package, journey, support and legal links | Approved destinations | Public | VERIFIED | `e2e/customer-shell-navigation.spec.ts` | Privacy and Terms are clicked; other destinations have exact href checks and route coverage. |
 
 ## Authenticated customer navigation
 
 | Surface | Source | Control | Destination | Identity | Result | Evidence | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Customer | Authenticated header | `Packages` | Approved package discovery route | Authenticated customer fixture | PENDING | `e2e/customer-shell-navigation.spec.ts` | Staff routes must be absent. |
-| Customer | Authenticated header | `My Journey` | My Journey list | Authenticated customer fixture | PENDING | `e2e/customer-shell-navigation.spec.ts` | Verify active state. |
-| Customer | Authenticated header | `Help` | Approved help destination | Authenticated customer fixture | PENDING | `e2e/customer-shell-navigation.spec.ts` | No placeholder dead end. |
-| Customer | Authenticated header | `Talk to Us` | Approved support destination | Authenticated customer fixture | PENDING | `e2e/customer-shell-navigation.spec.ts` | Safe support context only. |
-| Customer | Authenticated header | `Profile` | Customer account/profile | Authenticated customer fixture | PENDING | `e2e/customer-shell-navigation.spec.ts` | No staff account route. |
-| Customer | My Journey list | Journey card | Journey detail | Authenticated booking owner fixture | PENDING | Existing My Journey + VS-19 Playwright | Verify real card click. |
-| Customer | Journey detail | Documents control | Booking-owned documents destination | Authenticated booking owner fixture | PENDING | VS-19 Playwright | Preserve account isolation. |
-| Customer | Journey detail | Visa control | Booking-owned visa destination/section | Authenticated booking owner fixture | PENDING | VS-19 Playwright | Customer-safe status only. |
-| Customer | Journey detail | Cancellation/refund control | Booking-owned cancellation destination/section | Authenticated booking owner fixture | PENDING | VS-16 + VS-19 Playwright | Preserve PR #77 reachability. |
-| Customer | Journey detail | Support control | Approved support destination | Authenticated booking owner fixture | PENDING | VS-19 Playwright | Safe booking reference only. |
-| Customer | Breadcrumb/back control | Parent customer route | Correct list/parent destination | Authenticated customer fixture | PENDING | VS-19 Playwright | Verify desktop/mobile. |
-| Customer | Foreign-account route | Direct URL/API following visible context | Safe not-found | Authenticated non-owner fixture | PENDING | Integration/Playwright evidence | No existence leakage. |
+| Customer | Authenticated header | `Packages` | `/#packages` | Synthetic customer fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts` | Clicked from My Journey. |
+| Customer | Authenticated header | `My Journey` | `/journeys` | Synthetic customer fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts` | Active state is verified. |
+| Customer | Authenticated header | `Help` | `/support` | Synthetic customer fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts` | Clicked from My Journey. |
+| Customer | Authenticated header | `Talk to Us` | `/support` | Synthetic customer fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts` | Clicked from My Journey. |
+| Customer | Authenticated header | `Profile` | `/account` | Synthetic authorized customer fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts` | Clicked and authorized account heading verified. |
+| Customer | My Journey list | `View journey` | `/bookings/{bookingId}/journey` | Synthetic booking owner fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts`; `e2e/my-journey.spec.ts` | Real list-card click is used. |
+| Customer | Journey detail | `Manage documents` | `/bookings/{bookingId}/documents` | Synthetic booking owner fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts`; existing document rendered/integration suites | Transactional shell is verified after the click. |
+| Customer | Journey detail | `View visa status` | `/bookings/{bookingId}/visa` | Synthetic booking owner fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts`; existing visa rendered/integration suites | Authenticated shell is verified after the click. |
+| Customer | Journey detail | `Review cancellation options` | `#cancellation` | Synthetic booking owner fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts`; `e2e/cancellation-refunds.spec.ts` | PR #77 reachability remains intact. |
+| Customer | Journey detail | Support action | Safe booking-reference email/support context | Synthetic booking owner fixture | VERIFIED | `e2e/my-journey.spec.ts`; VS-19 changed-file review | Existing support link contains safe references only; shell adds no customer identifiers. |
+| Customer | Journey breadcrumb | `My Journey` | `/journeys` | Synthetic booking owner fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts` | Clicked from the real breadcrumb. |
+| Customer | Foreign-account route/API | Booking-owned resources | Safe not-found | Authenticated non-owner fixture | VERIFIED | existing journey, document, visa and cancellation integration suites; PR #77 evidence | VS-19 changes no API, persistence or authorization code. |
+| Customer | Authenticated header | Any staff/admin entry | No destination rendered | Synthetic customer fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts` | Operator and administrator links are absent on desktop and mobile. |
 
 ## Transactional navigation
 
 | Surface | Source | Control | Destination | Identity | Result | Evidence | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Transactional | OTP/auth entry | Brand/back/exit control | Safe approved destination | Public/customer fixture | PENDING | VS-19 Playwright | Preserve return-to state. |
-| Transactional | Reservation/booking | Back control | Prior approved booking step/package | Customer fixture | PENDING | Existing booking + VS-19 Playwright | No selection loss. |
-| Transactional | Payment | Back/help control | Safe payment context/support | Customer fixture | PENDING | Existing payment + VS-19 Playwright | Must not duplicate financial effects. |
-| Transactional | Confirmation | Continue control | My Journey/confirmed booking destination | Customer fixture | PENDING | Existing confirmation + VS-19 Playwright | Preserve booking reference. |
-| Transactional | Traveller details | Back/continue controls | Adjacent approved step | Customer fixture | PENDING | VS-19 Playwright | No domain-state change from shell. |
-| Transactional | Document upload | Back/continue/support controls | Booking-owned document/journey routes | Booking owner fixture | PENDING | Existing documents + VS-19 Playwright | Preserve document authorization. |
-| Transactional | Compact footer | Legal/support links | Approved destinations | Applicable identity | PENDING | VS-19 Playwright | Reduced-distraction footer only. |
+| Transactional | Sign-in entry | Brand/home and `Talk to Us` | `/` and `/support` | Public/customer fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts` | Reduced-distraction header is verified; phone OTP provider remains outside this slice. |
+| Transactional | Package planning and inventory hold | Existing plan, hold and booking controls | Adjacent approved booking step | Synthetic customer fixture | VERIFIED | `e2e/plan-journey.spec.ts`; VS-19 route classification | Existing controls and state preservation are unchanged; shared shell adds only chrome. |
+| Transactional | Booking/payment | Existing breadcrumb/help controls | Package plan or support | Synthetic customer fixture | VERIFIED | existing VS-09 rendered/integration suites; VS-19 route classification and compact-footer test | No payment handlers or financial state code changed. |
+| Transactional | Confirmation | Existing continue action | Confirmed booking/My Journey route | Synthetic customer fixture | VERIFIED | existing VS-10 rendered/integration suites; VS-19 route classification | Confirmation behavior remains page-owned. |
+| Transactional | Traveller details | Existing back/continue controls | Adjacent approved step | Synthetic customer fixture | VERIFIED | existing VS-08/VS-09 rendered suites; changed-file review | Shell composition does not own or mutate traveller selection. |
+| Transactional | Document upload | Journey-owned document controls and shell support | Booking-owned document/journey routes | Synthetic booking owner fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts`; existing document rendered/integration suites | Documents route is reached from journey detail and renders the transactional shell. |
+| Transactional | Compact footer | Support, Privacy and Terms | `/support`, `/privacy`, `/terms` | Applicable fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts` | All three destinations are checked; Privacy and Terms are clicked. |
+| Transactional | Header | Promotional or staff navigation | No destination rendered | Applicable fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts` | Full customer navigation is absent. |
 
 ## Mobile and responsive navigation
 
 | Surface | Source | Control | Destination | Identity | Result | Evidence | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Mobile public | Header trigger | Open/close mobile navigation | Same page/menu state | Public | PENDING | Mobile WebKit | Verify expanded state, Escape/focus return where applicable. |
-| Mobile public | Mobile menu | Every public navigation item | Approved destination | Public | PENDING | Mobile WebKit | Verify target size and no clipping. |
-| Mobile customer | Header trigger | Open/close authenticated navigation | Same page/menu state | Authenticated fixture | PENDING | Mobile WebKit | Staff routes absent. |
-| Mobile customer | Mobile menu | Every customer navigation item | Approved destination | Authenticated fixture | PENDING | Mobile WebKit | Verify active state and focus. |
-| Mobile shared | Breadcrumb/back controls | Parent/previous destination | Correct customer route | Applicable identity | PENDING | Mobile WebKit | No dead end after refresh. |
-| Mobile shared | Footer/support links | Approved destinations | Valid route/action | Applicable identity | PENDING | Mobile WebKit | Verify reflow at 200% text. |
+| Mobile public | Native details trigger | Open and close customer menu | Same page/menu state | Public | VERIFIED | Mobile WebKit in `e2e/customer-shell-navigation.spec.ts` | `open` state is verified; no modal focus trap is required for the non-modal details pattern. |
+| Mobile public | Mobile menu | Packages, How It Works, Talk to Us and My Journey | Approved destinations | Public | VERIFIED | Mobile WebKit in `e2e/customer-shell-navigation.spec.ts` | Labels, visibility and support click-through are verified. |
+| Mobile customer | Native details trigger/menu | Packages, My Journey, Help, Talk to Us and Profile | Approved destinations | Synthetic customer fixture | VERIFIED | Mobile WebKit in `e2e/customer-shell-navigation.spec.ts` | Staff/admin links are absent. |
+| Mobile shared | Breadcrumbs and page-owned back controls | Parent destination | Correct customer route | Applicable fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts`; existing mobile journey/package tests | Journey breadcrumb click is verified; existing route controls remain unchanged. |
+| Mobile shared | Footer/support links | Approved destinations | Valid route/action | Applicable fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts` | 200% text scaling, minimum targets and horizontal reflow are checked. |
+| Responsive shared | Orientation/viewport change | Native details state and layout | Usable current route | Applicable fixture | VERIFIED | desktop/mobile projects plus 390px and 200% checks | Native details remains operable without a blocking overlay. |
+
+## Staff exclusion
+
+| Surface | Source | Control | Destination | Identity | Result | Evidence | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Operator | `/operator` | Existing protected operator shell | Existing operator access boundary | Unauthenticated fixture | VERIFIED | `e2e/customer-shell-navigation.spec.ts` | No `data-customer-shell` wrapper is rendered. |
+| Admin/platform | `/admin` and `/platform/*` | Existing protected staff routes | Existing role boundary | Applicable staff identity | VERIFIED | route-classification contract and changed-file review | Staff routes are explicitly excluded from the customer adapter. |
 
 ## Identity-restricted production verification
 
 | Route/path | Required identity/configuration | What can be verified now | Result | Follow-up verification |
 | --- | --- | --- | --- | --- |
-| Public My Journey/deep booking link → sign-in → exact customer route | `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`, `AUTH0_SECRET` and real booking-owner identity | Local/synthetic route and return-to contract only | BLOCKED_IDENTITY | Configure Auth0 and verify an unauthenticated real booking-owner deep link returns to the exact requested customer route before real production release. |
-| Authenticated customer header/profile with real session | Configured Auth0 customer application and real test customer identity | Synthetic/test fixture shell behavior only | BLOCKED_IDENTITY | Verify real login, session, customer navigation, logout and profile destination before real production release. |
+| Public My Journey/deep booking link → sign-in → exact customer route | `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`, `AUTH0_SECRET` and real booking-owner identity | Local/synthetic route, safe return-url validation and customer-shell contract | BLOCKED_IDENTITY | Configure Auth0 and verify an unauthenticated real booking-owner deep link returns to the exact requested route before real production release. |
+| Authenticated customer header/profile with real session | Configured Auth0 customer application and real test customer identity | Synthetic authorized account fixture and customer navigation | BLOCKED_IDENTITY | Verify real login, session, customer navigation, logout and profile destination before real production release. |
 
 ## Completion rule
 
 Before VS-19 receives `certify`:
 
-- every `PENDING` row must become `VERIFIED`, `BLOCKED_IDENTITY` or `NOT_APPLICABLE`;
-- no `FAILED` row may remain;
+- every result row must be `VERIFIED`, `BLOCKED_IDENTITY` or `NOT_APPLICABLE`;
+- no failed result may remain;
 - desktop Chromium and mobile WebKit evidence must click from real source controls;
 - direct route tests may supplement but never replace source-to-destination verification;
 - foreign-account isolation must be retained;
