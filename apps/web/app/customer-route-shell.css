@@ -60,6 +60,52 @@
   min-height: auto;
 }
 
+.np-route-information {
+  width: min(100% - 40px, 900px);
+  margin-inline: auto;
+  padding-block: clamp(40px, 7vw, 88px);
+}
+
+.np-route-information > h1 {
+  max-width: 18ch;
+  margin: 12px 0 18px;
+  font-family: var(--font-family-display);
+  font-size: clamp(2.25rem, 6vw, 4rem);
+  font-weight: 500;
+  line-height: 1.05;
+}
+
+.np-route-information > p {
+  max-width: 68ch;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-body);
+}
+
+.np-route-information section {
+  margin-top: var(--space-8);
+  padding: var(--space-6);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+.np-route-information section h2 {
+  margin-top: 0;
+  font-family: var(--font-family-display);
+  font-weight: 500;
+}
+
+.np-route-information section p {
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-body);
+}
+
+.np-route-information section a:not(.auth-primary) {
+  color: var(--color-text-accent);
+  font-weight: 700;
+}
+
 .np-route-shell .np-customer-header a:focus-visible,
 .np-route-shell .np-customer-footer a:focus-visible,
 .np-route-shell .np-customer-menu summary:focus-visible {
@@ -70,5 +116,13 @@
 @media (max-width: 600px) {
   .np-route-brand {
     width: min(150px, 46vw);
+  }
+
+  .np-route-information {
+    width: min(100% - 32px, 900px);
+  }
+
+  .np-route-information section {
+    padding: var(--space-5);
   }
 }
