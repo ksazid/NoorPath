@@ -3,10 +3,7 @@ import type {
   HTMLAttributes,
   ReactNode,
 } from "react";
-import {
-  NoorPathIcon,
-  type NoorPathIconName,
-} from "./NoorPathIcon";
+import { NoorPathIcon, type NoorPathIconName } from "./NoorPathIcon";
 
 export const PACKAGE_DETAIL_SECTION_ORDER = [
   "hero-gallery",
