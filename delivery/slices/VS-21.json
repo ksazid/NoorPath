@@ -58,7 +58,8 @@
     "product-owner"
   ],
   "rendered": {
-    "enabled": true
+    "enabled": true,
+    "testFile": "apps/web/e2e/auth0-session-establishment.spec.ts"
   },
   "specPath": "docs/slices/VS-21-AUTH0-SESSION-ESTABLISHMENT.md",
   "checklistPath": "docs/slices/VS-21-IMPLEMENTATION-CHECKLIST.md",
