@@ -10,7 +10,18 @@ import {
   SupportAction,
   TextField,
 } from "../_components/FormPrimitives";
+import {
+  IconButton,
+  MetricCard,
+  StickyActionBar,
+} from "../_components/InteractionPrimitives";
 import { NoorPathIcon } from "../_components/NoorPathIcon";
+import {
+  CheckboxField,
+  RadioCard,
+  SelectField,
+  ToggleField,
+} from "../_components/SelectionPrimitives";
 import { CustomerShell, StaffShell } from "../_components/Shells";
 
 describe("VS-18 design-system foundation", () => {
@@ -35,15 +46,26 @@ describe("VS-18 design-system foundation", () => {
     ]);
   });
 
-  it("exports the shared component, icon, form and shell primitives", () => {
-    expect(ActionButton).toBeTypeOf("function");
-    expect(StatusBadge).toBeTypeOf("function");
-    expect(OccupancyAvatarGroup).toBeTypeOf("function");
-    expect(TextField).toBeTypeOf("function");
-    expect(SupportAction).toBeTypeOf("function");
-    expect(SkeletonBlock).toBeTypeOf("function");
-    expect(NoorPathIcon).toBeTypeOf("function");
-    expect(CustomerShell).toBeTypeOf("function");
-    expect(StaffShell).toBeTypeOf("function");
+  it("exports the shared design-system primitives", () => {
+    for (const component of [
+      ActionButton,
+      StatusBadge,
+      OccupancyAvatarGroup,
+      TextField,
+      SelectField,
+      CheckboxField,
+      RadioCard,
+      ToggleField,
+      SupportAction,
+      SkeletonBlock,
+      IconButton,
+      MetricCard,
+      StickyActionBar,
+      NoorPathIcon,
+      CustomerShell,
+      StaffShell,
+    ]) {
+      expect(component).toBeTypeOf("function");
+    }
   });
 });
