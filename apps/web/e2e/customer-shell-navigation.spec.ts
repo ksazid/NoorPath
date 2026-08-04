@@ -6,6 +6,7 @@ import {
 } from "./helpers";
 
 const bookingId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+const departureId = "3c9d522a-9481-4b79-9486-64cf997bfe31";
 
 const journeyList = {
   items: [
@@ -67,6 +68,96 @@ const journey = {
   },
 };
 
+const publishedDetail = {
+  departureId,
+  operator: {
+    id: "operator-noor",
+    displayName: "Noor International Tours & Travels",
+  },
+  packageName: "Browser Verified Journey",
+  summary: "A published journey backed by authoritative NoorPath facts.",
+  origin: "Delhi (DEL)",
+  departureDate: "2026-10-10",
+  returnDate: "2026-10-22",
+  durationNights: 12,
+  makkah: {
+    hotelName: "Makkah Hotel",
+    classification: "4 star",
+    distanceDisclosure: "850 m from Masjid al-Haram",
+    nights: 6,
+    confirmationState: "confirmed",
+  },
+  madinah: {
+    hotelName: "Madinah Hotel",
+    classification: "4 star",
+    distanceDisclosure: "450 m from Al-Masjid an-Nabawi",
+    nights: 5,
+    confirmationState: "pending",
+  },
+  travel: {
+    routeSummary: "Delhi → Jeddah → Makkah → Madinah",
+    details: "Final carrier and flight timing remain pending.",
+    confirmationState: "pending",
+  },
+  inclusions: ["Return flights", "Breakfast", "Visa support"],
+  exclusions: ["Personal expenses"],
+  pricing: {
+    currency: "INR",
+    occupancies: [
+      {
+        occupancy: "double",
+        amount: 110000,
+        availableQuantity: 10,
+        status: "available",
+      },
+      {
+        occupancy: "triple",
+        amount: 100000,
+        availableQuantity: 0,
+        status: "unavailable",
+      },
+      {
+        occupancy: "quad",
+        amount: 90000,
+        availableQuantity: 6,
+        status: "available",
+      },
+    ],
+  },
+};
+
+const publishedDiscovery = {
+  items: [
+    {
+      departureId,
+      operator: publishedDetail.operator,
+      packageName: publishedDetail.packageName,
+      summary: publishedDetail.summary,
+      origin: publishedDetail.origin,
+      departureDate: publishedDetail.departureDate,
+      returnDate: publishedDetail.returnDate,
+      durationNights: publishedDetail.durationNights,
+      makkah: publishedDetail.makkah,
+      madinah: publishedDetail.madinah,
+      travelConfirmationState: "pending",
+      inclusionHighlights: ["Return flights", "Breakfast"],
+      headlinePrice: {
+        amount: 90000,
+        currency: "INR",
+        occupancy: "quad",
+      },
+      availability: {
+        status: "available",
+        occupancies: [
+          { occupancy: "double", availableQuantity: 10 },
+          { occupancy: "triple", availableQuantity: 8 },
+          { occupancy: "quad", availableQuantity: 6 },
+        ],
+      },
+    },
+  ],
+};
+
 async function mockCustomerJourneys(page: import("@playwright/test").Page) {
   await page.route("**/api/v1/journeys", (route) =>
     route.fulfill({ json: journeyList }),
@@ -76,32 +167,37 @@ async function mockCustomerJourneys(page: import("@playwright/test").Page) {
   );
 }
 
+async function mockPublicPackages(page: import("@playwright/test").Page) {
+  await page.route("**/api/v1/departures", (route) =>
+    route.fulfill({ json: publishedDiscovery }),
+  );
+  await page.route(`**/api/v1/departures/${departureId}`, (route) =>
+    route.fulfill({ json: publishedDetail }),
+  );
+}
+
 function desktopNavigation(page: import("@playwright/test").Page) {
   return page
     .locator(".np-customer-navigation--desktop")
     .getByRole("navigation", { name: "Customer navigation" });
 }
 
-test("public shell exposes valid header, footer, support and legal destinations", async ({
+test("public shell exposes valid discovery, package, support and legal destinations", async ({
   page,
 }, testInfo) => {
   await mockCustomerJourneys(page);
+  await mockPublicPackages(page);
   await page.goto("/");
 
   const shell = page.locator('[data-customer-shell="public"]');
   await expect(shell).toBeVisible();
 
   const navigation = desktopNavigation(page);
-  await expect(navigation.getByRole("link", { name: "Packages" })).toBeVisible();
-  await expect(
-    navigation.getByRole("link", { name: "How It Works" }),
-  ).toBeVisible();
-  await expect(
-    navigation.getByRole("link", { name: "Talk to Us" }),
-  ).toBeVisible();
-  await expect(
-    navigation.getByRole("link", { name: "My Journey" }),
-  ).toBeVisible();
+  for (const label of ["Packages", "How It Works", "Talk to Us", "My Journey"]) {
+    await expect(
+      navigation.getByRole("link", { name: label, exact: true }),
+    ).toBeVisible();
+  }
 
   await navigation.getByRole("link", { name: "Packages" }).click();
   await expect(page).toHaveURL(/\/#packages$/);
@@ -112,6 +208,24 @@ test("public shell exposes valid header, footer, support and legal destinations"
   await navigation.getByRole("link", { name: "My Journey" }).click();
   await expect(page).toHaveURL(/\/journeys$/);
   await expect(page.getByRole("heading", { name: "My Journey" })).toBeVisible();
+
+  await page.goto("/");
+  await expect(
+    page.getByRole("heading", { name: "Browser Verified Journey" }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: /View package/ }).click();
+  await expect(page).toHaveURL(new RegExp(`/packages/${departureId}$`));
+  await expect(
+    page.getByRole("heading", {
+      name: "Noor International Tours & Travels",
+    }),
+  ).toBeVisible();
+  await expect(page.locator('[data-customer-shell="public"]')).toBeVisible();
+  await expect(page.locator(".np-customer-footer:visible")).toBeVisible();
+
+  await page.getByRole("link", { name: "Plan this journey" }).click();
+  await expect(page).toHaveURL(new RegExp(`/packages/${departureId}/plan$`));
+  await expect(page.locator('[data-customer-shell="public"]')).toBeVisible();
 
   await page.goto("/");
   await desktopNavigation(page).getByRole("link", { name: "Talk to Us" }).click();
@@ -165,10 +279,14 @@ test("public shell exposes valid header, footer, support and legal destinations"
   });
 });
 
-test("authenticated shell preserves journey, documents, visa, cancellation and breadcrumb reachability", async ({
+test("authenticated shell preserves header, journey and booking-owned reachability", async ({
   page,
 }, testInfo) => {
   await mockCustomerJourneys(page);
+  await mockPublicPackages(page);
+  await page.route("**/api/v1/account/access", (route) =>
+    route.fulfill({ status: 200, json: {} }),
+  );
   await page.goto("/journeys");
 
   const shell = page.locator('[data-customer-shell="authenticated"]');
@@ -193,6 +311,29 @@ test("authenticated shell preserves journey, documents, visa, cancellation and b
     navigation.getByRole("link", { name: /operator|admin/i }),
   ).toHaveCount(0);
 
+  await navigation.getByRole("link", { name: "Help", exact: true }).click();
+  await expect(page).toHaveURL(/\/support$/);
+
+  await page.goto("/journeys");
+  await desktopNavigation(page)
+    .getByRole("link", { name: "Talk to Us", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/support$/);
+
+  await page.goto("/journeys");
+  await desktopNavigation(page)
+    .getByRole("link", { name: "Profile", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/account$/);
+  await expect(page.getByRole("heading", { name: "My NoorPath" })).toBeVisible();
+
+  await page.goto("/journeys");
+  await desktopNavigation(page)
+    .getByRole("link", { name: "Packages", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/#packages$/);
+
+  await page.goto("/journeys");
   await page.getByRole("link", { name: "View journey" }).click();
   await expect(page).toHaveURL(
     new RegExp(`/bookings/${bookingId}/journey$`),
@@ -263,7 +404,25 @@ test("transactional shell provides reduced-distraction support and legal exits",
     compactFooter.getByRole("link", { name: "Terms" }),
   ).toHaveAttribute("href", "/terms");
 
-  await shell.getByRole("link", { name: "Talk to Us" }).click();
+  await shell.getByRole("link", { name: "NoorPath home" }).first().click();
+  await expect(page).toHaveURL(/\/$/);
+
+  await page.goto("/auth/sign-in?returnUrl=%2Fjourneys");
+  await page
+    .locator(".np-customer-footer--compact")
+    .getByRole("link", { name: "Privacy" })
+    .click();
+  await expect(page).toHaveURL(/\/privacy$/);
+
+  await page.goto("/auth/sign-in?returnUrl=%2Fjourneys");
+  await page
+    .locator(".np-customer-footer--compact")
+    .getByRole("link", { name: "Terms" })
+    .click();
+  await expect(page).toHaveURL(/\/terms$/);
+
+  await page.goto("/auth/sign-in?returnUrl=%2Fjourneys");
+  await page.getByRole("link", { name: "Talk to Us" }).click();
   await expect(page).toHaveURL(/\/support$/);
 
   await expectNoA11yViolations(page);
@@ -283,8 +442,10 @@ test("mobile public and authenticated menus reflow without exposing staff routes
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
 
-  await page.getByText("Menu", { exact: true }).click();
-  const publicPanel = page.locator(".np-customer-menu__panel");
+  const publicMenu = page.locator(".np-customer-menu");
+  await publicMenu.getByText("Menu", { exact: true }).click();
+  await expect(publicMenu).toHaveAttribute("open", "");
+  const publicPanel = publicMenu.locator(".np-customer-menu__panel");
   for (const label of [
     "Packages",
     "How It Works",
@@ -295,13 +456,17 @@ test("mobile public and authenticated menus reflow without exposing staff routes
       publicPanel.getByRole("link", { name: label, exact: true }),
     ).toBeVisible();
   }
+  await publicMenu.getByText("Menu", { exact: true }).click();
+  await expect(publicMenu).not.toHaveAttribute("open", "");
+  await publicMenu.getByText("Menu", { exact: true }).click();
   await publicPanel.getByRole("link", { name: "Talk to Us" }).click();
   await expect(page).toHaveURL(/\/support$/);
 
   await mockCustomerJourneys(page);
   await page.goto("/journeys");
-  await page.getByText("Menu", { exact: true }).click();
-  const customerPanel = page.locator(".np-customer-menu__panel");
+  const customerMenu = page.locator(".np-customer-menu");
+  await customerMenu.getByText("Menu", { exact: true }).click();
+  const customerPanel = customerMenu.locator(".np-customer-menu__panel");
   for (const label of [
     "Packages",
     "My Journey",
