@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import "@noorpath/design-tokens/tokens.css";
 import FamilyQuoteBridge from "./FamilyQuoteBridge";
 import "./styles.css";
+import "./design-system.css";
 import "./composer.css";
 import "./commercial.css";
 import "./payment-plan.css";
