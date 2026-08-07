@@ -77,7 +77,7 @@ public static class OperatorBookingManagementEndpoints
             .ToArrayAsync(cancellationToken);
         var requirementIds = requirementRows.Select(item => item.Id).ToArray();
         var submissionRows = requirementIds.Length == 0
-            ? []
+            ? Array.Empty<DocumentSubmissionRecord>()
             : await documents.Submissions.AsNoTracking()
                 .Where(item => requirementIds.Contains(item.RequirementId))
                 .OrderByDescending(item => item.CreatedAtUtc)
@@ -214,7 +214,8 @@ public static class OperatorBookingManagementEndpoints
         var actionRequired = items.Count(item =>
             item.documents.status == "actionRequired"
             || item.visa.status is "actionRequired" or "rejected"
-            || item.payment.status != "paid");
+            || item.payment.status != "paid"
+            || item.state is "confirmationException" or "paymentFailed");
 
         return Results.Ok(new
         {
@@ -232,10 +233,15 @@ public static class OperatorBookingManagementEndpoints
     private static string BookingStateKey(BookingState state) => state switch
     {
         BookingState.PendingPayment => "pendingPayment",
+        BookingState.PaymentInProgress => "paymentInProgress",
+        BookingState.PaymentSucceeded => "paymentSucceeded",
+        BookingState.PaymentFailed => "paymentFailed",
+        BookingState.PaymentCancelled => "paymentCancelled",
+        BookingState.PendingConfirmation => "pendingConfirmation",
+        BookingState.Confirming => "confirming",
         BookingState.Confirmed => "confirmed",
-        BookingState.CancellationPending => "cancellationPending",
-        BookingState.Cancelled => "cancelled",
         BookingState.ConfirmationException => "confirmationException",
+        BookingState.Cancelled => "cancelled",
         _ => state.ToString().ToLowerInvariant()
     };
 }
