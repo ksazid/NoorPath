@@ -31,7 +31,8 @@ export default function PackageQuickStart() {
   const [returnDate, setReturnDate] = useState("");
   const [makkahHotel, setMakkahHotel] = useState("");
   const [madinahHotel, setMadinahHotel] = useState("");
-  const [intercityMode, setIntercityMode] = useState<IntercityMode>("bus");
+  const [intercityMode, setIntercityMode] =
+    useState<IntercityMode>("bus");
   const [inclusions, setInclusions] = useState<string[]>([
     ...STANDARD_PACKAGE_INCLUSIONS,
   ]);
@@ -56,8 +57,16 @@ export default function PackageQuickStart() {
   };
 
   const createDraft = async () => {
-    if (!origin.trim() || !departureDate || !returnDate || !makkahHotel.trim() || !madinahHotel.trim()) {
-      setError("Add the origin, dates, and both hotel names to create the draft.");
+    if (
+      !origin.trim() ||
+      !departureDate ||
+      !returnDate ||
+      !makkahHotel.trim() ||
+      !madinahHotel.trim()
+    ) {
+      setError(
+        "Add the origin, dates, and both hotel names to create the draft.",
+      );
       return;
     }
     if (!duration) {
@@ -70,7 +79,9 @@ export default function PackageQuickStart() {
     const makkahNights = Math.ceil(duration.nights / 2);
     const madinahNights = duration.nights - makkahNights;
     const transportLabel =
-      intercityMode === "train" ? "Intercity travel by train" : "Intercity travel by bus";
+      intercityMode === "train"
+        ? "Intercity travel by train"
+        : "Intercity travel by bus";
     const selectedInclusions = inclusions.map((item) =>
       item === "Intercity travel" ? transportLabel : item,
     );
@@ -115,7 +126,9 @@ export default function PackageQuickStart() {
       router.replace(`/operator/departures/${created.departureId}`);
     } catch {
       setState("error");
-      setError("The draft could not be created. Your entries are still here; retry safely.");
+      setError(
+        "The draft could not be created. Your entries are still here; retry safely.",
+      );
     }
   };
 
@@ -123,12 +136,20 @@ export default function PackageQuickStart() {
     <main className="admin-shell composer-shell">
       <aside className="admin-sidebar composer-sidebar">
         <Link className="brand" href="/operator" aria-label="Operator home">
-          <span className="brand-mark" aria-hidden="true">◇</span>
+          <span className="brand-mark" aria-hidden="true">
+            ◇
+          </span>
           <span>NoorPath</span>
         </Link>
         <nav aria-label="Operator navigation">
-          <Link className="composer-nav-active" href="/operator/packages/new" aria-current="page">
-            <span className="composer-icon" aria-hidden="true">◈</span>
+          <Link
+            className="composer-nav-active"
+            href="/operator/packages/new"
+            aria-current="page"
+          >
+            <span className="composer-icon" aria-hidden="true">
+              ◈
+            </span>
             Create package
           </Link>
           <Link href="/operator/packages">Packages</Link>
@@ -141,46 +162,152 @@ export default function PackageQuickStart() {
           <div>
             <span className="eyebrow">Packages · Quick start</span>
             <h1>Create a package draft</h1>
-            <p>Set the essential journey facts now. Pricing, occupancy, milestones and preview follow after the draft is created.</p>
+            <p>
+              Set the essential journey facts now. Pricing, occupancy,
+              milestones and preview follow after the draft is created.
+            </p>
           </div>
           <span className="draft-pill">Private draft</span>
         </div>
 
-        {error ? <div className="error-summary" role="alert"><strong>Review package details</strong><span>{error}</span></div> : null}
+        {error ? (
+          <div className="error-summary" role="alert">
+            <strong>Review package details</strong>
+            <span>{error}</span>
+          </div>
+        ) : null}
 
         <section className="form-card">
-          <div className="form-card-heading"><span>01</span><div><h2>Journey</h2><p>Dates automatically calculate the customer-facing duration and title.</p></div></div>
+          <div className="form-card-heading">
+            <span>01</span>
+            <div>
+              <h2>Journey</h2>
+              <p>
+                Dates automatically calculate the customer-facing duration and
+                title.
+              </p>
+            </div>
+          </div>
           <div className="form-grid">
-            <label className="field"><span>Departure origin *</span><input value={origin} placeholder="e.g. Delhi (DEL)" onChange={(event) => setOrigin(event.target.value)} /></label>
-            <label className="field"><span>Departure date *</span><input type="date" value={departureDate} onChange={(event) => setDepartureDate(event.target.value)} /></label>
-            <label className="field"><span>Return date *</span><input type="date" value={returnDate} onChange={(event) => setReturnDate(event.target.value)} /></label>
+            <label className="field">
+              <span>Departure origin *</span>
+              <input
+                value={origin}
+                placeholder="e.g. Delhi (DEL)"
+                onChange={(event) => setOrigin(event.target.value)}
+              />
+            </label>
+            <label className="field">
+              <span>Departure date *</span>
+              <input
+                type="date"
+                value={departureDate}
+                onChange={(event) => setDepartureDate(event.target.value)}
+              />
+            </label>
+            <label className="field">
+              <span>Return date *</span>
+              <input
+                type="date"
+                value={returnDate}
+                onChange={(event) => setReturnDate(event.target.value)}
+              />
+            </label>
           </div>
           <div className="operator-inline-state" aria-live="polite">
-            <div><small>Suggested heading</small><strong>{title}</strong></div>
-            <div><small>Calculated duration</small><strong>{duration ? `${duration.days} Days / ${duration.nights} Nights` : "Choose valid dates"}</strong></div>
+            <div>
+              <small>Suggested heading</small>
+              <strong>{title}</strong>
+            </div>
+            <div>
+              <small>Calculated duration</small>
+              <strong>
+                {duration
+                  ? `${duration.days} Days / ${duration.nights} Nights`
+                  : "Choose valid dates"}
+              </strong>
+            </div>
           </div>
         </section>
 
         <section className="form-card">
-          <div className="form-card-heading"><span>02</span><div><h2>Stays & intercity travel</h2><p>The nights are split automatically and remain editable in the full composer.</p></div></div>
+          <div className="form-card-heading">
+            <span>02</span>
+            <div>
+              <h2>Stays & intercity travel</h2>
+              <p>
+                The nights are split automatically and remain editable in the
+                full composer.
+              </p>
+            </div>
+          </div>
           <div className="form-grid">
-            <label className="field"><span>Makkah hotel *</span><input value={makkahHotel} onChange={(event) => setMakkahHotel(event.target.value)} /></label>
-            <label className="field"><span>Madinah hotel *</span><input value={madinahHotel} onChange={(event) => setMadinahHotel(event.target.value)} /></label>
+            <label className="field">
+              <span>Makkah hotel *</span>
+              <input
+                value={makkahHotel}
+                onChange={(event) => setMakkahHotel(event.target.value)}
+              />
+            </label>
+            <label className="field">
+              <span>Madinah hotel *</span>
+              <input
+                value={madinahHotel}
+                onChange={(event) => setMadinahHotel(event.target.value)}
+              />
+            </label>
           </div>
           <fieldset className="confirmation-field">
             <legend>Intercity travel provided by operator</legend>
-            <label><input type="radio" name="intercity" checked={intercityMode === "bus"} onChange={() => setIntercityMode("bus")} /><span><strong>Bus</strong><small>Coach or private bus transfer</small></span></label>
-            <label><input type="radio" name="intercity" checked={intercityMode === "train"} onChange={() => setIntercityMode("train")} /><span><strong>Train</strong><small>Haramain or another confirmed rail service</small></span></label>
+            <label>
+              <input
+                type="radio"
+                name="intercity"
+                checked={intercityMode === "bus"}
+                onChange={() => setIntercityMode("bus")}
+              />
+              <span>
+                <strong>Bus</strong>
+                <small>Coach or private bus transfer</small>
+              </span>
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="intercity"
+                checked={intercityMode === "train"}
+                onChange={() => setIntercityMode("train")}
+              />
+              <span>
+                <strong>Train</strong>
+                <small>Haramain or another confirmed rail service</small>
+              </span>
+            </label>
           </fieldset>
         </section>
 
         <section className="form-card">
-          <div className="form-card-heading"><span>03</span><div><h2>What is included</h2><p>NoorPath terminology stays consistent for every operator. Untick only what is genuinely not included.</p></div></div>
+          <div className="form-card-heading">
+            <span>03</span>
+            <div>
+              <h2>What is included</h2>
+              <p>
+                NoorPath terminology stays consistent for every operator. Untick
+                only what is genuinely not included.
+              </p>
+            </div>
+          </div>
           <div className="operator-content-grid">
             {STANDARD_PACKAGE_INCLUSIONS.map((item) => (
               <label className="operator-card" key={item}>
-                <input type="checkbox" checked={inclusions.includes(item)} onChange={() => toggleInclusion(item)} />
-                <span className="composer-icon" aria-hidden="true">{inclusionIcons[item] ?? "✓"}</span>
+                <input
+                  type="checkbox"
+                  checked={inclusions.includes(item)}
+                  onChange={() => toggleInclusion(item)}
+                />
+                <span className="composer-icon" aria-hidden="true">
+                  {inclusionIcons[item] ?? "✓"}
+                </span>
                 <strong>{item}</strong>
               </label>
             ))}
@@ -189,11 +316,24 @@ export default function PackageQuickStart() {
       </section>
 
       <footer className="admin-sticky-footer composer-savebar">
-        <span>Next: pricing, occupancy, payment milestones and customer preview</span>
+        <span>
+          Next: pricing, occupancy, payment milestones and customer preview
+        </span>
         <div>
-          <Link className="secondary-button" href="/operator/packages">Cancel</Link>
-          <button className="primary-button" type="button" disabled={state === "saving"} onClick={() => void createDraft()}>
-            {state === "saving" ? "Creating…" : state === "error" ? "Retry create draft" : "Create draft & continue"}
+          <Link className="secondary-button" href="/operator/packages">
+            Cancel
+          </Link>
+          <button
+            className="primary-button"
+            type="button"
+            disabled={state === "saving"}
+            onClick={() => void createDraft()}
+          >
+            {state === "saving"
+              ? "Creating…"
+              : state === "error"
+                ? "Retry create draft"
+                : "Create draft & continue"}
           </button>
         </div>
       </footer>
