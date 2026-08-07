@@ -1,0 +1,59 @@
+{
+  "id": "VS-22",
+  "title": "Auth0 API Token Handoff Repair",
+  "slug": "auth0-api-token-handoff",
+  "outcome": "An authenticated NoorPath server session forwards its issued Auth0 API access token to protected customer, operator and platform API routes without exposing the token to the browser.",
+  "actor": "Authenticated NoorPath customers, approved operator members and platform administrators using protected web routes.",
+  "dependsOn": ["VS-21"],
+  "modules": [
+    "Accounts owns Auth0 session and access-token lifecycle.",
+    "Web owns server-side API proxying and bearer-token forwarding.",
+    "Customer, Operator and Platform APIs retain their existing authorization and resource-isolation policies."
+  ],
+  "routes": [
+    "Authenticated web route -> server session -> protected customer API",
+    "Approved operator web route -> server session -> protected operator API",
+    "Platform administrator web route -> server session -> protected platform API",
+    "Missing or expired token -> deny-by-default unauthenticated behavior"
+  ],
+  "acceptance": [
+    "The server-side proxy reads the access token already established in the Auth0 session before attempting a refresh fallback.",
+    "Customer, operator and platform proxy routes forward the bearer token only from the server boundary.",
+    "No access token is exposed to browser JavaScript, URL parameters, logs or client-rendered payloads.",
+    "Missing or unusable session/token state remains deny-by-default.",
+    "Existing operator membership, platform allow-list and customer resource-ownership checks remain unchanged.",
+    "Protected customer, operator and platform routes can complete their API access checks after successful Auth0 session establishment.",
+    "Product Owner approval is required before merge; deployment remains separately approved."
+  ],
+  "exclusions": [
+    "Auth0 tenant redesign.",
+    "Phone OTP or account recovery.",
+    "Authorization-policy changes or role administration.",
+    "Page redesign or customer-domain behavior changes.",
+    "Production deployment."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "migration",
+    "security",
+    "authorization",
+    "privacy",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "rendered-regression",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": false
+  },
+  "specPath": "docs/slices/VS-22-AUTH0-API-TOKEN-HANDOFF.md",
+  "checklistPath": "docs/slices/VS-22-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-22-NAVIGATION-VERIFICATION.md"
+}
