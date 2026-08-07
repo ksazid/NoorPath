@@ -115,32 +115,48 @@ test("operator can manage bookings with payment document and visa progress", asy
 
   await page.goto("/operator/bookings");
 
-  await expect(page.getByRole("heading", { level: 1, name: "Bookings" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Bookings" }),
+  ).toBeVisible();
   await expect(page.getByText("2", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("NP-2027-0001", { exact: false })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "12 Days Umrah from Delhi" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "12 Days Umrah from Delhi" }),
+  ).toBeVisible();
   await expect(page.getByText("Amina Rahman", { exact: true })).toBeVisible();
   await expect(page.getByText("Omar Rahman", { exact: true })).toBeVisible();
-  await expect(page.getByText("INR 94,500 paid", { exact: false })).toBeVisible();
-  await expect(page.getByText("2 of 4 requirements approved", { exact: true })).toBeVisible();
-  await expect(page.getByText("1 of 2 travellers approved", { exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Open document review" })).toHaveAttribute(
-    "href",
-    "/operator/documents",
-  );
-  await expect(page.getByRole("link", { name: "Open visa processing" })).toHaveAttribute(
-    "href",
-    "/operator/visa",
-  );
+  await expect(
+    page.getByText("INR 94,500 paid", { exact: false }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("2 of 4 requirements approved", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("1 of 2 travellers approved", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Open document review" }),
+  ).toHaveAttribute("href", "/operator/documents");
+  await expect(
+    page.getByRole("link", { name: "Open visa processing" }),
+  ).toHaveAttribute("href", "/operator/visa");
 
   await page.getByLabel("Search bookings").fill("Amina");
-  await expect(page.getByRole("heading", { name: "12 Days Umrah from Delhi" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Premium Umrah from Mumbai" })).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "12 Days Umrah from Delhi" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Premium Umrah from Mumbai" }),
+  ).toHaveCount(0);
 
   await page.getByLabel("Search bookings").fill("");
   await page.getByRole("button", { name: "Confirmed" }).click();
-  await expect(page.getByRole("heading", { name: "12 Days Umrah from Delhi" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Premium Umrah from Mumbai" })).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "12 Days Umrah from Delhi" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Premium Umrah from Mumbai" }),
+  ).toHaveCount(0);
 
   await expect(page.getByRole("link", { name: "Bookings" })).toHaveAttribute(
     "aria-current",
@@ -151,7 +167,9 @@ test("operator can manage bookings with payment document and visa progress", asy
   await expectNoHorizontalOverflow(page);
 });
 
-test("operator booking management has a useful empty state", async ({ page }) => {
+test("operator booking management has a useful empty state", async ({
+  page,
+}) => {
   await mockAccess(page);
   await page.route("**/api/v1/operator/bookings", async (route) => {
     await route.fulfill({
@@ -165,10 +183,11 @@ test("operator booking management has a useful empty state", async ({ page }) =>
   });
 
   await page.goto("/operator/bookings");
-  await expect(page.getByRole("heading", { name: "No bookings yet" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "View packages" })).toHaveAttribute(
-    "href",
-    "/operator/packages",
-  );
+  await expect(
+    page.getByRole("heading", { name: "No bookings yet" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "View packages" }),
+  ).toHaveAttribute("href", "/operator/packages");
   await expectNoHorizontalOverflow(page);
 });

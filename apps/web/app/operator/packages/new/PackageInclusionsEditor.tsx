@@ -153,7 +153,8 @@ const GROUP_COPY: Record<
   },
   excluded: {
     title: "Not included",
-    helper: "Standard exclusions are selected by default; add or remove as needed.",
+    helper:
+      "Standard exclusions are selected by default; add or remove as needed.",
     mode: "exclusion",
   },
 };
@@ -170,7 +171,10 @@ function PackageOptionIcon({ name }: { name: IconName }) {
   const paths: Record<IconName, React.ReactNode> = {
     plane: (
       <>
-        <path {...common} d="m3 13 7-2 4-7 2 1-2 6 6 2v2l-6 1-2 5-2-1 1-5-6 1-2-3Z" />
+        <path
+          {...common}
+          d="m3 13 7-2 4-7 2 1-2 6 6 2v2l-6 1-2 5-2-1 1-5-6 1-2-3Z"
+        />
       </>
     ),
     visa: (
@@ -188,7 +192,10 @@ function PackageOptionIcon({ name }: { name: IconName }) {
     ),
     mosque: (
       <>
-        <path {...common} d="M4 21h16M6 21v-8h12v8M8 13c0-4 8-4 8 0M12 5v3M10 5h4" />
+        <path
+          {...common}
+          d="M4 21h16M6 21v-8h12v8M8 13c0-4 8-4 8 0M12 5v3M10 5h4"
+        />
         <path {...common} d="M10 21v-4h4v4" />
       </>
     ),
@@ -252,7 +259,10 @@ function PackageOptionIcon({ name }: { name: IconName }) {
     ),
     ihram: (
       <>
-        <path {...common} d="M7 5c2 1 3 3 3 5v11H5V10c0-2 1-4 2-5ZM17 5c-2 1-3 3-3 5v11h5V10c0-2-1-4-2-5Z" />
+        <path
+          {...common}
+          d="M7 5c2 1 3 3 3 5v11H5V10c0-2 1-4 2-5ZM17 5c-2 1-3 3-3 5v11h5V10c0-2-1-4-2-5Z"
+        />
       </>
     ),
     bag: (
@@ -444,7 +454,10 @@ export default function PackageInclusionsEditor({
             </div>
 
             {addingTo === key ? (
-              <form className="package-option-custom" onSubmit={addCustomOption}>
+              <form
+                className="package-option-custom"
+                onSubmit={addCustomOption}
+              >
                 <label>
                   <span>Custom item</span>
                   <input

@@ -44,10 +44,18 @@ test("platform approver sees submitted packages with immutable review context", 
   await expect(
     page.getByRole("heading", { name: "Review packages before they go live" }),
   ).toBeVisible();
-  await expect(page.getByText("2 awaiting approval", { exact: true })).toBeVisible();
-  await expect(page.getByText("Independent approval", { exact: true })).toBeVisible();
-  await expect(page.getByText("Exact saved versions", { exact: true })).toBeVisible();
-  await expect(page.getByText("Customer-visible action", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("2 awaiting approval", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Independent approval", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Exact saved versions", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Customer-visible action", { exact: true }),
+  ).toBeVisible();
 
   const cards = page.locator(".platform-approval-item");
   await expect(cards).toHaveCount(2);
@@ -68,7 +76,9 @@ test("platform approver sees submitted packages with immutable review context", 
   await expectNoHorizontalOverflow(page);
 });
 
-test("platform approval queue has an explicit empty state", async ({ page }) => {
+test("platform approval queue has an explicit empty state", async ({
+  page,
+}) => {
   await page.route("**/api/v1/platform/publications", async (route) => {
     await route.fulfill({
       status: 200,
@@ -79,7 +89,9 @@ test("platform approval queue has an explicit empty state", async ({ page }) => 
 
   await page.goto("/platform/publications");
 
-  await expect(page.getByText("0 awaiting approval", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("0 awaiting approval", { exact: true }),
+  ).toBeVisible();
   await expect(
     page.getByRole("status").getByText("No packages are waiting"),
   ).toBeVisible();
