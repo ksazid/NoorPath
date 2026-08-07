@@ -30,7 +30,10 @@ function TravelModeIcon({ mode }: { mode: IntercityMode }) {
     </svg>
   ) : (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path {...common} d="M7 4h10a2 2 0 0 1 2 2v9a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V6a2 2 0 0 1 2-2Z" />
+      <path
+        {...common}
+        d="M7 4h10a2 2 0 0 1 2 2v9a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V6a2 2 0 0 1 2-2Z"
+      />
       <path {...common} d="M7 9h10M8 15h.01M16 15h.01M9 19l-2 2M15 19l2 2" />
     </svg>
   );

@@ -24,7 +24,8 @@ type CatalogueState =
   | { kind: "error" }
   | { kind: "ready"; items: CatalogueItem[] };
 
-type PackageStatus = "draft" | "readyForReview" | "published" | "closed" | "other";
+type PackageStatus =
+  "draft" | "readyForReview" | "published" | "closed" | "other";
 
 type PackageGroup = {
   packageTemplateId: string;
@@ -103,7 +104,9 @@ export default function OperatorCollectionPage({
 }) {
   const [state, setState] = useState<CatalogueState>({ kind: "loading" });
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | PackageStatus>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | PackageStatus>(
+    "all",
+  );
 
   const load = useCallback(async () => {
     setState({ kind: "loading" });
@@ -147,14 +150,18 @@ export default function OperatorCollectionPage({
     }
 
     return [...grouped.values()]
-      .map((item) => ({ ...item, lifecycle: packageLifecycle(item.departures) }))
+      .map((item) => ({
+        ...item,
+        lifecycle: packageLifecycle(item.departures),
+      }))
       .sort((a, b) => a.packageName.localeCompare(b.packageName));
   }, [state]);
 
   const filteredPackages = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return packages.filter((item) => {
-      if (statusFilter !== "all" && item.lifecycle !== statusFilter) return false;
+      if (statusFilter !== "all" && item.lifecycle !== statusFilter)
+        return false;
       if (!needle) return true;
       return (
         item.packageName.toLowerCase().includes(needle) ||
@@ -170,8 +177,10 @@ export default function OperatorCollectionPage({
     return {
       total: packages.length,
       draft: packages.filter((item) => item.lifecycle === "draft").length,
-      awaiting: packages.filter((item) => item.lifecycle === "readyForReview").length,
-      published: packages.filter((item) => item.lifecycle === "published").length,
+      awaiting: packages.filter((item) => item.lifecycle === "readyForReview")
+        .length,
+      published: packages.filter((item) => item.lifecycle === "published")
+        .length,
     };
   }, [packages]);
 
@@ -190,7 +199,9 @@ export default function OperatorCollectionPage({
           <div>
             <p className="auth-eyebrow">Operator catalogue</p>
             <h2>
-              {mode === "packages" ? "Package management" : "Departure schedule"}
+              {mode === "packages"
+                ? "Package management"
+                : "Departure schedule"}
             </h2>
           </div>
           <Link className="auth-primary" href={createHref}>
@@ -217,11 +228,26 @@ export default function OperatorCollectionPage({
 
         {mode === "packages" && packages.length > 0 ? (
           <>
-            <div className="operator-package-metrics" aria-label="Package status summary">
-              <div><strong>{packageCounts.total}</strong><span>All packages</span></div>
-              <div><strong>{packageCounts.draft}</strong><span>Draft</span></div>
-              <div><strong>{packageCounts.awaiting}</strong><span>Awaiting approval</span></div>
-              <div><strong>{packageCounts.published}</strong><span>Published</span></div>
+            <div
+              className="operator-package-metrics"
+              aria-label="Package status summary"
+            >
+              <div>
+                <strong>{packageCounts.total}</strong>
+                <span>All packages</span>
+              </div>
+              <div>
+                <strong>{packageCounts.draft}</strong>
+                <span>Draft</span>
+              </div>
+              <div>
+                <strong>{packageCounts.awaiting}</strong>
+                <span>Awaiting approval</span>
+              </div>
+              <div>
+                <strong>{packageCounts.published}</strong>
+                <span>Published</span>
+              </div>
             </div>
 
             <div className="operator-package-toolbar">
@@ -266,17 +292,23 @@ export default function OperatorCollectionPage({
                   const origins = [...new Set(departures.map((x) => x.origin))];
                   const action = packagePrimaryAction(next);
                   const publishedCount = departures.filter(
-                    (departure) => normalizeStatus(departure.status) === "published",
+                    (departure) =>
+                      normalizeStatus(departure.status) === "published",
                   ).length;
                   return (
-                    <article className="operator-card operator-package-card" key={item.packageTemplateId}>
+                    <article
+                      className="operator-card operator-package-card"
+                      key={item.packageTemplateId}
+                    >
                       <div className="operator-card-heading">
                         <div>
                           <p className="auth-eyebrow">Package</p>
                           <h3>{item.packageName}</h3>
                           <p>{item.summary}</p>
                         </div>
-                        <span className={`operator-status-badge is-${item.lifecycle}`}>
+                        <span
+                          className={`operator-status-badge is-${item.lifecycle}`}
+                        >
                           {packageStatusLabel(item.lifecycle)}
                         </span>
                       </div>
@@ -310,7 +342,8 @@ export default function OperatorCollectionPage({
                         ))}
                         {departures.length > 3 ? (
                           <span className="operator-package-more">
-                            +{departures.length - 3} more departure{departures.length - 3 === 1 ? "" : "s"}
+                            +{departures.length - 3} more departure
+                            {departures.length - 3 === 1 ? "" : "s"}
                           </span>
                         ) : null}
                       </div>

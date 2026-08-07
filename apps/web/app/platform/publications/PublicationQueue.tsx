@@ -15,11 +15,7 @@ type QueueItem = {
 };
 
 type QueueState =
-  | "loading"
-  | "ready"
-  | "unauthenticated"
-  | "forbidden"
-  | "error";
+  "loading" | "ready" | "unauthenticated" | "forbidden" | "error";
 
 function requestHeaders(): HeadersInit {
   const testIdentity = process.env.NEXT_PUBLIC_NOORPATH_TEST_IDENTITY;
@@ -125,21 +121,27 @@ export default function PublicationQueue() {
             <span aria-hidden="true">✓</span>
             <div>
               <strong>Independent approval</strong>
-              <small>Operators cannot publish their own submitted package.</small>
+              <small>
+                Operators cannot publish their own submitted package.
+              </small>
             </div>
           </article>
           <article>
             <span aria-hidden="true">◇</span>
             <div>
               <strong>Exact saved versions</strong>
-              <small>Catalogue, pricing and inventory are checked together.</small>
+              <small>
+                Catalogue, pricing and inventory are checked together.
+              </small>
             </div>
           </article>
           <article>
             <span aria-hidden="true">↗</span>
             <div>
               <strong>Customer-visible action</strong>
-              <small>Approval publishes only after every readiness check passes.</small>
+              <small>
+                Approval publishes only after every readiness check passes.
+              </small>
             </div>
           </article>
         </div>
@@ -171,12 +173,17 @@ export default function PublicationQueue() {
           </div>
         )}
         {state === "ready" && items.length === 0 && (
-          <div className="publication-queue-state platform-empty-state" role="status">
+          <div
+            className="publication-queue-state platform-empty-state"
+            role="status"
+          >
             <span className="platform-empty-icon" aria-hidden="true">
               ✓
             </span>
             <strong>No packages are waiting</strong>
-            <span>New operator submissions will appear here for independent review.</span>
+            <span>
+              New operator submissions will appear here for independent review.
+            </span>
           </div>
         )}
         {state === "ready" && orderedItems.length > 0 && (
@@ -191,11 +198,14 @@ export default function PublicationQueue() {
                     <span className="platform-queue-number">
                       {String(index + 1).padStart(2, "0")}
                     </span>
-                    <span className="platform-review-status">Awaiting review</span>
+                    <span className="platform-review-status">
+                      Awaiting review
+                    </span>
                   </div>
                   <h2>{item.packageName}</h2>
                   <p>
-                    {item.origin} · {formatDate(item.departureDate)} — {formatDate(item.returnDate)}
+                    {item.origin} · {formatDate(item.departureDate)} —{" "}
+                    {formatDate(item.returnDate)}
                   </p>
                   <dl className="platform-approval-facts">
                     <div>

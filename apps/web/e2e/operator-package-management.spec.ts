@@ -62,43 +62,68 @@ test("operator package management shows lifecycle summary and contextual actions
 }) => {
   await page.goto("/operator/packages");
 
-  await expect(page.getByRole("heading", { name: "Package management" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Package management" }),
+  ).toBeVisible();
   await expect(page.getByText("All packages")).toBeVisible();
-  await expect(page.getByText("Awaiting approval", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Published", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByText("Awaiting approval", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Published", { exact: true }).first(),
+  ).toBeVisible();
 
-  const draft = page.getByRole("article").filter({ hasText: "Delhi Winter Umrah" });
-  await expect(draft.getByRole("link", { name: "Continue setup" })).toHaveAttribute(
+  const draft = page
+    .getByRole("article")
+    .filter({ hasText: "Delhi Winter Umrah" });
+  await expect(
+    draft.getByRole("link", { name: "Continue setup" }),
+  ).toHaveAttribute(
     "href",
     "/operator/departures/40000000-0000-0000-0000-000000000001",
   );
 
-  const review = page.getByRole("article").filter({ hasText: "Mumbai Ramadan Umrah" });
-  await expect(review.getByRole("link", { name: "View approval status" })).toHaveAttribute(
+  const review = page
+    .getByRole("article")
+    .filter({ hasText: "Mumbai Ramadan Umrah" });
+  await expect(
+    review.getByRole("link", { name: "View approval status" }),
+  ).toHaveAttribute(
     "href",
     "/operator/departures/40000000-0000-0000-0000-000000000002/review",
   );
 
-  const published = page.getByRole("article").filter({ hasText: "Kolkata Spring Umrah" });
-  await expect(published.getByRole("link", { name: "View customer page" })).toHaveAttribute(
-    "href",
-    "/packages/40000000-0000-0000-0000-000000000003",
-  );
+  const published = page
+    .getByRole("article")
+    .filter({ hasText: "Kolkata Spring Umrah" });
+  await expect(
+    published.getByRole("link", { name: "View customer page" }),
+  ).toHaveAttribute("href", "/packages/40000000-0000-0000-0000-000000000003");
 
   await expectNoA11yViolations(page);
   await expectMinimumTargets(page);
   await expectNoHorizontalOverflow(page);
 });
 
-test("operator can filter and search packages without leaving the workspace", async ({ page }) => {
+test("operator can filter and search packages without leaving the workspace", async ({
+  page,
+}) => {
   await page.goto("/operator/packages");
 
   await page.getByLabel("Status").selectOption("published");
-  await expect(page.getByRole("heading", { name: "Kolkata Spring Umrah" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Delhi Winter Umrah" })).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Kolkata Spring Umrah" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Delhi Winter Umrah" }),
+  ).toHaveCount(0);
 
   await page.getByLabel("Status").selectOption("all");
   await page.getByLabel("Search packages").fill("Mumbai");
-  await expect(page.getByRole("heading", { name: "Mumbai Ramadan Umrah" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Kolkata Spring Umrah" })).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Mumbai Ramadan Umrah" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Kolkata Spring Umrah" }),
+  ).toHaveCount(0);
 });

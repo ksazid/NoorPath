@@ -79,9 +79,7 @@ function displayDate(value?: string | null) {
 }
 
 function label(value: string) {
-  return value
-    .replace(/([A-Z])/g, " $1")
-    .replace(/^./, (x) => x.toUpperCase());
+  return value.replace(/([A-Z])/g, " $1").replace(/^./, (x) => x.toUpperCase());
 }
 
 function statusTone(value: string) {
@@ -255,9 +253,7 @@ export default function OperatorBookingManagement() {
                   >
                     <div className="operator-booking-card-head">
                       <div>
-                        <p className="auth-eyebrow">
-                          Booking {item.reference}
-                        </p>
+                        <p className="auth-eyebrow">Booking {item.reference}</p>
                         <h2>{item.packageName}</h2>
                         <p>
                           {item.origin} · {displayDate(item.departureDate)} —{" "}
@@ -297,7 +293,8 @@ export default function OperatorBookingManagement() {
                           </strong>
                         </div>
                         <p>
-                          {money(item.payment.currency, item.payment.paid)} paid ·{" "}
+                          {money(item.payment.currency, item.payment.paid)} paid
+                          ·{" "}
                           {money(
                             item.payment.currency,
                             item.payment.outstanding,
@@ -306,12 +303,14 @@ export default function OperatorBookingManagement() {
                         </p>
                         {item.payment.nextInstalment ? (
                           <small>
-                            Next instalment {item.payment.nextInstalment.sequence}:{" "}
+                            Next instalment{" "}
+                            {item.payment.nextInstalment.sequence}:{" "}
                             {money(
                               item.payment.currency,
                               item.payment.nextInstalment.amount,
                             )}{" "}
-                            due {displayDate(item.payment.nextInstalment.dueDate)}
+                            due{" "}
+                            {displayDate(item.payment.nextInstalment.dueDate)}
                           </small>
                         ) : (
                           <small>No outstanding scheduled instalment.</small>
@@ -345,9 +344,7 @@ export default function OperatorBookingManagement() {
                           {item.visa.approved} of {item.visa.total} travellers
                           approved
                         </p>
-                        <Link href="/operator/visa">
-                          Open visa processing
-                        </Link>
+                        <Link href="/operator/visa">Open visa processing</Link>
                       </section>
                     </div>
 

@@ -120,38 +120,42 @@ test("operator can complete journey, stays, intercity and create the draft", asy
     });
   });
 
-  await page.route(`**/api/v1/operator/departures/${departureId}`, async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        departureId,
-        packageName: "12 Days / 11 Nights Umrah from Delhi (DEL)",
-        summary: "Draft package",
-        origin: "Delhi (DEL)",
-        departureDate: "2027-01-10",
-        returnDate: "2027-01-21",
-        makkah: {
-          hotelName: "Makkah Stay",
-          classification: "5 star",
-          distanceDisclosure: "",
-          nights: 6,
-        },
-        madinah: {
-          hotelName: "Madinah Stay",
-          classification: "4 star",
-          distanceDisclosure: "",
-          nights: 5,
-        },
-        travel: {
-          routeSummary: "Delhi (DEL) → Jeddah → Makkah → Madinah",
-          details: "Intercity transfer by train. Flight details to be confirmed.",
-        },
-        inclusions: ["Intercity travel by train"],
-        exclusions: ["Personal expenses"],
-      }),
-    });
-  });
+  await page.route(
+    `**/api/v1/operator/departures/${departureId}`,
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          departureId,
+          packageName: "12 Days / 11 Nights Umrah from Delhi (DEL)",
+          summary: "Draft package",
+          origin: "Delhi (DEL)",
+          departureDate: "2027-01-10",
+          returnDate: "2027-01-21",
+          makkah: {
+            hotelName: "Makkah Stay",
+            classification: "5 star",
+            distanceDisclosure: "",
+            nights: 6,
+          },
+          madinah: {
+            hotelName: "Madinah Stay",
+            classification: "4 star",
+            distanceDisclosure: "",
+            nights: 5,
+          },
+          travel: {
+            routeSummary: "Delhi (DEL) → Jeddah → Makkah → Madinah",
+            details:
+              "Intercity transfer by train. Flight details to be confirmed.",
+          },
+          inclusions: ["Intercity travel by train"],
+          exclusions: ["Personal expenses"],
+        }),
+      });
+    },
+  );
 
   await page.goto("/operator/packages/new");
   await page.getByLabel("Departure origin").fill("Delhi (DEL)");
@@ -165,7 +169,9 @@ test("operator can complete journey, stays, intercity and create the draft", asy
   await page.getByRole("checkbox", { name: "Luggage tag" }).check();
 
   await page.getByRole("button", { name: "Create draft & continue" }).click();
-  await expect(page).toHaveURL(new RegExp(`/operator/departures/${departureId}$`));
+  await expect(page).toHaveURL(
+    new RegExp(`/operator/departures/${departureId}$`),
+  );
 
   expect(submitted).not.toBeNull();
   expect(submitted).toMatchObject({
