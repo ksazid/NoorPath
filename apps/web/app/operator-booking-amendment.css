@@ -1,0 +1,265 @@
+.operator-amendment {
+  display: grid;
+  gap: 20px;
+  margin-top: 34px;
+}
+
+.operator-amendment__back a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--green-deep);
+  font-size: 13px;
+  font-weight: 800;
+  text-underline-offset: 3px;
+}
+
+.operator-amendment__hero,
+.operator-amendment__section,
+.operator-amendment__notice,
+.operator-amendment__error {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fffdf9;
+  box-shadow: 0 8px 24px rgba(48, 38, 20, 0.04);
+}
+
+.operator-amendment__hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: clamp(22px, 4vw, 32px);
+}
+
+.operator-amendment__hero h2,
+.operator-amendment__section h2 {
+  margin: 7px 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+}
+
+.operator-amendment__hero h2 {
+  font-size: clamp(26px, 4vw, 34px);
+}
+
+.operator-amendment__hero p,
+.operator-amendment__section p,
+.operator-amendment__notice p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.operator-amendment__section {
+  display: grid;
+  gap: 22px;
+  padding: clamp(20px, 3vw, 28px);
+}
+
+.operator-amendment__section h2 {
+  font-size: clamp(21px, 3vw, 28px);
+}
+
+.operator-amendment__notice,
+.operator-amendment__error {
+  display: grid;
+  gap: 7px;
+  padding: 18px 20px;
+}
+
+.operator-amendment__notice {
+  border-left: 4px solid var(--gold-soft);
+  background: #fff8e8;
+}
+
+.operator-amendment__error {
+  border-left: 4px solid var(--danger);
+  background: #fff8f6;
+}
+
+.operator-amendment__error span {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.operator-amendment__field {
+  display: grid;
+  gap: 8px;
+}
+
+.operator-amendment__field > span {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.operator-amendment__field input,
+.operator-amendment__field select,
+.operator-amendment__field textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+}
+
+.operator-amendment__field textarea {
+  min-height: 110px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.operator-amendment__field input:focus-visible,
+.operator-amendment__field select:focus-visible,
+.operator-amendment__field textarea:focus-visible,
+.operator-amendment__confirm:has(input:focus-visible) {
+  outline: 3px solid var(--focus-ring, rgba(23, 82, 66, 0.28));
+  outline-offset: 2px;
+}
+
+.operator-amendment__field small,
+.operator-amendment__comparison small,
+.operator-amendment__financial-detail {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.operator-amendment__travellers {
+  display: grid;
+  gap: 12px;
+}
+
+.operator-amendment__travellers fieldset {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(180px, 0.8fr);
+  gap: 14px;
+  min-width: 0;
+  margin: 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--canvas);
+}
+
+.operator-amendment__travellers legend {
+  grid-column: 1 / -1;
+  padding: 0 6px;
+  color: var(--green-deep);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operator-amendment__comparison {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.operator-amendment__comparison article {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 17px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--canvas);
+}
+
+.operator-amendment__comparison article > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.operator-amendment__comparison strong {
+  overflow-wrap: anywhere;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.operator-amendment__financial-detail {
+  display: flex;
+  gap: 14px 24px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #f7f4ed;
+}
+
+.operator-amendment__financial-detail strong {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.operator-amendment__confirm {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 12px;
+  min-height: 48px;
+  align-items: center;
+  padding: 13px 15px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+.operator-amendment__confirm input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--green-deep);
+}
+
+.operator-amendment__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.operator-amendment__primary,
+.operator-amendment__actions .auth-secondary {
+  min-height: 44px;
+}
+
+.operator-amendment button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+@media (max-width: 800px) {
+  .operator-amendment__comparison {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .operator-amendment__hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .operator-amendment__travellers fieldset {
+    grid-template-columns: 1fr;
+  }
+
+  .operator-amendment__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .operator-amendment__actions button,
+  .operator-amendment__primary {
+    width: 100%;
+  }
+}
