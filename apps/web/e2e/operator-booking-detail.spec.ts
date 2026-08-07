@@ -120,7 +120,7 @@ test("operator opens a booking and sees traveller financial document and visa co
   await expect(
     page.getByRole("heading", { name: "12 Days Umrah from Delhi" }),
   ).toBeVisible();
-  await expect(page.getByText("INR 189,000", { exact: true })).toBeVisible();
+  await expect(page.getByText("INR 1,89,000", { exact: true })).toBeVisible();
   await expect(
     page.getByText("INR 94,500", { exact: true }).first(),
   ).toBeVisible();
