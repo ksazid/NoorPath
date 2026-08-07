@@ -1,5 +1,5 @@
-import DepartureComposer from "../../departures/DepartureComposer";
 import ClonePackageDraft from "./ClonePackageDraft";
+import PackageQuickStart from "./PackageQuickStart";
 
 export default async function NewPackageDraftPage({
   searchParams,
@@ -12,5 +12,5 @@ export default async function NewPackageDraftPage({
     return <ClonePackageDraft sourceDepartureId={cloneFrom} />;
   }
 
-  return <DepartureComposer />;
+  return <PackageQuickStart />;
 }
