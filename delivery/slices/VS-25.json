@@ -1,0 +1,78 @@
+{
+  "id": "VS-25",
+  "title": "Operator Booking Amendments and Traveller Management",
+  "slug": "operator-booking-amendments-traveller-management",
+  "outcome": "Approved operator staff can propose and confirm governed traveller and occupancy amendments for one operator-owned booking with an authoritative price-impact preview, optimistic concurrency and append-only audit history.",
+  "actor": "Approved operator staff responsible for servicing confirmed bookings and traveller parties.",
+  "dependsOn": ["VS-03", "VS-07", "VS-09", "VS-10", "VS-15", "VS-24"],
+  "modules": [
+    "Booking owns amendment lifecycle, booked traveller snapshot, occupancy, financial snapshot and amendment audit history.",
+    "Traveller owns reusable traveller identity; this slice changes only the booking traveller snapshot and does not mutate passport/document records.",
+    "Pricing remains authoritative for occupancy and traveller-count repricing; the browser never calculates commercial rules.",
+    "Payments remains append-only and is not mutated by booking amendment confirmation.",
+    "Web provides a governed preview-and-confirm workflow inside the existing operator shell."
+  ],
+  "routes": [
+    "Operator booking detail -> amend booking",
+    "Amend booking -> edit traveller snapshot and occupancy",
+    "Amend booking -> authoritative price-impact preview",
+    "Price-impact preview -> confirm amendment",
+    "Confirmed amendment -> refreshed booking detail and amendment history"
+  ],
+  "acceptance": [
+    "An approved operator can start an amendment only for a booking owned by the active operator.",
+    "Amendment policy explicitly allows or rejects the current booking lifecycle state before any write occurs.",
+    "The proposed occupancy and traveller count must remain consistent with NoorPath occupancy rules.",
+    "Traveller basic booking-snapshot facts can be added, removed or corrected without changing Documents, Visa or reusable traveller identity records.",
+    "Preview returns authoritative current and proposed commercial snapshots plus the price delta; the browser does not calculate pricing rules.",
+    "A price-changing amendment requires an explicit preview token and confirmation against the unchanged booking version.",
+    "Stale booking/amendment versions fail safely with conflict feedback and do not partially mutate the booking.",
+    "Confirmed changes append an immutable amendment/audit record containing actor, reason, before/after snapshots and correlation metadata.",
+    "Payment attempts, refunds, visa decisions, document states and cancellation state are not mutated by this workflow.",
+    "Loading, validation, forbidden/not-found, stale-conflict and recoverable-error states are explicit.",
+    "Desktop and mobile navigation, keyboard operation, target size, reflow and serious/critical accessibility checks pass.",
+    "Product Owner approval is required for the exact certified SHA before merge; deployment remains separately approved."
+  ],
+  "policyDecisionsRequired": [
+    "Use preview-then-confirm for every amendment; price-changing amendments can never be applied directly from edit state.",
+    "Treat booking traveller rows as the booked operational snapshot; reusable identity and passport/document data stay module-owned.",
+    "Use optimistic concurrency and append-only audit evidence for every confirmed amendment.",
+    "Do not silently reconcile money: any payment/refund consequence remains a separate Payments/Refund workflow."
+  ],
+  "exclusions": [
+    "Payment capture, payment adjustment or refund execution.",
+    "Passport/document mutation or review decisions.",
+    "Visa state transitions.",
+    "Cancellation execution.",
+    "Reusable traveller identity editing outside its owning module.",
+    "Operator shell redesign.",
+    "Production deployment."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "migration",
+    "security",
+    "authorization",
+    "concurrency",
+    "financial-integrity",
+    "privacy",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "rendered-regression",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "apps/web/e2e/operator-booking-amendment.spec.ts"
+  },
+  "specPath": "docs/slices/VS-25-OPERATOR-BOOKING-AMENDMENTS-TRAVELLER-MANAGEMENT.md",
+  "checklistPath": "docs/slices/VS-25-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-25-NAVIGATION-VERIFICATION.md"
+}

@@ -9,6 +9,7 @@ public sealed class BookingDbContext(DbContextOptions<BookingDbContext> options)
     public DbSet<BookingRecord> Bookings => Set<BookingRecord>();
     public DbSet<BookingTravellerRecord> Travellers => Set<BookingTravellerRecord>();
     public DbSet<BookingInstalmentRecord> Instalments => Set<BookingInstalmentRecord>();
+    public DbSet<BookingAmendmentRecord> Amendments => Set<BookingAmendmentRecord>();
     public DbSet<BookingCancellationRequestRecord> CancellationRequests => Set<BookingCancellationRequestRecord>();
     public DbSet<BookingCancellationAuditRecord> CancellationAudits => Set<BookingCancellationAuditRecord>();
     public DbSet<BookingOutboxRecord> OutboxMessages => Set<BookingOutboxRecord>();
@@ -32,6 +33,9 @@ public sealed class BookingDbContext(DbContextOptions<BookingDbContext> options)
                 table.HasCheckConstraint(
                     "CK_bookings_Total_Composition",
                     "\"Total\" = \"DueNow\" + \"Remaining\"");
+                table.HasCheckConstraint(
+                    "CK_bookings_Version_Positive",
+                    "\"Version\" > 0");
             });
             entity.HasKey(x => x.Id);
             entity.Property(x => x.Reference).HasMaxLength(24);
@@ -48,6 +52,7 @@ public sealed class BookingDbContext(DbContextOptions<BookingDbContext> options)
             entity.Property(x => x.RequestFingerprint).HasMaxLength(64);
             entity.Property(x => x.CorrelationId).HasMaxLength(100);
             entity.Property(x => x.ConfirmationExceptionCode).HasMaxLength(80);
+            entity.Property(x => x.Version).IsConcurrencyToken();
             entity.HasIndex(x => x.Reference).IsUnique();
             entity.HasIndex(x => new { x.AccountId, x.IdempotencyKeyHash }).IsUnique();
             entity.HasIndex(x => x.InventoryHoldId).IsUnique();
@@ -83,6 +88,32 @@ public sealed class BookingDbContext(DbContextOptions<BookingDbContext> options)
                 .WithMany()
                 .HasForeignKey(x => x.BookingId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<BookingAmendmentRecord>(entity =>
+        {
+            entity.ToTable("booking_amendments", table =>
+            {
+                table.HasCheckConstraint(
+                    "CK_booking_amendments_Version_Progression",
+                    "\"ResultingBookingVersion\" = \"PreviousBookingVersion\" + 1");
+            });
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.OperatorId).HasMaxLength(80);
+            entity.Property(x => x.ActorAccountId).HasMaxLength(120);
+            entity.Property(x => x.Reason).HasMaxLength(500);
+            entity.Property(x => x.Currency).HasMaxLength(3);
+            entity.Property(x => x.PriceDelta).HasPrecision(18, 2);
+            entity.Property(x => x.PreviewFingerprint).HasMaxLength(64);
+            entity.Property(x => x.BeforeSnapshotJson).HasColumnType("jsonb");
+            entity.Property(x => x.AfterSnapshotJson).HasColumnType("jsonb");
+            entity.Property(x => x.CorrelationId).HasMaxLength(100);
+            entity.HasIndex(x => new { x.BookingId, x.OccurredAtUtc });
+            entity.HasIndex(x => new { x.BookingId, x.ResultingBookingVersion }).IsUnique();
+            entity.HasOne<BookingRecord>()
+                .WithMany()
+                .HasForeignKey(x => x.BookingId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<BookingCancellationRequestRecord>(entity =>
@@ -187,6 +218,7 @@ public sealed class BookingRecord
     public required string IdempotencyKeyHash { get; set; }
     public required string RequestFingerprint { get; set; }
     public required string CorrelationId { get; set; }
+    public int Version { get; set; } = 1;
     public DateTimeOffset CreatedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
     public Guid? SettledPaymentAttemptId { get; set; }
@@ -214,6 +246,24 @@ public sealed class BookingInstalmentRecord
     public int Sequence { get; set; }
     public DateOnly DueDate { get; set; }
     public decimal Amount { get; set; }
+}
+
+public sealed class BookingAmendmentRecord
+{
+    public Guid Id { get; set; }
+    public Guid BookingId { get; set; }
+    public required string OperatorId { get; set; }
+    public required string ActorAccountId { get; set; }
+    public required string Reason { get; set; }
+    public int PreviousBookingVersion { get; set; }
+    public int ResultingBookingVersion { get; set; }
+    public required string Currency { get; set; }
+    public decimal PriceDelta { get; set; }
+    public required string PreviewFingerprint { get; set; }
+    public required string BeforeSnapshotJson { get; set; }
+    public required string AfterSnapshotJson { get; set; }
+    public required string CorrelationId { get; set; }
+    public DateTimeOffset OccurredAtUtc { get; set; }
 }
 
 public sealed class BookingCancellationRequestRecord
