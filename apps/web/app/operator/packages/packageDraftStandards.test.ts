@@ -5,6 +5,7 @@ import {
   suggestPackageTitle,
 } from "./packageDraftStandards";
 
+// prettier-ignore
 describe("package draft standards", () => {
   it("uses customer-safe standard terminology", () => {
     expect(
