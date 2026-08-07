@@ -197,8 +197,16 @@ test("operator opens accommodation from booking detail and assigns a traveller",
     expectedRoomVersion: 1,
     expectedPreviousRoomVersion: null,
   });
-  await expect(room.getByText("Amina Rahman", { exact: true })).toBeVisible();
-  await expect(page.getByText("1 unassigned", { exact: true })).toBeVisible();
+  await expect(
+    page.getByLabel("Makkah 201 occupants").getByText("Amina Rahman", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByLabel("Makkah rooms")
+      .getByText("1 unassigned", { exact: true }),
+  ).toBeVisible();
   await expect(
     page.getByText("Traveller assigned.", { exact: true }),
   ).toBeVisible();
