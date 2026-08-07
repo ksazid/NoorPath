@@ -48,6 +48,7 @@ function date(value?: string) {
     : "To be confirmed";
 }
 
+// prettier-ignore
 export default function PackageDraftPreview({
   departureId,
 }: {
