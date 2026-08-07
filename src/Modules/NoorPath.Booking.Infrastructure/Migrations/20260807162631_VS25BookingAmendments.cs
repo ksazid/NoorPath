@@ -17,7 +17,7 @@ namespace NoorPath.Booking.Infrastructure.Migrations
                 table: "bookings",
                 type: "integer",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: 1);
 
             migrationBuilder.CreateTable(
                 name: "booking_amendments",
