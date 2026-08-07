@@ -1,0 +1,54 @@
+name: VS-26 lock audit finalize
+
+on:
+  push:
+    branches:
+      - slice/vs26-room-assignment-accommodation-operations
+    paths:
+      - .github/workflows/vs26-lock-audit-finalize.yml
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: slice/vs26-room-assignment-accommodation-operations
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - name: Persist room lock audit
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path("apps/api/AccommodationAssignmentEndpoints.cs")
+          text = path.read_text()
+          old = '''        if (booking is null || room is null)\n            return Results.NotFound();\n        if (room.Version != request.ExpectedRoomVersion)\n            return Results.Conflict(new { code = "room_stale" });\n\n        var reason = request.Reason?.Trim() ?? string.Empty;\n        if (reason.Length is 0 or > AccommodationAssignmentPolicy.MaximumReasonLength)\n        {\n            return Results.ValidationProblem(new Dictionary<string, string[]>\n            {\n                ["reason"] = ["Lock reason is required and must be 500 characters or fewer."]\n            });\n        }\n\n        room.IsLocked = request.Locked;\n        room.Version++;\n        room.UpdatedAtUtc = timeProvider.GetUtcNow();\n        try\n        {\n            await bookings.SaveChangesAsync(cancellationToken);\n        }\n        catch (DbUpdateConcurrencyException)\n        {\n            return Results.Conflict(new { code = "room_stale" });\n        }\n\n        return Results.Ok(new { roomId = room.Id, room.IsLocked, room.Version, reason, correlationId = http.TraceIdentifier });\n'''
+          new = '''        if (booking is null || room is null)\n            return Results.NotFound();\n        if (booking.State != BookingState.Confirmed)\n            return Results.Conflict(new { code = "booking_not_confirmed" });\n        if (room.Version != request.ExpectedRoomVersion)\n            return Results.Conflict(new { code = "room_stale" });\n\n        var reason = request.Reason?.Trim() ?? string.Empty;\n        if (reason.Length is 0 or > AccommodationAssignmentPolicy.MaximumReasonLength)\n        {\n            return Results.ValidationProblem(new Dictionary<string, string[]>\n            {\n                ["reason"] = ["Lock reason is required and must be 500 characters or fewer."]\n            });\n        }\n\n        var previousVersion = room.Version;\n        var now = timeProvider.GetUtcNow();\n        room.IsLocked = request.Locked;\n        room.Version++;\n        room.UpdatedAtUtc = now;\n        bookings.Set<AccommodationAssignmentAuditRecord>().Add(new AccommodationAssignmentAuditRecord\n        {\n            Id = Guid.NewGuid(),\n            BookingId = booking.Id,\n            OperatorId = access.OperatorId!,\n            ActorAccountId = access.AccountId!,\n            TravellerId = null,\n            PreviousRoomId = room.Id,\n            RoomId = room.Id,\n            Stay = room.Stay,\n            Action = request.Locked ? "locked" : "unlocked",\n            Reason = reason,\n            PreviousRoomVersion = previousVersion,\n            ResultingRoomVersion = room.Version,\n            CorrelationId = http.TraceIdentifier,\n            OccurredAtUtc = now\n        });\n        try\n        {\n            await bookings.SaveChangesAsync(cancellationToken);\n        }\n        catch (DbUpdateConcurrencyException)\n        {\n            return Results.Conflict(new { code = "room_stale" });\n        }\n\n        return Results.Ok(new { roomId = room.Id, room.IsLocked, room.Version, reason, correlationId = http.TraceIdentifier });\n'''
+          if old not in text:
+              raise SystemExit("Lock endpoint block not found")
+          path.write_text(text.replace(old, new, 1))
+      - name: Generate room audit migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet restore NoorPath.slnx
+          dotnet build apps/api/NoorPath.Api.csproj --no-restore
+          dotnet tool install --global dotnet-ef --version 10.0.10
+          dotnet ef migrations add VS26AccommodationRoomAudit \
+            --project src/Modules/NoorPath.Booking.Infrastructure/NoorPath.Booking.Infrastructure.csproj \
+            --startup-project apps/api/NoorPath.Api.csproj \
+            --context BookingDbContext \
+            --output-dir Migrations
+      - name: Commit final lock audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/api/AccommodationAssignmentEndpoints.cs src/Modules/NoorPath.Booking.Infrastructure/Migrations
+          git commit -m "VS-26: audit accommodation lock changes"
+          git push origin HEAD:slice/vs26-room-assignment-accommodation-operations
