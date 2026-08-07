@@ -8,11 +8,13 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
     <ProjectReference Include="../../src/Modules/NoorPath.Booking.Infrastructure/NoorPath.Booking.Infrastructure.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Catalogue.Infrastructure/NoorPath.Catalogue.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Modules/NoorPath.Documents.Infrastructure/NoorPath.Documents.Infrastructure.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Inventory.Infrastructure/NoorPath.Inventory.Infrastructure.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Operators.Infrastructure/NoorPath.Operators.Infrastructure.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Payments.Infrastructure/NoorPath.Payments.Infrastructure.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Pricing.Infrastructure/NoorPath.Pricing.Infrastructure.csproj" />
     <ProjectReference Include="../../src/Modules/NoorPath.Traveller.Infrastructure/NoorPath.Traveller.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Modules/NoorPath.Visa.Infrastructure/NoorPath.Visa.Infrastructure.csproj" />
     <ProjectReference Include="../../apps/api/NoorPath.Api.csproj" />
   </ItemGroup>
 </Project>

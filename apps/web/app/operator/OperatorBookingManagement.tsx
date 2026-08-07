@@ -34,16 +34,8 @@ type BookingItem = {
       amount: number;
     } | null;
   };
-  documents: {
-    status: string;
-    required: number;
-    approved: number;
-  };
-  visa: {
-    status: string;
-    total: number;
-    approved: number;
-  };
+  documents: { status: string; required: number; approved: number };
+  visa: { status: string; total: number; approved: number };
   createdAtUtc: string;
   updatedAtUtc: string;
 };
@@ -68,7 +60,6 @@ const dateFormatter = new Intl.DateTimeFormat("en-IN", {
   month: "short",
   year: "numeric",
 });
-
 const moneyFormatter = new Intl.NumberFormat("en-IN", {
   maximumFractionDigits: 0,
 });
@@ -79,7 +70,9 @@ function displayDate(value?: string | null) {
 }
 
 function label(value: string) {
-  return value.replace(/([A-Z])/g, " $1").replace(/^./, (x) => x.toUpperCase());
+  return value
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (character) => character.toUpperCase());
 }
 
 function statusTone(value: string) {
@@ -143,12 +136,13 @@ export default function OperatorBookingManagement() {
         ["actionRequired", "rejected"].includes(item.visa.status) ||
         item.documents.status === "actionRequired" ||
         ["paymentFailed", "confirmationException"].includes(item.state);
-      const matchesFilter =
-        filter === "all" ||
-        (filter === "confirmed" && item.state === "confirmed") ||
-        (filter === "action" && needsAction) ||
-        (filter === "cancelled" && item.state === "cancelled");
-      return matchesQuery && matchesFilter;
+      return (
+        matchesQuery &&
+        (filter === "all" ||
+          (filter === "confirmed" && item.state === "confirmed") ||
+          (filter === "action" && needsAction) ||
+          (filter === "cancelled" && item.state === "cancelled"))
+      );
     });
   }, [filter, query, state]);
 
@@ -360,6 +354,12 @@ export default function OperatorBookingManagement() {
                     </div>
 
                     <div className="operator-booking-actions">
+                      <Link
+                        className="auth-primary"
+                        href={`/operator/bookings/${item.bookingId}`}
+                      >
+                        Open booking
+                      </Link>
                       <Link
                         className="auth-secondary"
                         href={`/operator/departures/${item.departureId}`}
