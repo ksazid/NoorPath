@@ -112,6 +112,7 @@ app.MapOperatorAccess();
 app.MapAccountAccess();
 app.MapCatalogueAuthoring();
 app.MapOperatorCatalogueQueries();
+app.MapOperatorBookingManagement();
 app.MapCommercialAuthoring();
 app.MapPaymentPlanAuthoring();
 app.MapPublicationReview();
