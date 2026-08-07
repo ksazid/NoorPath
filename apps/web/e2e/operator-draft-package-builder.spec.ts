@@ -193,7 +193,7 @@ test("operator can complete journey, stays, intercity and create the draft", asy
 });
 
 // prettier-ignore
-test("saved package draft renders a private customer-style preview", async ({
+test("saved package draft renders customer facts, pricing and payment preview", async ({
   page,
 }) => {
   const departureId = "40000000-0000-0000-0000-000000000099";
@@ -238,19 +238,69 @@ test("saved package draft renders a private customer-style preview", async ({
     },
   );
 
+  await page.route(
+    `**/api/v1/operator/departures/${departureId}/commercial`,
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          departureId,
+          pricing: {
+            version: 1,
+            currency: "INR",
+            occupancies: [
+              { occupancy: "double", amount: 165000 },
+              { occupancy: "triple", amount: 145000 },
+              { occupancy: "quad", amount: 132000 },
+            ],
+          },
+          inventory: {
+            version: 1,
+            pools: [
+              { occupancy: "double", capacity: 20, availableQuantity: 12 },
+              { occupancy: "triple", capacity: 18, availableQuantity: 9 },
+              { occupancy: "quad", capacity: 24, availableQuantity: 16 },
+            ],
+          },
+        }),
+      });
+    },
+  );
+
+  await page.route(
+    `**/api/v1/operator/departures/${departureId}/payment-plan`,
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          pricingVersion: 1,
+          paymentPlan: {
+            enabled: true,
+            depositPercent: 20,
+            instalmentDayOfMonth: 5,
+            finalPaymentDueDaysBeforeDeparture: 30,
+          },
+        }),
+      });
+    },
+  );
+
   await page.goto(`/operator/departures/${departureId}/preview`);
 
-  await expect(
-    page.getByText("Customer preview", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText("Customer preview", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "12 Days / 11 Nights Umrah from Delhi",
   );
+  await expect(page.getByText("Visa included", { exact: true })).toBeVisible();
+  await expect(page.getByText("Double sharing", { exact: true })).toBeVisible();
+  await expect(page.getByText("₹1,65,000", { exact: true })).toBeVisible();
+  await expect(page.getByText("20% due initially", { exact: true })).toBeVisible();
   await expect(
-    page.getByText("Visa included", { exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByText("Private draft · not visible to customers", { exact: true }),
+    page.getByText("Private draft · exactly how saved facts will be presented", {
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Review publication" }),
