@@ -13,6 +13,7 @@ import "./customer-route-shell.css";
 import "./composer.css";
 import "./package-draft-refinement.css";
 import "./commercial.css";
+import "./commercial-refinement.css";
 import "./payment-plan.css";
 import "./publication.css";
 import "./public.css";
