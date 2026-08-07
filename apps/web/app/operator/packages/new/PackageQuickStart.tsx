@@ -24,6 +24,7 @@ const inclusionIcons: Record<string, string> = {
   "Umrah guidance": "◇",
 };
 
+// prettier-ignore
 export default function PackageQuickStart() {
   const router = useRouter();
   const [origin, setOrigin] = useState("");
