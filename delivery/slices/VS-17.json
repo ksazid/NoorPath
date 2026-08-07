@@ -35,7 +35,8 @@
     "Public discovery -> Package details -> Quote -> Inventory hold -> Booking -> Payment -> Confirmation",
     "Authenticated customer -> My Journey -> Documents -> Visa -> Family and Mahram -> Cancellation and refund status",
     "Authorized operator -> Package authoring -> Pricing and inventory -> Review and publish",
-    "Authorized operator -> Document review -> Visa processing -> Operational support -> Cancellation and refund recovery",
+    "Authorized operator -> Package management -> Booking management -> Document review -> Visa processing -> Operational support -> Cancellation and refund recovery",
+    "Platform Administrator -> Administration -> Publication approvals -> Final independent publication review",
     "Release operator -> Preflight -> Migration -> Deployment -> Health verification -> Smoke tests -> Release decision",
     "Release operator -> Failed release -> Rollback -> Data and health verification -> Incident evidence"
   ],
@@ -110,7 +111,7 @@
   ],
   "rendered": {
     "enabled": true,
-    "testFile": "e2e/production-readiness.spec.ts"
+    "testFile": "e2e/(production-readiness|customer-shell-navigation|account-access|auth0-session-establishment|operator-draft-package-builder|operator-package-management|operator-booking-management|platform-publication-approval|operational-support|cancellation-refunds|documents|visa-processing|family-booking-mahram)\\.spec\\.ts"
   },
   "specPath": "docs/slices/VS-17-PRODUCTION-READINESS.md",
   "checklistPath": "docs/slices/VS-17-IMPLEMENTATION-CHECKLIST.md",
