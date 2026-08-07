@@ -178,7 +178,11 @@ test("operator opens accommodation from booking detail and assigns a traveller",
     page.getByRole("heading", { level: 1, name: "Accommodation" }),
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Makkah 201" })).toBeVisible();
-  await expect(page.getByText("2 unassigned", { exact: true })).toBeVisible();
+  await expect(
+    page
+      .getByLabel("Makkah rooms")
+      .getByText("2 unassigned", { exact: true }),
+  ).toBeVisible();
 
   const room = page.getByRole("article").filter({ hasText: "Makkah 201" });
   await room.getByLabel("Traveller to assign or move").selectOption(travellerA);
