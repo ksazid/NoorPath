@@ -94,8 +94,10 @@ export default function OperatorCollectionPage({
   const title = mode === "packages" ? "Packages" : "Departures";
   const summary =
     mode === "packages"
-      ? "Review the package content and linked departures owned by your operator."
+      ? "Create, clone and preview package drafts before linking departure dates."
       : "Manage draft, review-ready, and published departures within your operator scope.";
+  const createHref =
+    mode === "packages" ? "/operator/packages/new" : "/operator/departures/new";
 
   return (
     <OperatorWorkspaceShell title={title} summary={summary}>
@@ -107,8 +109,8 @@ export default function OperatorCollectionPage({
               {mode === "packages" ? "Package library" : "Departure schedule"}
             </h2>
           </div>
-          <Link className="auth-primary" href="/operator/departures/new">
-            Create new draft
+          <Link className="auth-primary" href={createHref}>
+            {mode === "packages" ? "Create package draft" : "Create departure"}
           </Link>
         </div>
 
@@ -158,12 +160,20 @@ export default function OperatorCollectionPage({
                       <dd>{displayDate(next.departureDate)}</dd>
                     </div>
                   </dl>
-                  <Link
-                    className="auth-secondary"
-                    href={`/operator/departures/${next.departureId}`}
-                  >
-                    Open package departure
-                  </Link>
+                  <div className="operator-card-actions">
+                    <Link
+                      className="auth-secondary"
+                      href={`/operator/departures/${next.departureId}`}
+                    >
+                      Open package
+                    </Link>
+                    <Link
+                      className="auth-secondary"
+                      href={`/operator/packages/new?cloneFrom=${next.departureId}`}
+                    >
+                      Clone package
+                    </Link>
+                  </div>
                 </article>
               );
             })}

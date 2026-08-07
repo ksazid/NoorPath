@@ -1,0 +1,73 @@
+{
+  "id": "VS-23",
+  "title": "Operator Draft Package Builder",
+  "slug": "operator-draft-package-builder",
+  "outcome": "Approved operator staff can create, clone, save and preview an Umrah package draft through a few-click workflow before submitting it for platform review.",
+  "actor": "Approved operator staff with catalogue authoring permission.",
+  "dependsOn": ["VS-18", "VS-19", "VS-20", "VS-21"],
+  "modules": [
+    "Operators owns package draft authoring and operator isolation.",
+    "Catalogue owns package, departure, commercial and payment-plan facts.",
+    "Web owns the few-click staff experience and customer-style preview.",
+    "Platform owns publication review and approval boundaries."
+  ],
+  "routes": [
+    "Operator package library -> create package draft",
+    "Operator package library -> clone package",
+    "Draft basics -> stays -> travel -> inclusions -> commercial terms -> payment plan",
+    "Saved draft -> customer-style preview",
+    "Saved draft -> submit or schedule for publication review"
+  ],
+  "acceptance": [
+    "Package creation starts from /operator/packages/new without changing the established staff shell.",
+    "Operators can start blank or clone an operator-owned package.",
+    "Travel dates calculate days and nights automatically and can suggest a package heading.",
+    "Predefined inclusion terminology and NoorPath-approved icons are consistent for every operator.",
+    "Visa is labelled Visa included, not visa assistance.",
+    "Meals default to breakfast, lunch and dinner.",
+    "Intercity travel can be bus or train as provided by the operator.",
+    "Operators can choose instalments or one final balance after the initial booking payment.",
+    "Suggested payment milestones remain editable and must reconcile to the package price.",
+    "Drafts remain private, operator-isolated and saveable before completion.",
+    "Preview follows the approved customer package-details visual contract.",
+    "Publication guidance states the minimum platform approval window.",
+    "Product Owner approval is required before merge and production deployment."
+  ],
+  "policyDecisionsRequired": [
+    "Use the existing package-details reference as the preview source of truth.",
+    "Keep standard inclusion labels and icons platform-owned rather than operator-defined.",
+    "Keep publication approval separate from operator draft creation."
+  ],
+  "exclusions": [
+    "Customer booking changes.",
+    "Automatic supplier integrations.",
+    "Dynamic pricing.",
+    "Operator self-approval.",
+    "A redesign of the staff shell or customer package page."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "migration",
+    "security",
+    "authorization",
+    "privacy",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "rendered-regression",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "apps/web/e2e/operator-draft-package-builder.spec.ts"
+  },
+  "specPath": "docs/slices/VS-23-OPERATOR-DRAFT-PACKAGE-BUILDER.md",
+  "checklistPath": "docs/slices/VS-23-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-23-NAVIGATION-VERIFICATION.md"
+}
