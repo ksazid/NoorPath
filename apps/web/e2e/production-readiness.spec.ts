@@ -117,7 +117,9 @@ test("operator navigation reaches package and booking management from the real s
   await page.getByRole("link", { name: "Bookings", exact: true }).click();
   await expect(page).toHaveURL(/\/operator\/bookings$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Bookings");
-  await expect(page.getByRole("heading", { name: "No bookings yet" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "No bookings yet" }),
+  ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Bookings", exact: true }),
   ).toHaveAttribute("aria-current", "page");
@@ -125,7 +127,9 @@ test("operator navigation reaches package and booking management from the real s
   await page.getByRole("link", { name: "Packages", exact: true }).click();
   await expect(page).toHaveURL(/\/operator\/packages$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Packages");
-  await expect(page.getByRole("heading", { name: "No packages yet" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "No packages yet" }),
+  ).toBeVisible();
 
   await expectNoA11yViolations(page);
   await expectMinimumTargets(page);
@@ -169,7 +173,9 @@ test("platform administrator is guided out of operator scope and reaches publica
     "Review packages before they go live",
   );
   await expect(page.getByText("No packages are waiting")).toBeVisible();
-  await expect(page.getByText("Independent approval")).toBeVisible();
+  await expect(
+    page.getByText("Independent approval", { exact: true }),
+  ).toBeVisible();
 
   await expectNoA11yViolations(page);
   await expectMinimumTargets(page);
