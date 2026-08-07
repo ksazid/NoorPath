@@ -35,6 +35,7 @@ import "./operator-package-management.css";
 import "./operator-booking-management.css";
 import "./operator-booking-detail.css";
 import "./operator-booking-amendment.css";
+import "./operator-accommodation.css";
 import "./my-journey.css";
 import "./documents.css";
 

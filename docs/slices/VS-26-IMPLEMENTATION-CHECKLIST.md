@@ -1,0 +1,21 @@
+# VS-26 Implementation Checklist
+
+- [x] Register formal slice metadata and navigation contract.
+- [x] Define accommodation/room assignment domain policy and invariants.
+- [x] Add persistence model and forward-only migration.
+- [x] Add append-only assignment and room-lock audit history.
+- [x] Add optimistic concurrency/version handling.
+- [x] Implement operator-isolated accommodation read API.
+- [x] Implement governed assign/unassign/reassign APIs.
+- [x] Reject cross-operator, over-capacity, duplicate and stale mutations through the policy/API boundary.
+- [x] Enforce operational cutoff/lock behavior with persistent actor/reason/timestamp audit.
+- [x] Link booking detail to Accommodation workspace.
+- [x] Build responsive accessible assignment UI.
+- [x] Show unassigned travellers and incomplete allocation state.
+- [x] Add domain-policy unit tests including capacity, lock and stale-version coverage.
+- [x] Add API integration tests for isolation, stale writes, reassignment, audit and commercial-snapshot immutability.
+- [x] Add desktop/mobile rendered acceptance coverage.
+- [x] Add navigation reachability coverage.
+- [ ] Run formatting, build, migration registry/model parity and full tests on the exact certification head.
+- [ ] Apply `certify` only when implementation is complete.
+- [ ] Require every exact-head required gate to complete successfully before PO approval/merge.
