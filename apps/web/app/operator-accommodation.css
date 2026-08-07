@@ -86,10 +86,9 @@
 
 .operator-accommodation__create {
   display: grid;
-  grid-template-columns: minmax(120px, 0.7fr) minmax(150px, 0.8fr) minmax(
-      200px,
-      1.3fr
-    ) auto;
+  grid-template-columns:
+    minmax(120px, 0.7fr) minmax(150px, 0.8fr) minmax(200px, 1.3fr)
+    auto;
   gap: 12px;
   align-items: end;
 }
