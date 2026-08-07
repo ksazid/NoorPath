@@ -28,6 +28,56 @@ test("operator can start a package draft with standard NoorPath terminology", as
   await expectNoHorizontalOverflow(page);
 });
 
+test("operator can configure default, optional, custom and excluded package items", async ({
+  page,
+}) => {
+  await page.goto("/operator/packages/new");
+
+  await expect(
+    page.getByRole("heading", { name: "Package includes", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Travel kit included", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Umrah kit included", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Not included", exact: true }),
+  ).toBeVisible();
+
+  const visa = page.getByRole("checkbox", { name: "Visa included" });
+  await expect(visa).toBeChecked();
+  await visa.uncheck();
+  await expect(visa).not.toBeChecked();
+
+  const luggageTag = page.getByRole("checkbox", { name: "Luggage tag" });
+  await expect(luggageTag).not.toBeChecked();
+  await luggageTag.check();
+  await expect(luggageTag).toBeChecked();
+
+  const personalExpenses = page.getByRole("checkbox", {
+    name: "Personal expenses",
+  });
+  await expect(personalExpenses).toBeChecked();
+  await personalExpenses.uncheck();
+  await expect(personalExpenses).not.toBeChecked();
+
+  await page
+    .getByRole("button", { name: "Add another item to Travel kit included" })
+    .click();
+  await page.getByLabel("Custom item").fill("Wheelchair assistance");
+  await page.getByRole("button", { name: "Add item" }).click();
+
+  await expect(
+    page.getByRole("checkbox", { name: "Wheelchair assistance" }),
+  ).toBeChecked();
+
+  await expectNoA11yViolations(page);
+  await expectMinimumTargets(page);
+  await expectNoHorizontalOverflow(page);
+});
+
 // prettier-ignore
 test("journey dates calculate the package title and duration", async ({
   page,
