@@ -18,6 +18,7 @@ import "./payment-plan.css";
 import "./payment-plan-refinement.css";
 import "./publication.css";
 import "./preview-publication-refinement.css";
+import "./platform-publication-refinement.css";
 import "./public.css";
 import "./discovery.css";
 import "./package-details.css";
