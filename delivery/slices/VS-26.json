@@ -1,0 +1,13 @@
+{
+  "id": "VS-26",
+  "name": "Room Assignment & Accommodation Operations",
+  "branch": "slice/vs26-room-assignment-accommodation-operations",
+  "spec": "docs/slices/VS-26-ROOM-ASSIGNMENT-ACCOMMODATION-OPERATIONS.md",
+  "checklist": "docs/slices/VS-26-IMPLEMENTATION-CHECKLIST.md",
+  "navigation": "docs/slices/VS-26-NAVIGATION-VERIFICATION.md",
+  "qualityGates": [
+    "ci",
+    "rendered-review",
+    "navigation-reachability"
+  ]
+}
