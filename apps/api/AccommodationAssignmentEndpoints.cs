@@ -497,7 +497,7 @@ public static class AccommodationAssignmentEndpoints
         if (access is null || !access.IsAllowed(OperatorPermissions.AdminAccess))
             return (Results.Forbid(), null, null);
 
-        return (null, access.OperatorId, principal.AccountId);
+        return (null, access.OperatorId, principal.AccountId.Value);
     }
 
     private static bool TryStay(string? value, out AccommodationStay stay) =>

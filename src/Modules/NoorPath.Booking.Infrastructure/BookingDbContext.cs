@@ -14,7 +14,11 @@ public sealed class BookingDbContext(DbContextOptions<BookingDbContext> options)
     public DbSet<BookingCancellationAuditRecord> CancellationAudits => Set<BookingCancellationAuditRecord>();
     public DbSet<BookingOutboxRecord> OutboxMessages => Set<BookingOutboxRecord>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder) => Configure(modelBuilder);
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        Configure(modelBuilder);
+        AccommodationPersistence.ConfigureAccommodation(modelBuilder);
+    }
 
     public static void Configure(ModelBuilder modelBuilder)
     {
