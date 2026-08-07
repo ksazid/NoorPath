@@ -32,7 +32,6 @@ jobs:
           --startup-project apps/api/NoorPath.Api.csproj
           --context BookingDbContext
           --output-dir Migrations
-          --no-build
       - name: Commit generated migration
         shell: bash
         run: |
