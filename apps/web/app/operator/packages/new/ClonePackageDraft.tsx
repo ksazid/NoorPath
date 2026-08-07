@@ -21,6 +21,7 @@ type DraftResponse = {
 
 type CloneState = "cloning" | "failed";
 
+// prettier-ignore
 export default function ClonePackageDraft({
   sourceDepartureId,
 }: {
