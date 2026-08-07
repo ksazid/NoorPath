@@ -1,0 +1,348 @@
+/* Operator package draft refinement. Scope: journey + stays/intercity only. */
+.composer-step-card {
+  border-color: #e4dccf;
+  background: #fffefa;
+}
+
+.journey-step-card .form-card-heading,
+.stay-step-card .form-card-heading {
+  margin-bottom: 22px;
+}
+
+.journey-fields {
+  grid-template-columns: minmax(220px, 1.3fr) repeat(2, minmax(180px, 0.85fr));
+  gap: 12px;
+}
+
+.journey-fields .field,
+.stay-card .field {
+  min-width: 0;
+}
+
+.journey-fields .field > span,
+.stay-card .field > span {
+  color: #4a4d47;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.journey-fields input,
+.stay-card input,
+.stay-card select {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 13px;
+  border: 1px solid #d9d1c5;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+
+.journey-fields input:hover,
+.stay-card input:hover,
+.stay-card select:hover {
+  border-color: #bda986;
+}
+
+.journey-fields input:focus-visible,
+.stay-card input:focus-visible,
+.stay-card select:focus-visible {
+  border-color: #b89548;
+  outline: 3px solid rgba(184, 149, 72, 0.22);
+  outline-offset: 2px;
+}
+
+.journey-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(210px, 0.55fr);
+  gap: 1px;
+  margin-top: 16px;
+  overflow: hidden;
+  border: 1px solid #e4dccf;
+  border-radius: 12px;
+  background: #e4dccf;
+}
+
+.journey-summary > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 14px 16px;
+  background: #fffaf1;
+}
+
+.journey-summary small {
+  color: #7a746b;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.journey-summary strong {
+  overflow-wrap: anywhere;
+  color: #2a2d28;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.stay-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.stay-card {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #e3dacd;
+  border-radius: 14px;
+  background: #fffdf9;
+}
+
+.stay-card > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee7dc;
+}
+
+.stay-city-kicker {
+  display: block;
+  margin-bottom: 3px;
+  color: #7b725f;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.stay-card h3 {
+  margin: 0;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 23px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.stay-night-badge {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border: 1px solid #e3d1ae;
+  border-radius: 999px;
+  background: #fff8e9;
+  color: #76551f;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.stay-card .field {
+  display: grid;
+  gap: 7px;
+}
+
+.stay-card select {
+  appearance: auto;
+}
+
+.stay-helper {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.intercity-selector {
+  margin: 18px 0 0;
+  padding: 18px;
+  border: 1px solid #e3dacd;
+  border-radius: 14px;
+  background: #fffdf9;
+}
+
+.intercity-selector legend {
+  padding: 0 6px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.intercity-selector > p {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.intercity-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.intercity-options > label {
+  position: relative;
+  display: grid;
+  min-height: 82px;
+  grid-template-columns: 42px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 14px;
+  border: 1px solid #dfd7cb;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  transition:
+    transform 150ms var(--ui-ease-out, ease-out),
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.intercity-options > label:hover {
+  border-color: #c8b58f;
+  background: #fffaf2;
+}
+
+.intercity-options > label:active {
+  transform: scale(0.992);
+}
+
+.intercity-options > label:has(input:checked) {
+  border-color: rgba(184, 149, 72, 0.65);
+  background: #fff9ed;
+}
+
+.intercity-options input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.intercity-options > label:has(input:focus-visible) {
+  outline: 3px solid rgba(184, 149, 72, 0.25);
+  outline-offset: 2px;
+}
+
+.intercity-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid #e5dccd;
+  border-radius: 10px;
+  background: #fffdf9;
+  color: #363934;
+}
+
+.intercity-icon svg {
+  width: 27px;
+  height: 27px;
+}
+
+.intercity-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.intercity-copy strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.intercity-copy small {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.intercity-check {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 1px solid #d7cdbc;
+  border-radius: 6px;
+  color: transparent;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.intercity-options > label:has(input:checked) .intercity-check {
+  border-color: #ae7116;
+  background: #ae7116;
+  color: #fff;
+}
+
+.intercity-options > label:has(input:checked) .intercity-icon {
+  border-color: #dfcda8;
+  color: #76511a;
+}
+
+@media (max-width: 920px) {
+  .journey-fields {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .journey-fields .field:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .journey-fields,
+  .journey-summary,
+  .stay-card-grid,
+  .intercity-options {
+    grid-template-columns: 1fr;
+  }
+
+  .journey-fields .field:first-child {
+    grid-column: auto;
+  }
+
+  .journey-summary {
+    background: transparent;
+    gap: 8px;
+    border: 0;
+    overflow: visible;
+  }
+
+  .journey-summary > div {
+    border: 1px solid #e4dccf;
+    border-radius: 10px;
+  }
+
+  .stay-card,
+  .intercity-selector {
+    padding: 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journey-fields input,
+  .stay-card input,
+  .stay-card select,
+  .intercity-options > label {
+    transition: none;
+  }
+}
