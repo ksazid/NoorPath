@@ -1,0 +1,45 @@
+name: VS-25 migration generator
+
+on:
+  push:
+    branches:
+      - slice/vs25-operator-booking-amendments-traveller-management
+    paths:
+      - .github/workflows/vs25-migration-generate.yml
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    env:
+      ConnectionStrings__NoorPath: Host=localhost;Port=5432;Database=noorpath_design;Username=noorpath;Password=design-only
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: slice/vs25-operator-booking-amendments-traveller-management
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - name: Install EF Core CLI
+        run: dotnet tool install --global dotnet-ef --version 10.0.10
+      - run: dotnet restore NoorPath.slnx
+      - name: Generate VS-25 Booking migration
+        run: >-
+          dotnet ef migrations add VS25BookingAmendments
+          --project src/Modules/NoorPath.Booking.Infrastructure/NoorPath.Booking.Infrastructure.csproj
+          --startup-project apps/api/NoorPath.Api.csproj
+          --context BookingDbContext
+          --output-dir Migrations
+          --no-build
+      - name: Commit generated migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/Modules/NoorPath.Booking.Infrastructure/Migrations
+          git diff --cached --exit-code && { echo "No migration changes generated"; exit 1; } || true
+          git commit -m "VS-25: generate booking amendment migration"
+          git push origin HEAD:slice/vs25-operator-booking-amendments-traveller-management
