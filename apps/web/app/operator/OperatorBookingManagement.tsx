@@ -79,12 +79,21 @@ function displayDate(value?: string | null) {
 }
 
 function label(value: string) {
-  return value.replace(/([A-Z])/g, " $1").replace(/^./, (x) => x.toUpperCase());
+  return value
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (x) => x.toUpperCase());
 }
 
 function statusTone(value: string) {
   if (["confirmed", "paid", "ready", "approved"].includes(value)) return "good";
-  if (["actionRequired", "rejected", "paymentFailed", "confirmationException"].includes(value)) {
+  if (
+    [
+      "actionRequired",
+      "rejected",
+      "paymentFailed",
+      "confirmationException",
+    ].includes(value)
+  ) {
     return "attention";
   }
   if (["cancelled", "paymentCancelled"].includes(value)) return "muted";
@@ -166,7 +175,10 @@ export default function OperatorBookingManagement() {
 
         {state.kind === "ready" ? (
           <>
-            <div className="operator-booking-metrics" aria-label="Booking summary">
+            <div
+              className="operator-booking-metrics"
+              aria-label="Booking summary"
+            >
               <article>
                 <span>Total bookings</span>
                 <strong>{state.response.summary.total}</strong>
@@ -195,7 +207,10 @@ export default function OperatorBookingManagement() {
                   placeholder="Reference, package, origin or traveller"
                 />
               </label>
-              <div className="operator-booking-filters" aria-label="Filter bookings">
+              <div
+                className="operator-booking-filters"
+                aria-label="Filter bookings"
+              >
                 {[
                   ["all", "All"],
                   ["confirmed", "Confirmed"],
@@ -218,7 +233,10 @@ export default function OperatorBookingManagement() {
             {state.response.items.length === 0 ? (
               <div className="operator-booking-empty">
                 <h2>No bookings yet</h2>
-                <p>Customer bookings for your published departures will appear here.</p>
+                <p>
+                  Customer bookings for your published departures will appear
+                  here.
+                </p>
                 <Link className="auth-secondary" href="/operator/packages">
                   View packages
                 </Link>
@@ -231,16 +249,24 @@ export default function OperatorBookingManagement() {
             ) : (
               <div className="operator-booking-list">
                 {visible.map((item) => (
-                  <article className="operator-booking-card" key={item.bookingId}>
+                  <article
+                    className="operator-booking-card"
+                    key={item.bookingId}
+                  >
                     <div className="operator-booking-card-head">
                       <div>
-                        <p className="auth-eyebrow">Booking {item.reference}</p>
+                        <p className="auth-eyebrow">
+                          Booking {item.reference}
+                        </p>
                         <h2>{item.packageName}</h2>
                         <p>
-                          {item.origin} · {displayDate(item.departureDate)} — {displayDate(item.returnDate)}
+                          {item.origin} · {displayDate(item.departureDate)} —{" "}
+                          {displayDate(item.returnDate)}
                         </p>
                       </div>
-                      <span className={`operator-booking-badge ${statusTone(item.state)}`}>
+                      <span
+                        className={`operator-booking-badge ${statusTone(item.state)}`}
+                      >
                         {label(item.state)}
                       </span>
                     </div>
@@ -256,7 +282,9 @@ export default function OperatorBookingManagement() {
                       </div>
                       <div>
                         <span>Total value</span>
-                        <strong>{money(item.payment.currency, item.payment.total)}</strong>
+                        <strong>
+                          {money(item.payment.currency, item.payment.total)}
+                        </strong>
                       </div>
                     </div>
 
@@ -264,14 +292,26 @@ export default function OperatorBookingManagement() {
                       <section>
                         <div className="operator-booking-progress-title">
                           <span>Payment</span>
-                          <strong className={statusTone(item.payment.status)}>{label(item.payment.status)}</strong>
+                          <strong className={statusTone(item.payment.status)}>
+                            {label(item.payment.status)}
+                          </strong>
                         </div>
                         <p>
-                          {money(item.payment.currency, item.payment.paid)} paid · {money(item.payment.currency, item.payment.outstanding)} remaining
+                          {money(item.payment.currency, item.payment.paid)} paid ·{" "}
+                          {money(
+                            item.payment.currency,
+                            item.payment.outstanding,
+                          )}{" "}
+                          remaining
                         </p>
                         {item.payment.nextInstalment ? (
                           <small>
-                            Next instalment {item.payment.nextInstalment.sequence}: {money(item.payment.currency, item.payment.nextInstalment.amount)} due {displayDate(item.payment.nextInstalment.dueDate)}
+                            Next instalment {item.payment.nextInstalment.sequence}:{" "}
+                            {money(
+                              item.payment.currency,
+                              item.payment.nextInstalment.amount,
+                            )}{" "}
+                            due {displayDate(item.payment.nextInstalment.dueDate)}
                           </small>
                         ) : (
                           <small>No outstanding scheduled instalment.</small>
@@ -281,19 +321,33 @@ export default function OperatorBookingManagement() {
                       <section>
                         <div className="operator-booking-progress-title">
                           <span>Documents</span>
-                          <strong className={statusTone(item.documents.status)}>{label(item.documents.status)}</strong>
+                          <strong className={statusTone(item.documents.status)}>
+                            {label(item.documents.status)}
+                          </strong>
                         </div>
-                        <p>{item.documents.approved} of {item.documents.required} requirements approved</p>
-                        <Link href="/operator/documents">Open document review</Link>
+                        <p>
+                          {item.documents.approved} of {item.documents.required}{" "}
+                          requirements approved
+                        </p>
+                        <Link href="/operator/documents">
+                          Open document review
+                        </Link>
                       </section>
 
                       <section>
                         <div className="operator-booking-progress-title">
                           <span>Visa</span>
-                          <strong className={statusTone(item.visa.status)}>{label(item.visa.status)}</strong>
+                          <strong className={statusTone(item.visa.status)}>
+                            {label(item.visa.status)}
+                          </strong>
                         </div>
-                        <p>{item.visa.approved} of {item.visa.total} travellers approved</p>
-                        <Link href="/operator/visa">Open visa processing</Link>
+                        <p>
+                          {item.visa.approved} of {item.visa.total} travellers
+                          approved
+                        </p>
+                        <Link href="/operator/visa">
+                          Open visa processing
+                        </Link>
                       </section>
                     </div>
 
@@ -301,20 +355,28 @@ export default function OperatorBookingManagement() {
                       <span>Travellers</span>
                       <div>
                         {item.travellers.map((traveller) => (
-                          <span key={traveller.travellerId}>{traveller.fullName}</span>
+                          <span key={traveller.travellerId}>
+                            {traveller.fullName}
+                          </span>
                         ))}
                       </div>
                     </div>
 
                     <div className="operator-booking-actions">
-                      <Link className="auth-secondary" href={`/operator/departures/${item.departureId}`}>
+                      <Link
+                        className="auth-secondary"
+                        href={`/operator/departures/${item.departureId}`}
+                      >
                         Open departure
                       </Link>
                       <Link className="auth-secondary" href="/operator/support">
                         Support actions
                       </Link>
                       {item.state === "confirmed" ? (
-                        <Link className="auth-secondary" href="/operator/cancellations">
+                        <Link
+                          className="auth-secondary"
+                          href="/operator/cancellations"
+                        >
                           Cancellation requests
                         </Link>
                       ) : null}
