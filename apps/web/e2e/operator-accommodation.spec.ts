@@ -66,13 +66,16 @@ async function mockAccess(page) {
 }
 
 async function mockBookingDetail(page) {
-  await page.route(`**/api/v1/operator/bookings/${bookingId}`, async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify(detail),
-    });
-  });
+  await page.route(
+    `**/api/v1/operator/bookings/${bookingId}`,
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(detail),
+      });
+    },
+  );
 }
 
 function workspace(occupants: string[] = [], version = 1, isLocked = false) {
@@ -192,7 +195,9 @@ test("operator opens accommodation from booking detail and assigns a traveller",
   });
   await expect(room.getByText("Amina Rahman", { exact: true })).toBeVisible();
   await expect(page.getByText("1 unassigned", { exact: true })).toBeVisible();
-  await expect(page.getByText("Traveller assigned.", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Traveller assigned.", { exact: true }),
+  ).toBeVisible();
   await expect(
     page.getByText("Keep family allocation together.", { exact: true }),
   ).toBeVisible();
@@ -219,7 +224,9 @@ test("locked accommodation disables assignment controls", async ({ page }) => {
   const room = page.getByRole("article").filter({ hasText: "Makkah 201" });
   await expect(room.getByText("Locked", { exact: true })).toBeVisible();
   await expect(room.getByLabel("Traveller to assign or move")).toBeDisabled();
-  await expect(room.getByRole("button", { name: "Assign / move" })).toBeDisabled();
+  await expect(
+    room.getByRole("button", { name: "Assign / move" }),
+  ).toBeDisabled();
   await expect(room.getByRole("button", { name: "Unlock room" })).toBeEnabled();
   await expectNoHorizontalOverflow(page);
 });
@@ -241,8 +248,6 @@ test("foreign accommodation route stays a safe not-found", async ({ page }) => {
   await expect(
     page.getByText("Booking accommodation not found.", { exact: true }),
   ).toBeVisible();
-  await expect(
-    page.getByText(/belongs to another operator/i),
-  ).toBeVisible();
+  await expect(page.getByText(/belongs to another operator/i)).toBeVisible();
   await expectNoHorizontalOverflow(page);
 });
