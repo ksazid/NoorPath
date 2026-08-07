@@ -15,7 +15,8 @@ export default async function OperatorPublicationReviewPage({
           <strong>Publication review</strong>
           <span>
             Submit only after customer preview is accurate. Platform approval is
-            not instant; allow at least 24 hours before the intended go-live time.
+            not instant; allow at least 24 hours before the intended go-live
+            time.
           </span>
         </div>
         <div>
