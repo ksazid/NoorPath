@@ -1,2 +1,4 @@
 .next/
 next-env.d.ts
+app/operator/departures/PackageDraftPreview.tsx
+app/operator/packages/packageDraftStandards.ts
