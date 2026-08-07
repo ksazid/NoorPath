@@ -200,9 +200,7 @@ export default function OperatorBookingAmendment({
     setConfirmed(false);
     setTravellers((current) =>
       current.map((traveller, travellerIndex) =>
-        travellerIndex === index
-          ? { ...traveller, [field]: value }
-          : traveller,
+        travellerIndex === index ? { ...traveller, [field]: value } : traveller,
       ),
     );
   };
@@ -300,12 +298,16 @@ export default function OperatorBookingAmendment({
     >
       <section className="operator-amendment" aria-live="polite">
         {loadState.kind === "loading" ? (
-          <div className="operator-booking-state">Loading booking amendment…</div>
+          <div className="operator-booking-state">
+            Loading booking amendment…
+          </div>
         ) : null}
 
         {loadState.kind === "forbidden" ? (
           <div className="operator-booking-state">
-            <strong>You do not have access to amend this operator booking.</strong>
+            <strong>
+              You do not have access to amend this operator booking.
+            </strong>
             <Link className="auth-secondary" href="/operator/bookings">
               Back to bookings
             </Link>
@@ -349,8 +351,8 @@ export default function OperatorBookingAmendment({
                 </p>
                 <h2>{loadState.detail.packageName}</h2>
                 <p>
-                  Current booking: {occupancyLabel(loadState.detail.occupancy)} ·{" "}
-                  {loadState.detail.travellerCount} travellers
+                  Current booking: {occupancyLabel(loadState.detail.occupancy)}{" "}
+                  · {loadState.detail.travellerCount} travellers
                 </p>
               </div>
               <span className="operator-booking-badge good">
@@ -362,7 +364,9 @@ export default function OperatorBookingAmendment({
 
             {loadState.detail.state !== "confirmed" ? (
               <div className="operator-amendment__notice" role="status">
-                <strong>This booking cannot be amended in its current state.</strong>
+                <strong>
+                  This booking cannot be amended in its current state.
+                </strong>
                 <p>
                   VS-25 permits amendments only after the booking is confirmed.
                   Continue in the owning workflow until the booking becomes
@@ -399,8 +403,12 @@ export default function OperatorBookingAmendment({
                       value={occupancy}
                       onChange={(event) => changeOccupancy(event.target.value)}
                     >
-                      <option value="double">Double sharing · 2 travellers</option>
-                      <option value="triple">Triple sharing · 3 travellers</option>
+                      <option value="double">
+                        Double sharing · 2 travellers
+                      </option>
+                      <option value="triple">
+                        Triple sharing · 3 travellers
+                      </option>
                       <option value="quad">Quad sharing · 4 travellers</option>
                     </select>
                   </label>
@@ -416,7 +424,11 @@ export default function OperatorBookingAmendment({
                             autoComplete="off"
                             maxLength={120}
                             onChange={(event) =>
-                              updateTraveller(index, "fullName", event.target.value)
+                              updateTraveller(
+                                index,
+                                "fullName",
+                                event.target.value,
+                              )
                             }
                           />
                         </label>

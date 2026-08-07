@@ -63,13 +63,16 @@ async function mockAccess(page) {
 }
 
 async function mockDetail(page, status = 200) {
-  await page.route(`**/api/v1/operator/bookings/${bookingId}`, async (route) => {
-    await route.fulfill({
-      status,
-      contentType: "application/json",
-      body: status === 200 ? JSON.stringify(detail) : "{}",
-    });
-  });
+  await page.route(
+    `**/api/v1/operator/bookings/${bookingId}`,
+    async (route) => {
+      await route.fulfill({
+        status,
+        contentType: "application/json",
+        body: status === 200 ? JSON.stringify(detail) : "{}",
+      });
+    },
+  );
 }
 
 const preview = {
@@ -277,7 +280,9 @@ test("foreign operator booking stays a safe not-found in amendment route", async
   await mockDetail(page, 404);
 
   await page.goto(`/operator/bookings/${bookingId}/amend`);
-  await expect(page.getByText("Booking not found.", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Booking not found.", { exact: true }),
+  ).toBeVisible();
   await expect(
     page.getByText(/does not belong to your operator account/i),
   ).toBeVisible();
