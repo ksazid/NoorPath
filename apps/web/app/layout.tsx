@@ -32,6 +32,7 @@ import "./booking-payment.css";
 import "./account.css";
 import "./operator.css";
 import "./operator-package-management.css";
+import "./operator-booking-management.css";
 import "./my-journey.css";
 import "./documents.css";
 
