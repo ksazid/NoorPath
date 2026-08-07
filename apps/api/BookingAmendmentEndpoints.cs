@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using NoorPath.Booking;
@@ -13,7 +14,14 @@ using NoorPath.Pricing.Infrastructure;
 public static class BookingAmendmentEndpoints
 {
     private const string ProtectorPurpose = "NoorPath.BookingAmendmentPreview.v1";
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions JsonOptions = CreateJsonOptions();
+
+    private static JsonSerializerOptions CreateJsonOptions()
+    {
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        options.Converters.Add(new JsonStringEnumConverter());
+        return options;
+    }
 
     public static void MapBookingAmendments(this WebApplication app)
     {
