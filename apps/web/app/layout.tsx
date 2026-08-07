@@ -15,6 +15,7 @@ import "./package-draft-refinement.css";
 import "./commercial.css";
 import "./commercial-refinement.css";
 import "./payment-plan.css";
+import "./payment-plan-refinement.css";
 import "./publication.css";
 import "./public.css";
 import "./discovery.css";
