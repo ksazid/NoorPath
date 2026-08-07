@@ -66,8 +66,10 @@
 .np-transactional-context a,
 .np-profile-link {
   display: inline-flex;
+  min-width: 44px;
   min-height: 44px;
   align-items: center;
+  justify-content: center;
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
   text-decoration: none;

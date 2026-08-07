@@ -35,7 +35,8 @@
     "Public discovery -> Package details -> Quote -> Inventory hold -> Booking -> Payment -> Confirmation",
     "Authenticated customer -> My Journey -> Documents -> Visa -> Family and Mahram -> Cancellation and refund status",
     "Authorized operator -> Package authoring -> Pricing and inventory -> Review and publish",
-    "Authorized operator -> Document review -> Visa processing -> Operational support -> Cancellation and refund recovery",
+    "Authorized operator -> Package management -> Booking management -> Document review -> Visa processing -> Operational support -> Cancellation and refund recovery",
+    "Platform Administrator -> Administration -> Publication approvals -> Final independent publication review",
     "Release operator -> Preflight -> Migration -> Deployment -> Health verification -> Smoke tests -> Release decision",
     "Release operator -> Failed release -> Rollback -> Data and health verification -> Incident evidence"
   ],
