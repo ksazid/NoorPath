@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type QueueItem = {
   departureId: string;
@@ -15,11 +15,36 @@ type QueueItem = {
 };
 
 type QueueState =
-  "loading" | "ready" | "unauthenticated" | "forbidden" | "error";
+  | "loading"
+  | "ready"
+  | "unauthenticated"
+  | "forbidden"
+  | "error";
 
 function requestHeaders(): HeadersInit {
   const testIdentity = process.env.NEXT_PUBLIC_NOORPATH_TEST_IDENTITY;
   return testIdentity ? { "X-NoorPath-Test-Identity": testIdentity } : {};
+}
+
+const dateFormatter = new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+});
+
+const submittedFormatter = new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+function formatDate(value: string) {
+  return dateFormatter.format(new Date(`${value}T00:00:00Z`));
+}
+
+function formatSubmitted(value: string) {
+  return submittedFormatter.format(new Date(value));
 }
 
 export default function PublicationQueue() {
@@ -50,8 +75,18 @@ export default function PublicationQueue() {
     return () => window.clearTimeout(pending);
   }, [load]);
 
+  const orderedItems = useMemo(
+    () =>
+      [...items].sort(
+        (left, right) =>
+          new Date(left.submittedAtUtc).getTime() -
+          new Date(right.submittedAtUtc).getTime(),
+      ),
+    [items],
+  );
+
   return (
-    <main className="publication-queue-page">
+    <main className="publication-queue-page platform-approval-page">
       <a className="skip-link" href="#publication-queue">
         Skip to publication queue
       </a>
@@ -62,21 +97,51 @@ export default function PublicationQueue() {
           </span>
           <span>NoorPath</span>
         </Link>
-        <span>Platform publication approval</span>
+        <div className="platform-approval-header-copy">
+          <strong>Platform Administrator</strong>
+          <span>Independent publication approval</span>
+        </div>
       </header>
+
       <section id="publication-queue" className="publication-queue-content">
-        <div className="admin-titlebar">
+        <div className="admin-titlebar platform-approval-titlebar">
           <div>
             <span className="eyebrow">Independent approval queue</span>
-            <h1>Review submitted departures</h1>
+            <h1>Review packages before they go live</h1>
             <p>
-              Publication approvers verify the exact submitted versions before
-              making a departure public.
+              Verify the operator submission, saved commercial versions and
+              publication checks before approving the package for customers.
             </p>
           </div>
           {state === "ready" && (
-            <span className="draft-pill">{items.length} awaiting approval</span>
+            <span className="draft-pill platform-awaiting-pill">
+              {items.length} awaiting approval
+            </span>
           )}
+        </div>
+
+        <div className="platform-approval-principles" role="note">
+          <article>
+            <span aria-hidden="true">✓</span>
+            <div>
+              <strong>Independent approval</strong>
+              <small>Operators cannot publish their own submitted package.</small>
+            </div>
+          </article>
+          <article>
+            <span aria-hidden="true">◇</span>
+            <div>
+              <strong>Exact saved versions</strong>
+              <small>Catalogue, pricing and inventory are checked together.</small>
+            </div>
+          </article>
+          <article>
+            <span aria-hidden="true">↗</span>
+            <div>
+              <strong>Customer-visible action</strong>
+              <small>Approval publishes only after every readiness check passes.</small>
+            </div>
+          </article>
         </div>
 
         {state === "loading" && (
@@ -99,41 +164,61 @@ export default function PublicationQueue() {
         {state === "error" && (
           <div className="publication-queue-state" role="alert">
             <strong>Queue temporarily unavailable</strong>
+            <span>No publication action was taken.</span>
             <button type="button" onClick={() => void load()}>
               Try again
             </button>
           </div>
         )}
         {state === "ready" && items.length === 0 && (
-          <div className="publication-queue-state" role="status">
-            <strong>No departures are waiting</strong>
-            <span>New operator submissions will appear here.</span>
+          <div className="publication-queue-state platform-empty-state" role="status">
+            <span className="platform-empty-icon" aria-hidden="true">
+              ✓
+            </span>
+            <strong>No packages are waiting</strong>
+            <span>New operator submissions will appear here for independent review.</span>
           </div>
         )}
-        {state === "ready" && items.length > 0 && (
-          <div className="publication-queue-list">
-            {items.map((item) => (
+        {state === "ready" && orderedItems.length > 0 && (
+          <div className="publication-queue-list platform-approval-list">
+            {orderedItems.map((item, index) => (
               <article
-                className="publication-queue-item"
+                className="publication-queue-item platform-approval-item"
                 key={item.departureId}
               >
-                <div>
-                  <span>{item.operatorId}</span>
+                <div className="platform-approval-item-main">
+                  <div className="platform-approval-item-meta">
+                    <span className="platform-queue-number">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span className="platform-review-status">Awaiting review</span>
+                  </div>
                   <h2>{item.packageName}</h2>
                   <p>
-                    {item.origin} · {item.departureDate} — {item.returnDate}
+                    {item.origin} · {formatDate(item.departureDate)} — {formatDate(item.returnDate)}
                   </p>
+                  <dl className="platform-approval-facts">
+                    <div>
+                      <dt>Operator</dt>
+                      <dd>{item.operatorId}</dd>
+                    </div>
+                    <div>
+                      <dt>Catalogue version</dt>
+                      <dd>v{item.departureVersion}</dd>
+                    </div>
+                    <div>
+                      <dt>Submitted</dt>
+                      <dd>{formatSubmitted(item.submittedAtUtc)}</dd>
+                    </div>
+                  </dl>
                 </div>
-                <div>
-                  <small>
-                    Submitted{" "}
-                    {new Date(item.submittedAtUtc).toLocaleDateString()}
-                  </small>
+                <div className="platform-approval-item-action">
+                  <small>Review all readiness checks before publishing.</small>
                   <Link
                     className="primary-button"
                     href={`/platform/publications/${item.departureId}`}
                   >
-                    Open review
+                    Review for publication
                   </Link>
                 </div>
               </article>
