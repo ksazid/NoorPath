@@ -350,6 +350,14 @@ function Detail({ detail }: { detail: BookingDetail }) {
           </div>
         </div>
         <div className="operator-booking-detail__actions">
+          {detail.state === "confirmed" ? (
+            <Link
+              className="auth-primary"
+              href={`/operator/bookings/${detail.bookingId}/amend`}
+            >
+              Amend booking
+            </Link>
+          ) : null}
           <Link
             className="auth-secondary"
             href={`/operator/departures/${detail.departureId}`}
