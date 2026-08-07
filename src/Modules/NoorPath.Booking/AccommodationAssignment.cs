@@ -72,9 +72,7 @@ public static class AccommodationAssignmentPolicy
         if (existingForStay is not null && existingForStay.RoomId == room.RoomId)
             throw new InvalidOperationException("Traveller is already assigned to this room.");
 
-        var occupants = assignments.Count(item => item.RoomId == room.RoomId);
-        var movingWithinStay = existingForStay is not null;
-        if (!movingWithinStay && occupants >= Capacity(room.RoomType))
+        if (assignments.Count(item => item.RoomId == room.RoomId) >= Capacity(room.RoomType))
             throw new InvalidOperationException("Room capacity has been reached.");
     }
 
