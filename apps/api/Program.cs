@@ -30,6 +30,7 @@ builder.Services.AddDbContext<InventoryDbContext>(options => options.UseNpgsql(c
 builder.Services.AddDbContext<TravellerDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(TravellerDbContext).Assembly.FullName)));
 builder.Services.AddDbContext<DocumentsDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(DocumentsDbContext).Assembly.FullName)));
 builder.Services.AddDbContext<VisaDbContext>(options => options.UseNpgsql(connectionString, postgres => postgres.MigrationsAssembly(typeof(VisaDbContext).Assembly.FullName)));
+builder.Services.AddDataProtection();
 builder.Services.AddOptions<DocumentStorageOptions>().Bind(builder.Configuration.GetSection(DocumentStorageOptions.SectionName));
 var documentsEnabled = builder.Configuration.GetValue<bool>("Documents:ProductionEnabled");
 if (documentsEnabled)
@@ -113,6 +114,7 @@ app.MapAccountAccess();
 app.MapCatalogueAuthoring();
 app.MapOperatorCatalogueQueries();
 app.MapOperatorBookingManagement();
+app.MapBookingAmendments();
 app.MapCommercialAuthoring();
 app.MapPaymentPlanAuthoring();
 app.MapPublicationReview();
