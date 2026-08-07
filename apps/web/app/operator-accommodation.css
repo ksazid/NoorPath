@@ -1,0 +1,301 @@
+.operator-accommodation {
+  display: grid;
+  gap: 20px;
+  margin-top: 34px;
+}
+
+.operator-accommodation__back a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--green-deep);
+  font-size: 13px;
+  font-weight: 800;
+  text-underline-offset: 3px;
+}
+
+.operator-accommodation__hero,
+.operator-accommodation__section,
+.operator-accommodation__error,
+.operator-accommodation__success {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fffdf9;
+  box-shadow: 0 8px 24px rgba(48, 38, 20, 0.04);
+}
+
+.operator-accommodation__hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: clamp(22px, 4vw, 32px);
+}
+
+.operator-accommodation__hero h2,
+.operator-accommodation__section h2 {
+  margin: 7px 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+}
+
+.operator-accommodation__hero h2 {
+  font-size: clamp(26px, 4vw, 34px);
+}
+
+.operator-accommodation__hero p,
+.operator-accommodation__section p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.operator-accommodation__section {
+  display: grid;
+  gap: 20px;
+  padding: clamp(20px, 3vw, 28px);
+}
+
+.operator-accommodation__section h2 {
+  font-size: clamp(21px, 3vw, 28px);
+}
+
+.operator-accommodation__error,
+.operator-accommodation__success {
+  display: grid;
+  gap: 6px;
+  padding: 17px 20px;
+}
+
+.operator-accommodation__error {
+  border-left: 4px solid var(--danger);
+  background: #fff8f6;
+}
+
+.operator-accommodation__success {
+  border-left: 4px solid var(--green-deep);
+  background: #f3f8f5;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.operator-accommodation__error span {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.operator-accommodation__create {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.7fr) minmax(150px, 0.8fr) minmax(200px, 1.3fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.operator-accommodation__create label,
+.operator-accommodation__field {
+  display: grid;
+  gap: 8px;
+}
+
+.operator-accommodation__create label > span,
+.operator-accommodation__field > span {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.operator-accommodation__create input,
+.operator-accommodation__create select,
+.operator-accommodation__field input,
+.operator-accommodation__field select {
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+}
+
+.operator-accommodation__create input:focus-visible,
+.operator-accommodation__create select:focus-visible,
+.operator-accommodation__field input:focus-visible,
+.operator-accommodation__field select:focus-visible {
+  outline: 3px solid var(--focus-ring, rgba(23, 82, 66, 0.28));
+  outline-offset: 2px;
+}
+
+.operator-accommodation__stays {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.operator-accommodation__section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.operator-accommodation__section-head > strong {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #f7f4ed;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.operator-accommodation__rooms {
+  display: grid;
+  gap: 14px;
+}
+
+.operator-accommodation__room {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--canvas);
+}
+
+.operator-accommodation__room > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.operator-accommodation__room h3 {
+  margin: 0 0 5px;
+  color: var(--ink);
+  font-size: 18px;
+}
+
+.operator-accommodation__room header p {
+  font-size: 13px;
+}
+
+.operator-accommodation__occupants,
+.operator-accommodation__history {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.operator-accommodation__occupants li {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+}
+
+.operator-accommodation__occupants li > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.operator-accommodation__occupants .auth-secondary,
+.operator-accommodation__actions button,
+.operator-accommodation__create button {
+  min-height: 44px;
+}
+
+.operator-accommodation__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.operator-accommodation button:disabled,
+.operator-accommodation select:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.operator-accommodation__empty {
+  padding: 14px;
+  border-radius: 10px;
+  background: #f7f4ed;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.operator-accommodation__history li {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.6fr) minmax(0, 1.4fr);
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.operator-accommodation__history li:last-child {
+  border-bottom: 0;
+}
+
+.operator-accommodation__history li > div {
+  display: grid;
+  gap: 4px;
+}
+
+.operator-accommodation__history span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media (max-width: 960px) {
+  .operator-accommodation__stays {
+    grid-template-columns: 1fr;
+  }
+
+  .operator-accommodation__create {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .operator-accommodation__hero,
+  .operator-accommodation__section-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .operator-accommodation__create {
+    grid-template-columns: 1fr;
+  }
+
+  .operator-accommodation__create button,
+  .operator-accommodation__actions {
+    width: 100%;
+  }
+
+  .operator-accommodation__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .operator-accommodation__history li {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .operator-accommodation *,
+  .operator-accommodation *::before,
+  .operator-accommodation *::after {
+    scroll-behavior: auto !important;
+  }
+}
