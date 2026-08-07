@@ -5,6 +5,7 @@ import {
   expectNoHorizontalOverflow,
 } from "./helpers";
 
+// prettier-ignore
 test("operator can start a package draft with standard NoorPath terminology", async ({
   page,
 }) => {
@@ -27,6 +28,7 @@ test("operator can start a package draft with standard NoorPath terminology", as
   await expectNoHorizontalOverflow(page);
 });
 
+// prettier-ignore
 test("journey dates calculate the package title and duration", async ({
   page,
 }) => {
@@ -46,6 +48,7 @@ test("journey dates calculate the package title and duration", async ({
   ).toBeVisible();
 });
 
+// prettier-ignore
 test("saved package draft renders a private customer-style preview", async ({
   page,
 }) => {
