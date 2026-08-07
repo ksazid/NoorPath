@@ -449,6 +449,8 @@ public static class AccommodationAssignmentEndpoints
                 cancellationToken);
         if (booking is null || room is null)
             return Results.NotFound();
+        if (booking.State != BookingState.Confirmed)
+            return Results.Conflict(new { code = "booking_not_confirmed" });
         if (room.Version != request.ExpectedRoomVersion)
             return Results.Conflict(new { code = "room_stale" });
 
@@ -461,9 +463,28 @@ public static class AccommodationAssignmentEndpoints
             });
         }
 
+        var previousVersion = room.Version;
+        var now = timeProvider.GetUtcNow();
         room.IsLocked = request.Locked;
         room.Version++;
-        room.UpdatedAtUtc = timeProvider.GetUtcNow();
+        room.UpdatedAtUtc = now;
+        bookings.Set<AccommodationAssignmentAuditRecord>().Add(new AccommodationAssignmentAuditRecord
+        {
+            Id = Guid.NewGuid(),
+            BookingId = booking.Id,
+            OperatorId = access.OperatorId!,
+            ActorAccountId = access.AccountId!,
+            TravellerId = null,
+            PreviousRoomId = room.Id,
+            RoomId = room.Id,
+            Stay = room.Stay,
+            Action = request.Locked ? "locked" : "unlocked",
+            Reason = reason,
+            PreviousRoomVersion = previousVersion,
+            ResultingRoomVersion = room.Version,
+            CorrelationId = http.TraceIdentifier,
+            OccurredAtUtc = now
+        });
         try
         {
             await bookings.SaveChangesAsync(cancellationToken);
