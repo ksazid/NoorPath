@@ -98,7 +98,7 @@ public sealed class AccommodationAssignmentAuditRecord
     public Guid BookingId { get; set; }
     public required string OperatorId { get; set; }
     public required string ActorAccountId { get; set; }
-    public Guid TravellerId { get; set; }
+    public Guid? TravellerId { get; set; }
     public Guid? PreviousRoomId { get; set; }
     public Guid? RoomId { get; set; }
     public AccommodationStay Stay { get; set; }
