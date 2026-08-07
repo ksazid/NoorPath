@@ -22,6 +22,7 @@ const navigation = [
   { label: "Overview", href: "/operator" },
   { label: "Packages", href: "/operator/packages" },
   { label: "Departures", href: "/operator/departures" },
+  { label: "Bookings", href: "/operator/bookings" },
   { label: "Visa", href: "/operator/visa" },
   { label: "Support", href: "/operator/support" },
   { label: "Cancellations", href: "/operator/cancellations" },
