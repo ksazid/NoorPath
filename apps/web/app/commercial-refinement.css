@@ -1,0 +1,273 @@
+/* Operator pricing & occupancy refinement.
+   Scope: existing CommercialEditor only; no shell or business-rule changes. */
+
+.commercial-editor {
+  gap: 22px;
+  margin-top: 22px;
+}
+
+.commercial-heading {
+  align-items: flex-start;
+  padding: 4px 2px 0;
+}
+
+.commercial-heading > div {
+  max-width: 760px;
+}
+
+.commercial-heading h2 {
+  margin: 8px 0 9px;
+  font-size: clamp(30px, 3vw, 40px);
+  line-height: 1.08;
+}
+
+.commercial-heading p {
+  max-width: 700px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.commercial-private-pill {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 11px;
+  background: #fff9ed;
+}
+
+.commercial-grid {
+  gap: 16px;
+}
+
+.commercial-capability-card,
+.commercial-readiness-card {
+  border-color: #e5ddcf;
+  border-radius: 16px;
+  background: #fffdf9;
+  box-shadow: none;
+}
+
+.commercial-capability-card {
+  padding: 22px;
+}
+
+.commercial-capability-card .form-card-heading {
+  margin-bottom: 18px;
+}
+
+.commercial-capability-card .form-card-heading > span {
+  background: #fff9ed;
+  color: #72501c;
+}
+
+.commercial-capability-card .form-card-heading h2,
+.commercial-readiness-card .form-card-heading h2 {
+  font-size: 22px;
+}
+
+.commercial-currency-field {
+  margin-bottom: 16px;
+  padding: 14px;
+  border: 1px solid #e9e1d5;
+  border-radius: 12px;
+  background: white;
+}
+
+.commercial-currency-field input {
+  max-width: 150px;
+}
+
+.commercial-row-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.commercial-row {
+  position: relative;
+  grid-template-columns: 1fr;
+  align-content: start;
+  min-width: 0;
+  min-height: 150px;
+  gap: 12px;
+  padding: 16px;
+  border-color: #e4ddd3;
+  border-radius: 13px;
+  background: white;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    transform 150ms var(--ui-ease-out, ease-out);
+}
+
+.commercial-row::before {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid #e4d3b5;
+  border-radius: 50%;
+  background: #fff9ed;
+  color: #72501c;
+  content: "◇";
+  font-size: 15px;
+  line-height: 1;
+}
+
+.commercial-row:hover {
+  border-color: #ccb990;
+  background: #fffcf6;
+}
+
+.commercial-row:focus-within {
+  border-color: rgba(184, 149, 72, 0.7);
+  box-shadow: 0 0 0 3px rgba(184, 149, 72, 0.14);
+}
+
+.commercial-row:active {
+  transform: scale(0.995);
+}
+
+.commercial-row-copy strong {
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.commercial-row-copy small {
+  min-height: 30px;
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.commercial-input-wrap {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 9px;
+}
+
+.commercial-input-wrap input {
+  min-height: 46px;
+  font-size: 14px;
+}
+
+.commercial-input-wrap > span {
+  font-size: 10px;
+}
+
+.commercial-reason-field {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid #e9e1d5;
+  border-radius: 12px;
+  background: white;
+}
+
+.commercial-reason-field textarea {
+  background: #fffdf9;
+}
+
+.commercial-card-footer {
+  margin-top: 18px;
+  padding-top: 16px;
+}
+
+.commercial-save-button {
+  min-width: 150px;
+}
+
+.commercial-readiness-card {
+  padding: 22px;
+}
+
+.commercial-readiness-grid {
+  gap: 10px;
+}
+
+.commercial-readiness-row {
+  min-height: 108px;
+  align-content: space-between;
+  padding: 16px;
+  border-color: #e4ddd3;
+  border-radius: 12px;
+  background: white;
+}
+
+.commercial-readiness-row strong {
+  font-size: 14px;
+}
+
+.commercial-readiness-row span {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+}
+
+.commercial-notice,
+.commercial-validation {
+  border-radius: 11px;
+}
+
+@media (max-width: 1040px) {
+  .commercial-row-list {
+    grid-template-columns: 1fr;
+  }
+
+  .commercial-row {
+    grid-template-columns: auto minmax(0, 1fr) minmax(180px, 0.75fr);
+    align-items: center;
+    min-height: 88px;
+  }
+
+  .commercial-row::before {
+    grid-column: 1;
+  }
+
+  .commercial-row-copy {
+    grid-column: 2;
+  }
+
+  .commercial-input-wrap {
+    grid-column: 3;
+  }
+}
+
+@media (max-width: 760px) {
+  .commercial-heading {
+    gap: 12px;
+  }
+
+  .commercial-capability-card,
+  .commercial-readiness-card {
+    padding: 18px;
+  }
+
+  .commercial-row {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .commercial-row::before,
+  .commercial-row-copy,
+  .commercial-input-wrap {
+    grid-column: 1;
+  }
+
+  .commercial-row-copy small {
+    min-height: 0;
+  }
+
+  .commercial-currency-field input {
+    max-width: none;
+  }
+
+  .commercial-save-button {
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .commercial-row {
+    transition: none;
+  }
+}
