@@ -158,7 +158,9 @@ test("platform administrator is guided out of operator scope and reaches publica
     "Use NoorPath administration",
   );
   await expect(
-    page.getByText(/Operator workspaces require an approved operator membership/i),
+    page.getByText(
+      /Operator workspaces require an approved operator membership/i,
+    ),
   ).toBeVisible();
 
   await page.getByRole("link", { name: "Open admin workspace" }).click();
