@@ -17,11 +17,17 @@ public static class BookingAmendmentEndpoints
 
     public static void MapBookingAmendments(this WebApplication app)
     {
-        app.MapPost("/api/v1/operator/bookings/{bookingId:guid}/amendments/preview", PreviewAsync)
+        app.MapPost(
+                "/api/v1/operator/bookings/{bookingId:guid}/amendments/preview",
+                PreviewAsync)
             .RequireAuthorization();
-        app.MapPost("/api/v1/operator/bookings/{bookingId:guid}/amendments/confirm", ConfirmAsync)
+        app.MapPost(
+                "/api/v1/operator/bookings/{bookingId:guid}/amendments/confirm",
+                ConfirmAsync)
             .RequireAuthorization();
-        app.MapGet("/api/v1/operator/bookings/{bookingId:guid}/amendments", HistoryAsync)
+        app.MapGet(
+                "/api/v1/operator/bookings/{bookingId:guid}/amendments",
+                HistoryAsync)
             .RequireAuthorization();
     }
 
@@ -49,9 +55,10 @@ public static class BookingAmendmentEndpoints
         if (booking is null)
             return Results.NotFound();
 
-        var proposal = ToProposal(request);
+        BookingAmendmentProposal proposal;
         try
         {
+            proposal = ToProposal(request);
             BookingAmendmentPolicy.ValidateProposal(
                 booking.State,
                 proposal,
@@ -59,7 +66,11 @@ public static class BookingAmendmentEndpoints
         }
         catch (InvalidOperationException exception)
         {
-            return Results.Conflict(new { code = "booking_not_amendable", message = exception.Message });
+            return Results.Conflict(new
+            {
+                code = "booking_not_amendable",
+                message = exception.Message
+            });
         }
         catch (ArgumentException exception)
         {
@@ -81,7 +92,10 @@ public static class BookingAmendmentEndpoints
         var currentInstalments = await bookings.Instalments.AsNoTracking()
             .Where(item => item.BookingId == booking.Id)
             .OrderBy(item => item.Sequence)
-            .Select(item => new BookingInstalment(item.Sequence, item.DueDate, item.Amount))
+            .Select(item => new BookingInstalment(
+                item.Sequence,
+                item.DueDate,
+                item.Amount))
             .ToArrayAsync(cancellationToken);
 
         var currentFinancials = new BookingFinancialSnapshot(
@@ -92,17 +106,31 @@ public static class BookingAmendmentEndpoints
             booking.Remaining,
             currentInstalments);
 
-        var proposedCommercials = await BuildCommercialSnapshotAsync(
-            booking,
-            proposal,
-            pricing,
-            catalogue,
-            cancellationToken);
+        BookingAmendmentCommercialSnapshot? proposedCommercials;
+        try
+        {
+            proposedCommercials = await BuildCommercialSnapshotAsync(
+                booking,
+                proposal,
+                pricing,
+                catalogue,
+                cancellationToken);
+        }
+        catch (ArgumentException exception)
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["pricing"] = [exception.Message]
+            });
+        }
+
         if (proposedCommercials is null)
         {
             return Results.ValidationProblem(new Dictionary<string, string[]>
             {
-                ["occupancy"] = ["The selected occupancy does not have an active published price for this booking."]
+                ["occupancy"] = [
+                    "The selected occupancy does not have an active published price for this booking."
+                ]
             });
         }
 
@@ -117,7 +145,7 @@ public static class BookingAmendmentEndpoints
         var envelope = new BookingAmendmentPreviewEnvelope(
             booking.Id,
             access.OperatorId,
-            principalAccountId: accessResult.AccountId!,
+            accessResult.AccountId!,
             booking.Version,
             proposal,
             proposedCommercials,
@@ -172,7 +200,17 @@ public static class BookingAmendmentEndpoints
         {
             return Results.ValidationProblem(new Dictionary<string, string[]>
             {
-                ["confirmed"] = ["Explicit confirmation is required before applying a booking amendment."]
+                ["confirmed"] = [
+                    "Explicit confirmation is required before applying a booking amendment."
+                ]
+            });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.PreviewToken))
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["previewToken"] = ["Create a fresh amendment preview before confirming."]
             });
         }
 
@@ -185,7 +223,9 @@ public static class BookingAmendmentEndpoints
         {
             var protector = protectionProvider.CreateProtector(ProtectorPurpose);
             var json = protector.Unprotect(request.PreviewToken);
-            envelope = JsonSerializer.Deserialize<BookingAmendmentPreviewEnvelope>(json, JsonOptions)
+            envelope = JsonSerializer.Deserialize<BookingAmendmentPreviewEnvelope>(
+                    json,
+                    JsonOptions)
                 ?? throw new CryptographicException("Preview token payload is invalid.");
         }
         catch (Exception exception) when (
@@ -201,8 +241,14 @@ public static class BookingAmendmentEndpoints
         }
 
         if (envelope.BookingId != bookingId
-            || !string.Equals(envelope.OperatorId, accessResult.Access!.OperatorId, StringComparison.Ordinal)
-            || !string.Equals(envelope.PrincipalAccountId, accessResult.AccountId, StringComparison.Ordinal))
+            || !string.Equals(
+                envelope.OperatorId,
+                accessResult.Access!.OperatorId,
+                StringComparison.Ordinal)
+            || !string.Equals(
+                envelope.PrincipalAccountId,
+                accessResult.AccountId,
+                StringComparison.Ordinal))
         {
             return Results.NotFound();
         }
@@ -220,7 +266,8 @@ public static class BookingAmendmentEndpoints
         await using var transaction = await bookings.Database.BeginTransactionAsync(cancellationToken);
         var booking = await bookings.Bookings
             .SingleOrDefaultAsync(
-                item => item.Id == bookingId && item.OperatorId == accessResult.Access.OperatorId,
+                item => item.Id == bookingId
+                    && item.OperatorId == accessResult.Access.OperatorId,
                 cancellationToken);
         if (booking is null)
             return Results.NotFound();
@@ -244,7 +291,11 @@ public static class BookingAmendmentEndpoints
         }
         catch (InvalidOperationException exception)
         {
-            return Results.Conflict(new { code = "booking_not_amendable", message = exception.Message });
+            return Results.Conflict(new
+            {
+                code = "booking_not_amendable",
+                message = exception.Message
+            });
         }
         catch (ArgumentException exception)
         {
@@ -254,12 +305,21 @@ public static class BookingAmendmentEndpoints
             });
         }
 
-        var recalculated = await BuildCommercialSnapshotAsync(
-            booking,
-            envelope.Proposal,
-            pricing,
-            catalogue,
-            cancellationToken);
+        BookingAmendmentCommercialSnapshot? recalculated;
+        try
+        {
+            recalculated = await BuildCommercialSnapshotAsync(
+                booking,
+                envelope.Proposal,
+                pricing,
+                catalogue,
+                cancellationToken);
+        }
+        catch (ArgumentException)
+        {
+            recalculated = null;
+        }
+
         if (recalculated is null)
         {
             return Results.Conflict(new
@@ -418,7 +478,8 @@ public static class BookingAmendmentEndpoints
 
         var owned = await bookings.Bookings.AsNoTracking()
             .AnyAsync(
-                item => item.Id == bookingId && item.OperatorId == accessResult.Access!.OperatorId,
+                item => item.Id == bookingId
+                    && item.OperatorId == accessResult.Access!.OperatorId,
                 cancellationToken);
         if (!owned)
             return Results.NotFound();
@@ -468,7 +529,8 @@ public static class BookingAmendmentEndpoints
 
         var publishedPrice = await pricing.PublishedOccupancyPrices.AsNoTracking()
             .SingleOrDefaultAsync(
-                item => item.PriceVersionId == version.Id && item.Occupancy == occupancy,
+                item => item.PriceVersionId == version.Id
+                    && item.Occupancy == occupancy,
                 cancellationToken);
         if (publishedPrice is null)
             return null;
@@ -497,18 +559,29 @@ public static class BookingAmendmentEndpoints
             schedule.DueNow,
             schedule.Remaining,
             schedule.Instalments
-                .Select(item => new BookingInstalment(item.Sequence, item.DueDate, item.Amount))
+                .Select(item => new BookingInstalment(
+                    item.Sequence,
+                    item.DueDate,
+                    item.Amount))
                 .ToArray());
 
         return new BookingAmendmentCommercialSnapshot(version.Id, financials);
     }
 
-    private static BookingAmendmentProposal ToProposal(BookingAmendmentProposalRequest request)
+    private static BookingAmendmentProposal ToProposal(
+        BookingAmendmentProposalRequest request)
     {
+        ArgumentNullException.ThrowIfNull(request);
+
         if (!Enum.TryParse<BookingOccupancy>(request.Occupancy, true, out var occupancy))
         {
-            throw new ArgumentException("Occupancy must be Double, Triple or Quad.", nameof(request));
+            throw new ArgumentException(
+                "Occupancy must be Double, Triple or Quad.",
+                nameof(request));
         }
+
+        if (request.Travellers is null)
+            throw new ArgumentException("Travellers are required.", nameof(request));
 
         return new BookingAmendmentProposal(
             occupancy,
@@ -520,7 +593,8 @@ public static class BookingAmendmentEndpoints
             request.Reason);
     }
 
-    private static BookingAmendmentTraveller ToTraveller(BookingTravellerRecord item) =>
+    private static BookingAmendmentTraveller ToTraveller(
+        BookingTravellerRecord item) =>
         new(item.TravellerId, item.Position, item.FullName, item.DateOfBirth);
 
     private static string Fingerprint(
@@ -538,7 +612,8 @@ public static class BookingAmendmentEndpoints
             commercials,
             expiresAtUtc
         }, JsonOptions);
-        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payload))).ToLowerInvariant();
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payload)))
+            .ToLowerInvariant();
     }
 
     private static async Task<OperatorResolution> ResolveOperatorAsync(
@@ -554,9 +629,9 @@ public static class BookingAmendmentEndpoints
             principal.AccountId,
             cancellationToken);
         if (access is null || !access.IsAllowed(OperatorPermissions.AdminAccess))
-            return new(principal.AccountId, null, Results.Forbid());
+            return new(principal.AccountId.Value, null, Results.Forbid());
 
-        return new(principal.AccountId, access, null);
+        return new(principal.AccountId.Value, access, null);
     }
 
     private sealed record OperatorResolution(
