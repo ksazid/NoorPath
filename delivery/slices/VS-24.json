@@ -1,0 +1,75 @@
+{
+  "id": "VS-24",
+  "title": "Operator Booking Detail and Traveller Operations",
+  "slug": "operator-booking-detail-traveller-operations",
+  "outcome": "Approved operator staff can open one operator-owned booking and understand its travellers, occupancy, payment timeline, document readiness, visa progress and module-owned operational actions from one detail workspace.",
+  "actor": "Approved operator staff responsible for servicing bookings and travellers.",
+  "dependsOn": ["VS-10", "VS-12", "VS-13", "VS-14", "VS-16", "VS-23"],
+  "modules": [
+    "Booking owns booking and traveller facts, occupancy and booking lifecycle.",
+    "Payments owns payment attempts and instalment progress.",
+    "Documents owns document requirements and review state.",
+    "Visa owns per-traveller visa state.",
+    "Operations modules retain ownership of support and cancellation actions.",
+    "Web composes read-only operational context and links to module-owned actions without bypassing domain boundaries."
+  ],
+  "routes": [
+    "Operator bookings -> booking detail",
+    "Booking detail -> traveller summary",
+    "Booking detail -> payment timeline",
+    "Booking detail -> document review",
+    "Booking detail -> visa processing",
+    "Booking detail -> support and cancellation workspaces"
+  ],
+  "acceptance": [
+    "An operator can open a booking from /operator/bookings using a real clickable control.",
+    "The detail endpoint and page are isolated to the active operator; foreign-operator booking IDs return safe not-found behavior.",
+    "Booking reference, package, dates, state, occupancy and traveller count are visible without changing booking state.",
+    "Each traveller is shown with identity-safe operational facts and current document and visa readiness where available.",
+    "Payment totals, paid amount, remaining amount and scheduled instalments are presented from existing payment and booking data without recalculating financial rules in the browser.",
+    "Document and visa actions deep-link to the existing module-owned queues or detail routes rather than duplicating mutation behavior.",
+    "Support and cancellation actions remain permission and lifecycle governed by their existing modules.",
+    "Loading, empty/not-found, forbidden and recoverable-error states are explicit.",
+    "Desktop and mobile navigation, keyboard operation, target size, reflow and serious/critical accessibility checks pass.",
+    "Existing staff shell, authorization policies and domain state machines are not redesigned or weakened.",
+    "Product Owner approval is required for the exact certified SHA before merge; deployment remains separately approved."
+  ],
+  "policyDecisionsRequired": [
+    "Keep the booking detail workspace operational and read-oriented; mutations stay in module-owned workflows.",
+    "Show only identity-safe traveller facts required for operations.",
+    "Use the existing staff shell and NoorPath design system without structural redesign."
+  ],
+  "exclusions": [
+    "New payment capture or refund execution.",
+    "Editing traveller identity or passport data outside existing governed flows.",
+    "Visa or document state transitions from the booking detail page.",
+    "New cancellation policy or support commands.",
+    "Operator shell redesign.",
+    "Production deployment."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "migration",
+    "security",
+    "authorization",
+    "privacy",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "rendered-regression",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "apps/web/e2e/operator-booking-detail.spec.ts"
+  },
+  "specPath": "docs/slices/VS-24-OPERATOR-BOOKING-DETAIL-TRAVELLER-OPERATIONS.md",
+  "checklistPath": "docs/slices/VS-24-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-24-NAVIGATION-VERIFICATION.md"
+}
