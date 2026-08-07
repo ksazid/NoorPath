@@ -45,13 +45,13 @@ jobs:
           set -euo pipefail
           corepack enable
           pnpm install --frozen-lockfile
-          pnpm exec prettier --write \
-            apps/web/app/layout.tsx \
-            apps/web/app/operator-accommodation.css \
-            apps/web/app/operator/OperatorAccommodation.tsx \
-            apps/web/app/operator/OperatorBookingDetail.tsx \
-            'apps/web/app/operator/bookings/[bookingId]/accommodation/page.tsx' \
-            apps/web/e2e/operator-accommodation.spec.ts
+          pnpm --dir apps/web exec prettier --write \
+            app/layout.tsx \
+            app/operator-accommodation.css \
+            app/operator/OperatorAccommodation.tsx \
+            app/operator/OperatorBookingDetail.tsx \
+            'app/operator/bookings/[bookingId]/accommodation/page.tsx' \
+            e2e/operator-accommodation.spec.ts
           dotnet restore NoorPath.slnx
           dotnet format NoorPath.slnx --no-restore --include \
             apps/api/AccommodationAssignmentEndpoints.cs \
