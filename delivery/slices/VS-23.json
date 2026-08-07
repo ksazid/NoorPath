@@ -4,7 +4,7 @@
   "slug": "operator-draft-package-builder",
   "outcome": "Approved operator staff can create, clone, save and preview an Umrah package draft through a few-click workflow before submitting it for platform review.",
   "actor": "Approved operator staff with catalogue authoring permission.",
-  "dependsOn": ["VS-18", "VS-19", "VS-20", "VS-22"],
+  "dependsOn": ["VS-18", "VS-19", "VS-20", "VS-21"],
   "modules": [
     "Operators owns package draft authoring and operator isolation.",
     "Catalogue owns package, departure, commercial and payment-plan facts.",
@@ -56,6 +56,7 @@
     "security",
     "authorization",
     "privacy",
+    "journey-linking",
     "navigation-reachability",
     "telemetry",
     "accessibility",
