@@ -1,13 +1,80 @@
 {
   "id": "VS-26",
-  "name": "Room Assignment & Accommodation Operations",
-  "branch": "slice/vs26-room-assignment-accommodation-operations",
-  "spec": "docs/slices/VS-26-ROOM-ASSIGNMENT-ACCOMMODATION-OPERATIONS.md",
-  "checklist": "docs/slices/VS-26-IMPLEMENTATION-CHECKLIST.md",
-  "navigation": "docs/slices/VS-26-NAVIGATION-VERIFICATION.md",
+  "title": "Room Assignment and Accommodation Operations",
+  "slug": "room-assignment-accommodation-operations",
+  "outcome": "Approved operator staff can assign confirmed booking travellers to Makkah and Madinah room allocations, safely reassign or unassign them, lock operational rooming decisions and preserve auditable history without mutating the booking commercial snapshot.",
+  "actor": "Approved operator staff responsible for confirmed-booking accommodation operations.",
+  "dependsOn": ["VS-10", "VS-24", "VS-25"],
+  "modules": [
+    "Booking owns booking-scoped operational accommodation rooms, traveller-to-room assignments, concurrency versions and append-only accommodation audit history.",
+    "Catalogue remains the source of published package stay facts; VS-26 does not create supplier or hotel inventory contracts.",
+    "Pricing and Payments remain unchanged because room assignment is operational and must not alter the booked commercial occupancy, price or payment history.",
+    "Documents, Visa and Cancellation remain independently owned and are not mutated by accommodation operations.",
+    "Web extends the existing operator booking detail with an accommodation workspace using the established NoorPath operator shell and visual language."
+  ],
+  "routes": [
+    "Operator bookings -> open booking",
+    "Booking detail -> Accommodation",
+    "Accommodation -> create booking-scoped room allocation",
+    "Accommodation -> assign or reassign traveller",
+    "Accommodation -> unassign traveller",
+    "Accommodation -> lock or unlock room allocation with explicit reason",
+    "Accommodation -> review unassigned travellers and recent audit history"
+  ],
+  "acceptance": [
+    "Only an approved operator can read or mutate accommodation for a booking owned by the active operator; foreign ids return safe not-found responses.",
+    "Accommodation mutations are permitted only for confirmed bookings and never change booking occupancy, traveller count, price, instalments or payment records.",
+    "A traveller must belong to the booking and can have at most one room assignment per stay.",
+    "Double, triple and quad room types enforce capacities of two, three and four respectively, including reassignment into a destination room.",
+    "Assign, unassign, reassign, lock and unlock operations require current room versions; stale writes fail with conflict feedback and no partial mutation.",
+    "Every assignment mutation and room lock/unlock records operator, actor account, explicit reason, version transition, correlation id and timestamp in append-only audit history.",
+    "Locked rooms reject assignment changes until explicitly unlocked through the governed workflow.",
+    "The workspace shows Makkah and Madinah room allocations, occupancy counts, unassigned travellers and recoverable loading/error/conflict states.",
+    "Booking detail provides a keyboard-reachable Accommodation entry point for confirmed bookings without replacing the existing booking-amendment workflow.",
+    "Desktop and mobile navigation, target size, reflow and serious/critical accessibility checks pass.",
+    "Product Owner approval is required for the exact certified SHA before merge; production deployment remains separately approved."
+  ],
+  "policyDecisionsRequired": [
+    "Treat room assignments as booking-scoped operational data rather than supplier inventory or a commercial occupancy change.",
+    "Allow one assignment per traveller per stay and make reassignment atomic through the same governed endpoint.",
+    "Use optimistic room versions for all operational mutations so concurrent operators cannot silently overwrite rooming decisions.",
+    "Persist explicit actor/reason/timestamp audit evidence for lock and assignment overrides."
+  ],
+  "exclusions": [
+    "Booking occupancy, traveller-count, pricing, instalment or payment changes.",
+    "Supplier or hotel contracting inventory.",
+    "Payment capture, adjustment or refund execution.",
+    "Document or visa mutations.",
+    "Cancellation execution.",
+    "Customer self-service room selection.",
+    "Operator shell redesign.",
+    "Production deployment."
+  ],
   "qualityGates": [
-    "ci",
-    "rendered-review",
-    "navigation-reachability"
-  ]
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "migration",
+    "security",
+    "authorization",
+    "concurrency",
+    "financial-integrity",
+    "privacy",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "rendered-regression",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "apps/web/e2e/operator-accommodation.spec.ts"
+  },
+  "specPath": "docs/slices/VS-26-ROOM-ASSIGNMENT-ACCOMMODATION-OPERATIONS.md",
+  "checklistPath": "docs/slices/VS-26-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-26-NAVIGATION-VERIFICATION.md"
 }
