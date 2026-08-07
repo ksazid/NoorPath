@@ -9,20 +9,10 @@ import {
   calculateJourneyDuration,
   suggestPackageTitle,
 } from "../packageDraftStandards";
+import PackageInclusionsEditor from "./PackageInclusionsEditor";
 
 type IntercityMode = "bus" | "train";
 type SaveState = "ready" | "saving" | "error";
-
-const inclusionIcons: Record<string, string> = {
-  "Return flights": "✈",
-  "Visa included": "▣",
-  "Makkah accommodation": "⌂",
-  "Madinah accommodation": "⌂",
-  "Breakfast, lunch and dinner": "◉",
-  "Intercity travel": "⇄",
-  "Ziyarat transport": "⌖",
-  "Umrah guidance": "◇",
-};
 
 // prettier-ignore
 export default function PackageQuickStart() {
@@ -36,6 +26,9 @@ export default function PackageQuickStart() {
     useState<IntercityMode>("bus");
   const [inclusions, setInclusions] = useState<string[]>([
     ...STANDARD_PACKAGE_INCLUSIONS,
+  ]);
+  const [exclusions, setExclusions] = useState<string[]>([
+    ...STANDARD_PACKAGE_EXCLUSIONS,
   ]);
   const [state, setState] = useState<SaveState>("ready");
   const [error, setError] = useState("");
@@ -51,6 +44,14 @@ export default function PackageQuickStart() {
 
   const toggleInclusion = (item: string) => {
     setInclusions((current) =>
+      current.includes(item)
+        ? current.filter((value) => value !== item)
+        : [...current, item],
+    );
+  };
+
+  const toggleExclusion = (item: string) => {
+    setExclusions((current) =>
       current.includes(item)
         ? current.filter((value) => value !== item)
         : [...current, item],
@@ -118,7 +119,7 @@ export default function PackageQuickStart() {
           departureDate,
           returnDate,
           inclusions: selectedInclusions,
-          exclusions: [...STANDARD_PACKAGE_EXCLUSIONS],
+          exclusions,
         }),
       });
 
@@ -287,32 +288,23 @@ export default function PackageQuickStart() {
           </fieldset>
         </section>
 
-        <section className="form-card">
+        <section className="form-card package-options-card">
           <div className="form-card-heading">
             <span>03</span>
             <div>
-              <h2>What is included</h2>
+              <h2>Package inclusions & exclusions</h2>
               <p>
-                NoorPath terminology stays consistent for every operator. Untick
-                only what is genuinely not included.
+                Keep the defaults, untick anything that does not apply, or add
+                package-specific items without changing the rest of the draft.
               </p>
             </div>
           </div>
-          <div className="operator-content-grid">
-            {STANDARD_PACKAGE_INCLUSIONS.map((item) => (
-              <label className="operator-card" key={item}>
-                <input
-                  type="checkbox"
-                  checked={inclusions.includes(item)}
-                  onChange={() => toggleInclusion(item)}
-                />
-                <span className="composer-icon" aria-hidden="true">
-                  {inclusionIcons[item] ?? "✓"}
-                </span>
-                <strong>{item}</strong>
-              </label>
-            ))}
-          </div>
+          <PackageInclusionsEditor
+            inclusions={inclusions}
+            exclusions={exclusions}
+            onToggleInclusion={toggleInclusion}
+            onToggleExclusion={toggleExclusion}
+          />
         </section>
       </section>
 
