@@ -111,7 +111,7 @@
   ],
   "rendered": {
     "enabled": true,
-    "testFile": "e2e/(production-readiness|customer-shell-navigation|account-access|auth0-session-establishment|operator-draft-package-builder|operator-package-management|operator-booking-management|platform-publication-approval|operational-support|cancellation-refunds|documents|visa-processing|family-booking-mahram)\\.spec\\.ts"
+    "testFile": "e2e/production-readiness.spec.ts"
   },
   "specPath": "docs/slices/VS-17-PRODUCTION-READINESS.md",
   "checklistPath": "docs/slices/VS-17-IMPLEMENTATION-CHECKLIST.md",
