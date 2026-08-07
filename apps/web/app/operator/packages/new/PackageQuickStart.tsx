@@ -14,6 +14,28 @@ import PackageInclusionsEditor from "./PackageInclusionsEditor";
 type IntercityMode = "bus" | "train";
 type SaveState = "ready" | "saving" | "error";
 
+function TravelModeIcon({ mode }: { mode: IntercityMode }) {
+  const common = {
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+
+  return mode === "bus" ? (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect {...common} x="5" y="3" width="14" height="16" rx="3" />
+      <path {...common} d="M7 8h10M8 19v2M16 19v2M8 15h.01M16 15h.01" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path {...common} d="M7 4h10a2 2 0 0 1 2 2v9a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V6a2 2 0 0 1 2-2Z" />
+      <path {...common} d="M7 9h10M8 15h.01M16 15h.01M9 19l-2 2M15 19l2 2" />
+    </svg>
+  );
+}
+
 // prettier-ignore
 export default function PackageQuickStart() {
   const router = useRouter();
@@ -22,6 +44,8 @@ export default function PackageQuickStart() {
   const [returnDate, setReturnDate] = useState("");
   const [makkahHotel, setMakkahHotel] = useState("");
   const [madinahHotel, setMadinahHotel] = useState("");
+  const [makkahClassification, setMakkahClassification] = useState("");
+  const [madinahClassification, setMadinahClassification] = useState("");
   const [intercityMode, setIntercityMode] =
     useState<IntercityMode>("bus");
   const [inclusions, setInclusions] = useState<string[]>([
@@ -41,6 +65,8 @@ export default function PackageQuickStart() {
     () => suggestPackageTitle(origin, departureDate, returnDate),
     [origin, departureDate, returnDate],
   );
+  const makkahNights = duration ? Math.ceil(duration.nights / 2) : null;
+  const madinahNights = duration ? duration.nights - Math.ceil(duration.nights / 2) : null;
 
   const toggleInclusion = (item: string) => {
     setInclusions((current) =>
@@ -71,15 +97,13 @@ export default function PackageQuickStart() {
       );
       return;
     }
-    if (!duration) {
+    if (!duration || makkahNights === null || madinahNights === null) {
       setError("Return date must be after the departure date.");
       return;
     }
 
     setState("saving");
     setError("");
-    const makkahNights = Math.ceil(duration.nights / 2);
-    const madinahNights = duration.nights - makkahNights;
     const transportLabel =
       intercityMode === "train"
         ? "Intercity travel by train"
@@ -98,14 +122,14 @@ export default function PackageQuickStart() {
           summary: `${duration.days}-day Umrah journey from ${origin.trim()} with Makkah and Madinah stays, visa included, full-board meals, and ${intercityMode} transfer.`,
           makkah: {
             hotelName: makkahHotel.trim(),
-            classification: "",
+            classification: makkahClassification,
             distanceDisclosure: "",
             nights: makkahNights,
             confirmationState: "pending",
           },
           madinah: {
             hotelName: madinahHotel.trim(),
-            classification: "",
+            classification: madinahClassification,
             distanceDisclosure: "",
             nights: madinahNights,
             confirmationState: "pending",
@@ -179,23 +203,24 @@ export default function PackageQuickStart() {
           </div>
         ) : null}
 
-        <section className="form-card">
+        <section className="form-card composer-step-card journey-step-card">
           <div className="form-card-heading">
             <span>01</span>
             <div>
               <h2>Journey</h2>
               <p>
-                Dates automatically calculate the customer-facing duration and
-                title.
+                Set the departure city and travel dates. NoorPath calculates the
+                duration and customer-facing package heading automatically.
               </p>
             </div>
           </div>
-          <div className="form-grid">
+          <div className="form-grid journey-fields">
             <label className="field">
               <span>Departure origin *</span>
               <input
                 value={origin}
                 placeholder="e.g. Delhi (DEL)"
+                autoComplete="off"
                 onChange={(event) => setOrigin(event.target.value)}
               />
             </label>
@@ -212,17 +237,18 @@ export default function PackageQuickStart() {
               <input
                 type="date"
                 value={returnDate}
+                min={departureDate || undefined}
                 onChange={(event) => setReturnDate(event.target.value)}
               />
             </label>
           </div>
-          <div className="operator-inline-state" aria-live="polite">
+          <div className="journey-summary" aria-live="polite">
             <div>
-              <small>Suggested heading</small>
+              <small>Package heading</small>
               <strong>{title}</strong>
             </div>
             <div>
-              <small>Calculated duration</small>
+              <small>Journey duration</small>
               <strong>
                 {duration
                   ? `${duration.days} Days / ${duration.nights} Nights`
@@ -232,59 +258,129 @@ export default function PackageQuickStart() {
           </div>
         </section>
 
-        <section className="form-card">
+        <section className="form-card composer-step-card stay-step-card">
           <div className="form-card-heading">
             <span>02</span>
             <div>
               <h2>Stays & intercity travel</h2>
               <p>
-                The nights are split automatically and remain editable in the
-                full composer.
+                Add the two hotel stays and choose how travellers move between
+                the holy cities. Nights are split automatically from the journey.
               </p>
             </div>
           </div>
-          <div className="form-grid">
-            <label className="field">
-              <span>Makkah hotel *</span>
-              <input
-                value={makkahHotel}
-                onChange={(event) => setMakkahHotel(event.target.value)}
-              />
-            </label>
-            <label className="field">
-              <span>Madinah hotel *</span>
-              <input
-                value={madinahHotel}
-                onChange={(event) => setMadinahHotel(event.target.value)}
-              />
-            </label>
+
+          <div className="stay-card-grid">
+            <article className="stay-card" aria-labelledby="makkah-stay-title">
+              <header>
+                <div>
+                  <span className="stay-city-kicker">Makkah stay</span>
+                  <h3 id="makkah-stay-title">Makkah</h3>
+                </div>
+                <span className="stay-night-badge">
+                  {makkahNights === null ? "Dates first" : `${makkahNights} nights`}
+                </span>
+              </header>
+              <label className="field">
+                <span>Hotel name *</span>
+                <input
+                  value={makkahHotel}
+                  placeholder="e.g. Swissotel Makkah"
+                  onChange={(event) => setMakkahHotel(event.target.value)}
+                />
+              </label>
+              <label className="field">
+                <span>Hotel classification</span>
+                <select
+                  value={makkahClassification}
+                  onChange={(event) => setMakkahClassification(event.target.value)}
+                >
+                  <option value="">Select if known</option>
+                  <option value="3 star">3 star</option>
+                  <option value="4 star">4 star</option>
+                  <option value="5 star">5 star</option>
+                  <option value="Apartment / serviced residence">Apartment / serviced residence</option>
+                </select>
+              </label>
+              <small className="stay-helper">
+                Distance and final confirmation can be completed in the full composer.
+              </small>
+            </article>
+
+            <article className="stay-card" aria-labelledby="madinah-stay-title">
+              <header>
+                <div>
+                  <span className="stay-city-kicker">Madinah stay</span>
+                  <h3 id="madinah-stay-title">Madinah</h3>
+                </div>
+                <span className="stay-night-badge">
+                  {madinahNights === null ? "Dates first" : `${madinahNights} nights`}
+                </span>
+              </header>
+              <label className="field">
+                <span>Hotel name *</span>
+                <input
+                  value={madinahHotel}
+                  placeholder="e.g. Anwar Al Madinah Mövenpick"
+                  onChange={(event) => setMadinahHotel(event.target.value)}
+                />
+              </label>
+              <label className="field">
+                <span>Hotel classification</span>
+                <select
+                  value={madinahClassification}
+                  onChange={(event) => setMadinahClassification(event.target.value)}
+                >
+                  <option value="">Select if known</option>
+                  <option value="3 star">3 star</option>
+                  <option value="4 star">4 star</option>
+                  <option value="5 star">5 star</option>
+                  <option value="Apartment / serviced residence">Apartment / serviced residence</option>
+                </select>
+              </label>
+              <small className="stay-helper">
+                Distance and final confirmation can be completed in the full composer.
+              </small>
+            </article>
           </div>
-          <fieldset className="confirmation-field">
+
+          <fieldset className="intercity-selector">
             <legend>Intercity travel provided by operator</legend>
-            <label>
-              <input
-                type="radio"
-                name="intercity"
-                checked={intercityMode === "bus"}
-                onChange={() => setIntercityMode("bus")}
-              />
-              <span>
-                <strong>Bus</strong>
-                <small>Coach or private bus transfer</small>
-              </span>
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="intercity"
-                checked={intercityMode === "train"}
-                onChange={() => setIntercityMode("train")}
-              />
-              <span>
-                <strong>Train</strong>
-                <small>Haramain or another confirmed rail service</small>
-              </span>
-            </label>
+            <p>Choose the default transfer between Makkah and Madinah.</p>
+            <div className="intercity-options">
+              <label>
+                <input
+                  type="radio"
+                  name="intercity"
+                  checked={intercityMode === "bus"}
+                  onChange={() => setIntercityMode("bus")}
+                />
+                <span className="intercity-icon">
+                  <TravelModeIcon mode="bus" />
+                </span>
+                <span className="intercity-copy">
+                  <strong>Bus</strong>
+                  <small>Coach or private bus transfer</small>
+                </span>
+                <span className="intercity-check" aria-hidden="true">✓</span>
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="intercity"
+                  checked={intercityMode === "train"}
+                  onChange={() => setIntercityMode("train")}
+                />
+                <span className="intercity-icon">
+                  <TravelModeIcon mode="train" />
+                </span>
+                <span className="intercity-copy">
+                  <strong>Train</strong>
+                  <small>Haramain or another confirmed rail service</small>
+                </span>
+                <span className="intercity-check" aria-hidden="true">✓</span>
+              </label>
+            </div>
           </fieldset>
         </section>
 
