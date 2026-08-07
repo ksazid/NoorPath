@@ -21,7 +21,11 @@ type DraftResponse = {
 
 type CloneState = "cloning" | "failed";
 
-export default function ClonePackageDraft({ sourceDepartureId }: { sourceDepartureId: string }) {
+export default function ClonePackageDraft({
+  sourceDepartureId,
+}: {
+  sourceDepartureId: string;
+}) {
   const router = useRouter();
   const started = useRef(false);
   const [state, setState] = useState<CloneState>("cloning");
@@ -69,9 +73,17 @@ export default function ClonePackageDraft({ sourceDepartureId }: { sourceDepartu
 
   return (
     <main className="composer-state-page">
-      <section className="composer-state-card" role="status" aria-live="polite">
+      <section
+        className="composer-state-card"
+        role="status"
+        aria-live="polite"
+      >
         <span className="auth-eyebrow">Operator catalogue</span>
-        <h1>{state === "cloning" ? "Creating package copy" : "Package could not be copied"}</h1>
+        <h1>
+          {state === "cloning"
+            ? "Creating package copy"
+            : "Package could not be copied"}
+        </h1>
         <p>
           {state === "cloning"
             ? "We are creating a new private draft from the selected package. The original remains unchanged."
@@ -79,7 +91,11 @@ export default function ClonePackageDraft({ sourceDepartureId }: { sourceDepartu
         </p>
         {state === "failed" ? (
           <div>
-            <button className="primary-button" type="button" onClick={() => window.location.reload()}>
+            <button
+              className="primary-button"
+              type="button"
+              onClick={() => window.location.reload()}
+            >
               Retry
             </button>
             <Link className="secondary-button" href="/operator/packages">
