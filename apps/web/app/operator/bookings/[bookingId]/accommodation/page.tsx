@@ -1,4 +1,4 @@
-import OperatorAccommodation from "../../../../OperatorAccommodation";
+import OperatorAccommodation from "../../../OperatorAccommodation";
 
 export default async function OperatorAccommodationPage({
   params,
