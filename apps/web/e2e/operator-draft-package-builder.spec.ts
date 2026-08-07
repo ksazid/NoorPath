@@ -79,7 +79,7 @@ test("operator can configure default, optional, custom and excluded package item
 });
 
 // prettier-ignore
-test("journey dates calculate the package title and duration", async ({
+test("journey dates calculate title, duration and stay nights", async ({
   page,
 }) => {
   await page.goto("/operator/packages/new");
@@ -96,6 +96,100 @@ test("journey dates calculate the package title and duration", async ({
       exact: true,
     }),
   ).toBeVisible();
+  await expect(page.getByText("6 nights", { exact: true })).toBeVisible();
+  await expect(page.getByText("5 nights", { exact: true })).toBeVisible();
+});
+
+test("operator can complete journey, stays, intercity and create the draft", async ({
+  page,
+}) => {
+  const departureId = "40000000-0000-0000-0000-000000000123";
+  let submitted: Record<string, unknown> | null = null;
+
+  await page.route("**/api/v1/operator/departures", async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.continue();
+      return;
+    }
+
+    submitted = route.request().postDataJSON() as Record<string, unknown>;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ departureId }),
+    });
+  });
+
+  await page.route(`**/api/v1/operator/departures/${departureId}`, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        departureId,
+        packageName: "12 Days / 11 Nights Umrah from Delhi (DEL)",
+        summary: "Draft package",
+        origin: "Delhi (DEL)",
+        departureDate: "2027-01-10",
+        returnDate: "2027-01-21",
+        makkah: {
+          hotelName: "Makkah Stay",
+          classification: "5 star",
+          distanceDisclosure: "",
+          nights: 6,
+        },
+        madinah: {
+          hotelName: "Madinah Stay",
+          classification: "4 star",
+          distanceDisclosure: "",
+          nights: 5,
+        },
+        travel: {
+          routeSummary: "Delhi (DEL) → Jeddah → Makkah → Madinah",
+          details: "Intercity transfer by train. Flight details to be confirmed.",
+        },
+        inclusions: ["Intercity travel by train"],
+        exclusions: ["Personal expenses"],
+      }),
+    });
+  });
+
+  await page.goto("/operator/packages/new");
+  await page.getByLabel("Departure origin").fill("Delhi (DEL)");
+  await page.getByLabel("Departure date").fill("2027-01-10");
+  await page.getByLabel("Return date").fill("2027-01-21");
+  await page.getByLabel("Hotel name").nth(0).fill("Makkah Stay");
+  await page.getByLabel("Hotel classification").nth(0).selectOption("5 star");
+  await page.getByLabel("Hotel name").nth(1).fill("Madinah Stay");
+  await page.getByLabel("Hotel classification").nth(1).selectOption("4 star");
+  await page.getByRole("radio", { name: "Train" }).check();
+  await page.getByRole("checkbox", { name: "Luggage tag" }).check();
+
+  await page.getByRole("button", { name: "Create draft & continue" }).click();
+  await expect(page).toHaveURL(new RegExp(`/operator/departures/${departureId}$`));
+
+  expect(submitted).not.toBeNull();
+  expect(submitted).toMatchObject({
+    origin: "Delhi (DEL)",
+    departureDate: "2027-01-10",
+    returnDate: "2027-01-21",
+    makkah: {
+      hotelName: "Makkah Stay",
+      classification: "5 star",
+      nights: 6,
+    },
+    madinah: {
+      hotelName: "Madinah Stay",
+      classification: "4 star",
+      nights: 5,
+    },
+    travel: {
+      details: "Intercity transfer by train. Flight details to be confirmed.",
+    },
+  });
+
+  const inclusions = (submitted as { inclusions: string[] }).inclusions;
+  expect(inclusions).toContain("Intercity travel by train");
+  expect(inclusions).toContain("Luggage tag");
 });
 
 // prettier-ignore
