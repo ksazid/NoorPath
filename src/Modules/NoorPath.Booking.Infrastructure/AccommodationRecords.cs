@@ -64,6 +64,8 @@ public static class AccommodationPersistence
                 .HasForeignKey(x => x.BookingId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+
+        DepartureManifestPersistence.Configure(modelBuilder);
     }
 }
 
