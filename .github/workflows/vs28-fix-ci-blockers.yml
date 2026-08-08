@@ -26,7 +26,7 @@ jobs:
       - name: Apply exact Prettier output
         run: pnpm --dir apps/web exec prettier --write e2e/operator-departure-handover.spec.ts
       - name: Migrate readiness source schemas in VS-28 integration fixture
-        shell: python
+        shell: python {0}
         run: |
           from pathlib import Path
 
