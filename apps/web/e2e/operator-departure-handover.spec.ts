@@ -114,9 +114,7 @@ test("operator completes final departure handover and sees immutable closeout", 
   await expect(
     page.getByRole("heading", { level: 1, name: "Final departure handover" }),
   ).toBeVisible();
-  await expect(
-    page.getByText("Payment: clear", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText("Payment: clear", { exact: true })).toBeVisible();
   await expect(page.getByText("Visa: clear", { exact: true })).toBeVisible();
 
   await page
