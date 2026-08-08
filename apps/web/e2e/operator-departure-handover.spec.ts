@@ -114,7 +114,9 @@ test("operator completes final departure handover and sees immutable closeout", 
   await expect(
     page.getByRole("heading", { level: 1, name: "Final departure handover" }),
   ).toBeVisible();
-  await expect(page.getByText("Payment: clear", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Payment: clear", { exact: true }),
+  ).toBeVisible();
   await expect(page.getByText("Visa: clear", { exact: true })).toBeVisible();
 
   await page
@@ -129,7 +131,9 @@ test("operator completes final departure handover and sees immutable closeout", 
   await expect(
     page.getByText("Final departure handover completed.", { exact: true }),
   ).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Handover completed" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Handover completed" }),
+  ).toBeVisible();
   await expect(page.getByLabel("Final operational note")).toBeDisabled();
 
   await expectNoA11yViolations(page);
@@ -168,12 +172,18 @@ test("blocked handover remains locked and foreign departure is safe not-found", 
   );
 
   await page.goto(`/operator/departures/${departureId}/handover`);
-  await expect(page.getByText("Visa: 1 blocked", { exact: true })).toBeVisible();
   await expect(
-    page.getByText(/Final handover remains locked until every traveller readiness blocker is resolved/i),
+    page.getByText("Visa: 1 blocked", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      /Final handover remains locked until every traveller readiness blocker is resolved/i,
+    ),
   ).toBeVisible();
   await page.getByLabel("Final operational note").fill("Attempted closeout.");
-  await expect(page.getByRole("button", { name: "Complete final handover" })).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Complete final handover" }),
+  ).toBeDisabled();
   await expectNoHorizontalOverflow(page);
   await expectMinimumTargets(page);
 
@@ -181,10 +191,16 @@ test("blocked handover remains locked and foreign departure is safe not-found", 
   await page.route(
     `**/api/v1/operator/departures/${departureId}/handover`,
     async (route) => {
-      await route.fulfill({ status: 404, contentType: "application/json", body: "{}" });
+      await route.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: "{}",
+      });
     },
   );
   await page.reload();
-  await expect(page.getByText("Departure handover not found", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Departure handover not found", { exact: true }),
+  ).toBeVisible();
   await expect(page.getByText(/belongs to another operator/i)).toBeVisible();
 });
