@@ -3,6 +3,8 @@ using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NoorPath.Booking.Infrastructure;
+using NoorPath.Documents.Infrastructure;
+using NoorPath.Visa.Infrastructure;
 using Xunit;
 
 namespace NoorPath.Commercial.Integration.Tests;
@@ -14,6 +16,7 @@ public sealed class OperatorDepartureHandoverApiTests
     {
         await using var app = await OperatorBookingAmendmentApi.CreateAsync(
             TestContext.Current.CancellationToken);
+        await EnsureReadinessSchemasAsync(app, TestContext.Current.CancellationToken);
         using var client = app.CreateClientFor(OperatorBookingAmendmentApi.OperatorAccount);
 
         var response = await client.GetAsync(
@@ -30,6 +33,7 @@ public sealed class OperatorDepartureHandoverApiTests
     {
         await using var app = await OperatorBookingAmendmentApi.CreateAsync(
             TestContext.Current.CancellationToken);
+        await EnsureReadinessSchemasAsync(app, TestContext.Current.CancellationToken);
         using var client = app.CreateClientFor(OperatorBookingAmendmentApi.OperatorAccount);
 
         Guid departureId;
@@ -79,6 +83,7 @@ public sealed class OperatorDepartureHandoverApiTests
     {
         await using var app = await OperatorBookingAmendmentApi.CreateAsync(
             TestContext.Current.CancellationToken);
+        await EnsureReadinessSchemasAsync(app, TestContext.Current.CancellationToken);
         using var client = app.CreateClientFor(OperatorBookingAmendmentApi.OperatorAccount);
 
         Guid departureId;
@@ -150,5 +155,16 @@ public sealed class OperatorDepartureHandoverApiTests
             1,
             await database.Set<DepartureHandoverAuditRecord>().CountAsync(
                 TestContext.Current.CancellationToken));
+    }
+
+    private static async Task EnsureReadinessSchemasAsync(
+        OperatorBookingAmendmentApi app,
+        CancellationToken cancellationToken)
+    {
+        await using var scope = app.Services.CreateAsyncScope();
+        var documents = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
+        var visa = scope.ServiceProvider.GetRequiredService<VisaDbContext>();
+        await documents.Database.MigrateAsync(cancellationToken);
+        await visa.Database.MigrateAsync(cancellationToken);
     }
 }
