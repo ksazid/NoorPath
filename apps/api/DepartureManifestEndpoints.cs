@@ -236,12 +236,12 @@ public static class DepartureManifestEndpoints
         if (traveller is null)
             return Results.NotFound();
 
-        var note = request.Note?.Trim();
-        if (note is { Length: > 500 })
+        var note = request.Note?.Trim() ?? string.Empty;
+        if (note.Length is 0 or > 500)
         {
             return Results.ValidationProblem(new Dictionary<string, string[]>
             {
-                ["note"] = ["Operational note must be 500 characters or fewer."]
+                ["note"] = ["Operational note must be between 1 and 500 characters."]
             });
         }
 
@@ -255,13 +255,15 @@ public static class DepartureManifestEndpoints
                 && item.TravellerId == travellerId,
                 cancellationToken);
 
-        int previousVersion;
+        var previousVersion = record?.Version ?? 0;
+        var previousNote = record?.Note;
+        var previousIsAcknowledged = record?.IsAcknowledged ?? false;
+
         if (record is null)
         {
             if (request.ExpectedVersion != 0)
                 return Results.Conflict(new { code = "manifest_operation_stale" });
 
-            previousVersion = 0;
             record = new DepartureManifestTravellerRecord
             {
                 Id = Guid.NewGuid(),
@@ -283,7 +285,6 @@ public static class DepartureManifestEndpoints
             if (record.Version != request.ExpectedVersion)
                 return Results.Conflict(new { code = "manifest_operation_stale", currentVersion = record.Version });
 
-            previousVersion = record.Version;
             record.Note = note;
             record.IsAcknowledged = request.IsAcknowledged;
             record.ActorAccountId = actorAccountId;
@@ -300,7 +301,10 @@ public static class DepartureManifestEndpoints
             OperatorId = access.OperatorId,
             ActorAccountId = actorAccountId,
             Action = request.IsAcknowledged ? "acknowledged" : "updated",
-            Note = note,
+            PreviousNote = previousNote,
+            ResultingNote = note,
+            PreviousIsAcknowledged = previousIsAcknowledged,
+            ResultingIsAcknowledged = request.IsAcknowledged,
             PreviousVersion = previousVersion,
             ResultingVersion = record.Version,
             CorrelationId = http.TraceIdentifier,
