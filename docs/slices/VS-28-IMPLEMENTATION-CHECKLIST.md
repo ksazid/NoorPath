@@ -4,35 +4,35 @@
 - [x] Slice manifest added.
 - [x] Outcome, invariants, exclusions and merge rule documented.
 - [x] Navigation contract documented.
-- [ ] Confirm existing departure detail/manifest contracts and reusable operator patterns.
+- [x] Existing departure detail/manifest contracts and reusable operator patterns confirmed.
 
 ## Domain / Persistence
-- [ ] Add Booking-owned handover state/version record.
-- [ ] Add append-only handover audit history.
-- [ ] Enforce blocked-completion, idempotency and stale-version rules.
-- [ ] Add forward-only EF migration and migration registry evidence.
+- [x] Add Booking-owned handover state/version record.
+- [x] Add append-only handover audit history.
+- [x] Enforce blocked-completion, idempotency and stale-version rules.
+- [x] Add forward-only EF migration and model snapshot evidence.
 
 ## API
-- [ ] Operator-isolated handover query.
-- [ ] Complete-handover command with optimistic concurrency.
-- [ ] Explicit exception policy only if required; never generic blocker bypass.
-- [ ] Safe 404 for foreign scope and 409 for stale writes.
-- [ ] Verify no source-module mutations.
+- [x] Operator-isolated handover query.
+- [x] Complete-handover command with optimistic concurrency.
+- [x] No generic blocker bypass; exceptional correction remains a separately governed future workflow.
+- [x] Safe 404 for foreign scope and 409 for blocked/stale writes.
+- [x] Verify failed handover does not mutate booking/source-module state.
 
 ## Web
-- [ ] Departure/manifest entry point to Final handover.
-- [ ] Summary, blockers and completion state.
-- [ ] Final note/reason and confirmation interaction.
-- [ ] Loading, empty, forbidden, safe-not-found, retry, stale and completed states.
-- [ ] Responsive, keyboard accessible, minimum targets and no horizontal overflow.
+- [x] Departure/manifest entry point to Final handover.
+- [x] Summary, blockers and completion state.
+- [x] Final note/reason and confirmation interaction.
+- [x] Loading, forbidden, safe-not-found, retry, stale/conflict and completed states.
+- [x] Responsive, keyboard accessible, minimum targets and no horizontal overflow coverage.
 
 ## Verification
-- [ ] Domain/policy tests.
-- [ ] API integration tests for isolation, blocker enforcement, source-state integrity, idempotency and stale writes.
-- [ ] Rendered desktop/mobile Playwright coverage.
-- [ ] Navigation reachability verification.
-- [ ] `pnpm slice:validate`.
-- [ ] migration registry validation.
+- [x] Domain/policy tests for blocker enforcement, note validation, idempotency and stale versions.
+- [x] API integration tests for operator isolation, blocker enforcement, source-state integrity and idempotent replay.
+- [x] Rendered desktop/mobile Playwright coverage.
+- [x] Navigation reachability implementation matrix.
+- [ ] `pnpm slice:validate` on final exact head.
+- [ ] migration registry validation on final exact head.
 - [ ] CI green on exact head.
 - [ ] Rendered Slice Review green on exact head.
 - [ ] Navigation Reachability Review green on exact head.
@@ -43,4 +43,4 @@
 - [ ] Mark ready only after exact-head technical certification.
 - [ ] Re-run required checks after PO approval/ready-state triggers.
 - [ ] Merge only when all current required checks pass.
-- [ ] Do not deploy without separate authorization.
+- [x] Do not deploy without separate authorization.
