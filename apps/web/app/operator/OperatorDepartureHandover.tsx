@@ -117,13 +117,17 @@ export default function OperatorDepartureHandover({
         return;
       }
       if (!response.ok) {
-        setError("The final handover could not be completed. Review the note and retry.");
+        setError(
+          "The final handover could not be completed. Review the note and retry.",
+        );
         return;
       }
       setMessage("Final departure handover completed.");
       await load();
     } catch {
-      setError("The handover service is temporarily unavailable. Retry when connected.");
+      setError(
+        "The handover service is temporarily unavailable. Retry when connected.",
+      );
     } finally {
       setBusy(false);
     }
@@ -135,36 +139,56 @@ export default function OperatorDepartureHandover({
       summary="Complete the governed operational closeout only after every authoritative readiness gate is clear."
     >
       <div className={styles.workspace}>
-        <Link className={styles.backLink} href={`/operator/departures/${departureId}/manifest`}>
+        <Link
+          className={styles.backLink}
+          href={`/operator/departures/${departureId}/manifest`}
+        >
           ← Back to pilgrim manifest
         </Link>
 
         {state.kind === "loading" ? (
-          <section className={styles.stateCard} role="status" aria-live="polite">
+          <section
+            className={styles.stateCard}
+            role="status"
+            aria-live="polite"
+          >
             <strong>Loading final handover</strong>
-            <span>Checking current departure readiness and closeout state.</span>
+            <span>
+              Checking current departure readiness and closeout state.
+            </span>
           </section>
         ) : null}
 
         {state.kind === "forbidden" ? (
           <section className={styles.stateCard}>
             <strong>Handover access unavailable</strong>
-            <span>Your operator account does not have permission to complete this departure.</span>
+            <span>
+              Your operator account does not have permission to complete this
+              departure.
+            </span>
           </section>
         ) : null}
 
         {state.kind === "not-found" ? (
           <section className={styles.stateCard}>
             <strong>Departure handover not found</strong>
-            <span>This departure is unavailable or belongs to another operator.</span>
+            <span>
+              This departure is unavailable or belongs to another operator.
+            </span>
           </section>
         ) : null}
 
         {state.kind === "error" ? (
           <section className={styles.stateCard} role="alert">
             <strong>Handover unavailable</strong>
-            <span>Check the connection and retry. No closeout changes were made.</span>
-            <button className={styles.secondaryButton} type="button" onClick={load}>
+            <span>
+              Check the connection and retry. No closeout changes were made.
+            </span>
+            <button
+              className={styles.secondaryButton}
+              type="button"
+              onClick={load}
+            >
               Retry
             </button>
           </section>
@@ -175,12 +199,16 @@ export default function OperatorDepartureHandover({
             <section aria-label="Departure facts">
               <h2>{state.value.departure.packageName}</h2>
               <p>
-                {state.value.departure.origin} · {state.value.departure.departureDate} to{" "}
+                {state.value.departure.origin} ·{" "}
+                {state.value.departure.departureDate} to{" "}
                 {state.value.departure.returnDate}
               </p>
             </section>
 
-            <section className={styles.summaryGrid} aria-label="Final readiness summary">
+            <section
+              className={styles.summaryGrid}
+              aria-label="Final readiness summary"
+            >
               <div className={styles.summaryItem}>
                 <span>Travellers</span>
                 <strong>{state.value.summary.travellers}</strong>
@@ -195,7 +223,9 @@ export default function OperatorDepartureHandover({
               </div>
               <div className={styles.summaryItem}>
                 <span>Status</span>
-                <strong>{state.value.handover.isCompleted ? "Completed" : "Open"}</strong>
+                <strong>
+                  {state.value.handover.isCompleted ? "Completed" : "Open"}
+                </strong>
               </div>
             </section>
 
@@ -216,10 +246,14 @@ export default function OperatorDepartureHandover({
               </div>
               {!state.value.canComplete && !state.value.handover.isCompleted ? (
                 <p>
-                  Final handover remains locked until every traveller readiness blocker is resolved.
+                  Final handover remains locked until every traveller readiness
+                  blocker is resolved.
                 </p>
               ) : null}
-              <Link className={styles.manifestLink} href={`/operator/departures/${departureId}/manifest`}>
+              <Link
+                className={styles.manifestLink}
+                href={`/operator/departures/${departureId}/manifest`}
+              >
                 Review pilgrim manifest
               </Link>
             </section>
@@ -235,8 +269,15 @@ export default function OperatorDepartureHandover({
               </div>
             ) : null}
 
-            <section className={styles.panel} aria-label="Complete final handover">
-              <h2>{state.value.handover.isCompleted ? "Handover completed" : "Complete handover"}</h2>
+            <section
+              className={styles.panel}
+              aria-label="Complete final handover"
+            >
+              <h2>
+                {state.value.handover.isCompleted
+                  ? "Handover completed"
+                  : "Complete handover"}
+              </h2>
               <label className={styles.field}>
                 Final operational note
                 <textarea
@@ -249,16 +290,24 @@ export default function OperatorDepartureHandover({
 
               {state.value.handover.isCompleted ? (
                 <p>
-                  Completed {state.value.handover.completedAtUtc} by {state.value.handover.completedByAccountId}.
-                  This closeout is read-only.
+                  Completed {state.value.handover.completedAtUtc} by{" "}
+                  {state.value.handover.completedByAccountId}. This closeout is
+                  read-only.
                 </p>
               ) : (
                 <div className={styles.actions}>
-                  <span>Completion is immutable and recorded in the operational audit trail.</span>
+                  <span>
+                    Completion is immutable and recorded in the operational
+                    audit trail.
+                  </span>
                   <button
                     className={styles.button}
                     type="button"
-                    disabled={!state.value.canComplete || busy || note.trim().length === 0}
+                    disabled={
+                      !state.value.canComplete ||
+                      busy ||
+                      note.trim().length === 0
+                    }
                     onClick={complete}
                   >
                     {busy ? "Completing…" : "Complete final handover"}
@@ -270,17 +319,24 @@ export default function OperatorDepartureHandover({
             <section aria-label="Handover audit history">
               <h2>Recent handover activity</h2>
               {state.value.audits.length === 0 ? (
-                <div className={styles.stateCard}>No handover activity recorded yet.</div>
+                <div className={styles.stateCard}>
+                  No handover activity recorded yet.
+                </div>
               ) : (
                 <div className={styles.auditList}>
                   {state.value.audits.map((audit, index) => (
-                    <article className={styles.auditCard} key={`${audit.occurredAtUtc}-${index}`}>
+                    <article
+                      className={styles.auditCard}
+                      key={`${audit.occurredAtUtc}-${index}`}
+                    >
                       <strong>{audit.action}</strong>
                       <span>{audit.note}</span>
                       <div className={styles.auditMeta}>
                         <span>{audit.actorAccountId}</span>
                         <span>{audit.occurredAtUtc}</span>
-                        <span>v{audit.previousVersion} → v{audit.resultingVersion}</span>
+                        <span>
+                          v{audit.previousVersion} → v{audit.resultingVersion}
+                        </span>
                       </div>
                     </article>
                   ))}
