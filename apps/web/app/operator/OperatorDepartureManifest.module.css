@@ -191,7 +191,11 @@
 }
 
 .backLink {
+  display: inline-flex;
+  min-height: 44px;
   width: fit-content;
+  align-items: center;
+  padding: 0.5rem 0.25rem;
   font-weight: 700;
 }
 

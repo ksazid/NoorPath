@@ -160,13 +160,17 @@ export default function OperatorDepartureManifest({
         return;
       }
       if (!response.ok) {
-        setError("The operational note could not be saved. Review it and retry.");
+        setError(
+          "The operational note could not be saved. Review it and retry.",
+        );
         return;
       }
       setMessage(`Operational update saved for ${item.fullName}.`);
       await load();
     } catch {
-      setError("The manifest is temporarily unavailable. Retry when connected.");
+      setError(
+        "The manifest is temporarily unavailable. Retry when connected.",
+      );
     } finally {
       setBusy("");
     }
@@ -178,12 +182,19 @@ export default function OperatorDepartureManifest({
       summary="Review authoritative departure readiness and record operator follow-up without changing payment, document, visa or accommodation source states."
     >
       <div className={styles.workspace}>
-        <Link className={styles.backLink} href={`/operator/departures/${departureId}`}>
+        <Link
+          className={styles.backLink}
+          href={`/operator/departures/${departureId}`}
+        >
           ← Back to departure
         </Link>
 
         {state.kind === "loading" ? (
-          <section className={styles.stateCard} role="status" aria-live="polite">
+          <section
+            className={styles.stateCard}
+            role="status"
+            aria-live="polite"
+          >
             <strong>Loading pilgrim manifest</strong>
             <span>Checking the latest operational readiness.</span>
           </section>
@@ -192,22 +203,33 @@ export default function OperatorDepartureManifest({
         {state.kind === "forbidden" ? (
           <section className={styles.stateCard}>
             <strong>Manifest access unavailable</strong>
-            <span>Your operator account does not have permission to view this departure.</span>
+            <span>
+              Your operator account does not have permission to view this
+              departure.
+            </span>
           </section>
         ) : null}
 
         {state.kind === "not-found" ? (
           <section className={styles.stateCard}>
             <strong>Departure manifest not found</strong>
-            <span>This departure is unavailable or belongs to another operator.</span>
+            <span>
+              This departure is unavailable or belongs to another operator.
+            </span>
           </section>
         ) : null}
 
         {state.kind === "error" ? (
           <section className={styles.stateCard} role="alert">
             <strong>Manifest unavailable</strong>
-            <span>Check the connection and retry. No operational changes were made.</span>
-            <button className={styles.secondaryButton} type="button" onClick={load}>
+            <span>
+              Check the connection and retry. No operational changes were made.
+            </span>
+            <button
+              className={styles.secondaryButton}
+              type="button"
+              onClick={load}
+            >
               Retry
             </button>
           </section>
@@ -218,12 +240,16 @@ export default function OperatorDepartureManifest({
             <section aria-label="Departure summary">
               <h2>{state.manifest.departure.packageName}</h2>
               <p>
-                {state.manifest.departure.origin} · {state.manifest.departure.departureDate} to{" "}
+                {state.manifest.departure.origin} ·{" "}
+                {state.manifest.departure.departureDate} to{" "}
                 {state.manifest.departure.returnDate}
               </p>
             </section>
 
-            <section className={styles.summaryGrid} aria-label="Manifest readiness summary">
+            <section
+              className={styles.summaryGrid}
+              aria-label="Manifest readiness summary"
+            >
               <div className={styles.summaryItem}>
                 <span>Travellers</span>
                 <strong>{state.manifest.summary.travellers}</strong>
@@ -255,7 +281,10 @@ export default function OperatorDepartureManifest({
                 </label>
                 <label className={styles.field}>
                   Readiness filter
-                  <select value={filter} onChange={(event) => setFilter(event.target.value)}>
+                  <select
+                    value={filter}
+                    onChange={(event) => setFilter(event.target.value)}
+                  >
                     <option value="all">All travellers</option>
                     <option value="ready">Ready</option>
                     <option value="blocked">Blocked</option>
@@ -266,7 +295,11 @@ export default function OperatorDepartureManifest({
                   </select>
                 </label>
               </div>
-              <button className={styles.secondaryButton} type="button" onClick={load}>
+              <button
+                className={styles.secondaryButton}
+                type="button"
+                onClick={load}
+              >
                 Refresh readiness
               </button>
             </section>
@@ -288,7 +321,10 @@ export default function OperatorDepartureManifest({
                 <span>Clear the search or change the readiness filter.</span>
               </section>
             ) : (
-              <section className={styles.list} aria-label="Pilgrim manifest travellers">
+              <section
+                className={styles.list}
+                aria-label="Pilgrim manifest travellers"
+              >
                 {visibleItems.map((item) => {
                   const draft = drafts[item.travellerId] ?? {
                     note: "",
@@ -306,19 +342,31 @@ export default function OperatorDepartureManifest({
                         </div>
                         <span
                           className={`${styles.badge} ${
-                            item.readiness === "ready" ? styles.ready : styles.blocked
+                            item.readiness === "ready"
+                              ? styles.ready
+                              : styles.blocked
                           }`}
                         >
-                          {item.readiness === "ready" ? "Operationally ready" : "Blocked"}
+                          {item.readiness === "ready"
+                            ? "Operationally ready"
+                            : "Blocked"}
                         </span>
                       </div>
 
-                      <div className={styles.statusGrid} aria-label={`${item.fullName} readiness`}>
+                      <div
+                        className={styles.statusGrid}
+                        aria-label={`${item.fullName} readiness`}
+                      >
                         {item.readiness === "ready" ? (
-                          <span className={`${styles.badge} ${styles.ready}`}>All readiness gates clear</span>
+                          <span className={`${styles.badge} ${styles.ready}`}>
+                            All readiness gates clear
+                          </span>
                         ) : (
                           item.blockers.map((blocker) => (
-                            <span className={`${styles.badge} ${styles.blocked}`} key={blocker}>
+                            <span
+                              className={`${styles.badge} ${styles.blocked}`}
+                              key={blocker}
+                            >
                               {blockerLabels[blocker] ?? blocker}
                             </span>
                           ))
@@ -326,17 +374,26 @@ export default function OperatorDepartureManifest({
                       </div>
 
                       <div className={styles.statusGrid}>
-                        <span className={`${styles.badge} ${item.payment.ready ? styles.ready : styles.neutral}`}>
+                        <span
+                          className={`${styles.badge} ${item.payment.ready ? styles.ready : styles.neutral}`}
+                        >
                           Payment {item.payment.ready ? "ready" : "pending"}
                         </span>
-                        <span className={`${styles.badge} ${item.documents.ready ? styles.ready : styles.neutral}`}>
+                        <span
+                          className={`${styles.badge} ${item.documents.ready ? styles.ready : styles.neutral}`}
+                        >
                           Documents {item.documents.ready ? "ready" : "pending"}
                         </span>
-                        <span className={`${styles.badge} ${item.visa.ready ? styles.ready : styles.neutral}`}>
+                        <span
+                          className={`${styles.badge} ${item.visa.ready ? styles.ready : styles.neutral}`}
+                        >
                           Visa {item.visa.ready ? "approved" : "pending"}
                         </span>
-                        <span className={`${styles.badge} ${item.accommodation.ready ? styles.ready : styles.neutral}`}>
-                          Accommodation {item.accommodation.ready ? "ready" : "pending"}
+                        <span
+                          className={`${styles.badge} ${item.accommodation.ready ? styles.ready : styles.neutral}`}
+                        >
+                          Accommodation{" "}
+                          {item.accommodation.ready ? "ready" : "pending"}
                         </span>
                       </div>
 
@@ -348,7 +405,10 @@ export default function OperatorDepartureManifest({
                           onChange={(event) =>
                             setDrafts((current) => ({
                               ...current,
-                              [item.travellerId]: { ...draft, note: event.target.value },
+                              [item.travellerId]: {
+                                ...draft,
+                                note: event.target.value,
+                              },
                             }))
                           }
                         />
@@ -377,7 +437,9 @@ export default function OperatorDepartureManifest({
                           disabled={busy === item.travellerId}
                           onClick={() => saveOperation(item)}
                         >
-                          {busy === item.travellerId ? "Saving…" : "Save operational update"}
+                          {busy === item.travellerId
+                            ? "Saving…"
+                            : "Save operational update"}
                         </button>
                       </div>
                     </article>

@@ -25,11 +25,7 @@ type CatalogueState =
   | { kind: "ready"; items: CatalogueItem[] };
 
 type PackageStatus =
-  | "draft"
-  | "readyForReview"
-  | "published"
-  | "closed"
-  | "other";
+  "draft" | "readyForReview" | "published" | "closed" | "other";
 
 type PackageGroup = {
   packageTemplateId: string;

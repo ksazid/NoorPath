@@ -125,7 +125,9 @@ test("operator opens departure manifest, sees blockers and records follow-up", a
     expectedVersion: 0,
   });
   await expect(
-    page.getByText("Operational update saved for Amina Rahman.", { exact: true }),
+    page.getByText("Operational update saved for Amina Rahman.", {
+      exact: true,
+    }),
   ).toBeVisible();
 
   await expectNoA11yViolations(page);
@@ -141,7 +143,11 @@ test("manifest supports readiness filtering and safe foreign-departure not-found
     `**/api/v1/operator/departures/${departureId}/manifest`,
     async (route) => {
       if (route.request().headers()["x-test-not-found"] === "1") {
-        await route.fulfill({ status: 404, contentType: "application/json", body: "{}" });
+        await route.fulfill({
+          status: 404,
+          contentType: "application/json",
+          body: "{}",
+        });
         return;
       }
       await route.fulfill({
@@ -163,7 +169,11 @@ test("manifest supports readiness filtering and safe foreign-departure not-found
   await page.route(
     `**/api/v1/operator/departures/${departureId}/manifest`,
     async (route) => {
-      await route.fulfill({ status: 404, contentType: "application/json", body: "{}" });
+      await route.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: "{}",
+      });
     },
   );
   await page.reload();
