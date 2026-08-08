@@ -46,14 +46,21 @@ public static class DepartureHandoverEndpoints
             .Take(20)
             .ToArrayAsync(cancellationToken);
 
+        var handoverResponse = handover is null
+            ? new HandoverStateResponse(false, null, null, null, 0)
+            : new HandoverStateResponse(
+                handover.IsCompleted,
+                handover.FinalNote,
+                handover.CompletedByAccountId,
+                handover.CompletedAtUtc,
+                handover.Version);
+
         return Results.Ok(new
         {
             snapshot.Departure,
             snapshot.Summary,
             canComplete = DepartureHandoverPolicy.CanComplete(snapshot.Summary.Travellers, snapshot.Summary.Blocked),
-            handover = handover is null
-                ? new { isCompleted = false, finalNote = (string?)null, completedByAccountId = (string?)null, completedAtUtc = (DateTimeOffset?)null, version = 0 }
-                : new { handover.IsCompleted, handover.FinalNote, handover.CompletedByAccountId, handover.CompletedAtUtc, handover.Version },
+            handover = handoverResponse,
             audits = audits.Select(x => new
             {
                 x.Action,
@@ -302,6 +309,12 @@ public static class DepartureHandoverEndpoints
         int DocumentBlocked,
         int VisaBlocked,
         int AccommodationBlocked);
+    private sealed record HandoverStateResponse(
+        bool IsCompleted,
+        string? FinalNote,
+        string? CompletedByAccountId,
+        DateTimeOffset? CompletedAtUtc,
+        int Version);
 }
 
 public sealed record CompleteDepartureHandoverRequest(string? FinalNote, int ExpectedVersion);
