@@ -52,6 +52,8 @@ jobs:
           if 'Final handover' not in text:
               text = text.replace(needle, replacement)
               manifest.write_text(text)
+      - name: Restore .NET dependencies
+        run: dotnet restore NoorPath.slnx
       - name: Install EF tooling
         run: dotnet tool install --global dotnet-ef --version 10.0.10
       - name: Generate VS-28 migration
