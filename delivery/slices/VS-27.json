@@ -1,0 +1,79 @@
+{
+  "id": "VS-27",
+  "title": "Departure Manifest and Pilgrim Operations",
+  "slug": "departure-manifest-pilgrim-operations",
+  "outcome": "Approved operator staff can open a departure-level pilgrim manifest, see each traveller's operational readiness and blockers across booking, payments, documents, visa and accommodation, record governed readiness actions and prepare a reliable handoff without mutating source-module state.",
+  "actor": "Approved operator staff responsible for pre-departure pilgrim operations.",
+  "dependsOn": ["VS-13", "VS-24", "VS-26"],
+  "modules": [
+    "Booking owns the departure-manifest operational projection, operator notes/readiness decisions, concurrency versions and append-only readiness audit history.",
+    "Payments, Documents, Visa and Accommodation remain authoritative for their own status and are read through explicit module contracts or existing projections; VS-27 does not mutate their tables.",
+    "Catalogue/Departure data remains authoritative for departure identity and schedule.",
+    "Web adds a departure-level Pilgrim manifest workspace using the established NoorPath operator shell and visual language."
+  ],
+  "routes": [
+    "Operator departures -> open departure",
+    "Departure detail -> Pilgrim manifest",
+    "Manifest -> search/filter travellers and review blockers",
+    "Manifest -> review traveller readiness details",
+    "Manifest -> record operational note/readiness action",
+    "Manifest -> review departure counts and audit history"
+  ],
+  "acceptance": [
+    "Only an approved operator can read or mutate manifest operations for departures owned by the active operator; foreign ids return safe not-found responses.",
+    "The manifest consolidates confirmed-booking travellers for the selected departure and exposes departure-level totals for total, ready and blocked travellers.",
+    "Each traveller row exposes explicit readiness indicators for payment, documents, visa and accommodation using authoritative source-module state without cross-module mutations.",
+    "A traveller is not operationally ready while any required readiness indicator is blocked or incomplete; the UI identifies the blocking reason rather than relying on colour alone.",
+    "Search and filters work across traveller name, booking reference and readiness state without hiding blocked travellers by default.",
+    "Operator readiness actions and notes require an explicit reason/note, current version and actor context; stale writes fail with conflict feedback and no partial mutation.",
+    "Every governed readiness action records actor account, operator, traveller/departure scope, before/after state, reason, correlation id and timestamp in append-only audit history.",
+    "Manifest operations do not change booking price, payment history, document state, visa state, room assignments or cancellation state.",
+    "The workspace includes loading, empty, error, permission, stale/conflict and retry states and remains keyboard-operable and usable at approved desktop/mobile viewports.",
+    "Desktop and mobile navigation, target size, reflow and serious/critical accessibility checks pass.",
+    "Product Owner approval is required for the exact certified SHA before merge; production deployment remains separately approved."
+  ],
+  "policyDecisionsRequired": [
+    "Treat readiness as an operational projection derived from authoritative module state rather than a replacement domain state.",
+    "Do not allow manual readiness to override hard blockers from payments, documents, visa or accommodation; operator actions may add notes/acknowledgement only where source state is complete.",
+    "Use optimistic versions for readiness notes/actions so concurrent operators cannot silently overwrite operational decisions.",
+    "Keep readiness audit history append-only with actor, reason and correlation metadata."
+  ],
+  "exclusions": [
+    "Payment capture, adjustment or refund execution.",
+    "Document review or document-state mutation.",
+    "Visa transition mutation.",
+    "Room assignment mutation.",
+    "Booking amendment or cancellation execution.",
+    "Flight ticketing or supplier operations.",
+    "Customer-facing manifest access.",
+    "Operator shell redesign.",
+    "Production deployment."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "migration",
+    "security",
+    "authorization",
+    "concurrency",
+    "financial-integrity",
+    "privacy",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "rendered-regression",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "apps/web/e2e/operator-departure-manifest.spec.ts"
+  },
+  "specPath": "docs/slices/VS-27-DEPARTURE-MANIFEST-PILGRIM-OPERATIONS.md",
+  "checklistPath": "docs/slices/VS-27-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-27-NAVIGATION-VERIFICATION.md"
+}

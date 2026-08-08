@@ -403,12 +403,20 @@ export default function OperatorCollectionPage({
                     <dd>{item.version}</dd>
                   </div>
                 </dl>
-                <Link
-                  className="auth-secondary"
-                  href={`/operator/departures/${item.departureId}`}
-                >
-                  Open departure
-                </Link>
+                <div className="operator-card-actions">
+                  <Link
+                    className="auth-secondary"
+                    href={`/operator/departures/${item.departureId}`}
+                  >
+                    Open departure
+                  </Link>
+                  <Link
+                    className="auth-secondary"
+                    href={`/operator/departures/${item.departureId}/manifest`}
+                  >
+                    Pilgrim manifest
+                  </Link>
+                </div>
               </article>
             ))}
           </div>

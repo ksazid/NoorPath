@@ -116,6 +116,7 @@ app.MapOperatorCatalogueQueries();
 app.MapOperatorBookingManagement();
 app.MapBookingAmendments();
 app.MapAccommodationAssignments();
+app.MapDepartureManifest();
 app.MapCommercialAuthoring();
 app.MapPaymentPlanAuthoring();
 app.MapPublicationReview();
