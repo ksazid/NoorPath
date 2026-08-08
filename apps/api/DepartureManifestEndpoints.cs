@@ -246,6 +246,7 @@ public static class DepartureManifestEndpoints
         }
 
         var principal = http.User.GetCurrentPrincipal()!;
+        var actorAccountId = principal.AccountId.Value;
         var now = timeProvider.GetUtcNow();
         var record = await bookings.Set<DepartureManifestTravellerRecord>()
             .SingleOrDefaultAsync(item =>
@@ -268,7 +269,7 @@ public static class DepartureManifestEndpoints
                 BookingId = traveller.Id,
                 TravellerId = traveller.TravellerId,
                 OperatorId = access.OperatorId,
-                ActorAccountId = principal.AccountId,
+                ActorAccountId = actorAccountId,
                 Note = note,
                 IsAcknowledged = request.IsAcknowledged,
                 Version = 1,
@@ -285,7 +286,7 @@ public static class DepartureManifestEndpoints
             previousVersion = record.Version;
             record.Note = note;
             record.IsAcknowledged = request.IsAcknowledged;
-            record.ActorAccountId = principal.AccountId;
+            record.ActorAccountId = actorAccountId;
             record.Version += 1;
             record.UpdatedAtUtc = now;
         }
@@ -297,7 +298,7 @@ public static class DepartureManifestEndpoints
             BookingId = traveller.Id,
             TravellerId = traveller.TravellerId,
             OperatorId = access.OperatorId,
-            ActorAccountId = principal.AccountId,
+            ActorAccountId = actorAccountId,
             Action = request.IsAcknowledged ? "acknowledged" : "updated",
             Note = note,
             PreviousVersion = previousVersion,
