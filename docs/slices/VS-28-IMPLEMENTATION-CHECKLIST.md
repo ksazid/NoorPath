@@ -31,6 +31,7 @@
 - [x] API integration tests for operator isolation, blocker enforcement, source-state integrity and idempotent replay.
 - [x] Rendered desktop/mobile Playwright coverage.
 - [x] Navigation reachability implementation matrix.
+- [x] Certification blocker fixes applied: repository-exact Prettier output plus Documents/Visa readiness schema migration in handover integration setup.
 - [ ] `pnpm slice:validate` on final exact head.
 - [ ] migration registry validation on final exact head.
 - [ ] CI green on exact head.
