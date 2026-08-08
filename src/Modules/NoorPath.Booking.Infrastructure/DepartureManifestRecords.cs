@@ -28,7 +28,8 @@ public static class DepartureManifestPersistence
             entity.Property(x => x.OperatorId).HasMaxLength(80);
             entity.Property(x => x.ActorAccountId).HasMaxLength(120);
             entity.Property(x => x.Action).HasMaxLength(32);
-            entity.Property(x => x.Note).HasMaxLength(500);
+            entity.Property(x => x.PreviousNote).HasMaxLength(500);
+            entity.Property(x => x.ResultingNote).HasMaxLength(500);
             entity.Property(x => x.CorrelationId).HasMaxLength(100);
             entity.HasIndex(x => new { x.OperatorId, x.DepartureId, x.OccurredAtUtc });
             entity.HasIndex(x => new { x.TravellerId, x.OccurredAtUtc });
@@ -60,7 +61,10 @@ public sealed class DepartureManifestAuditRecord
     public required string OperatorId { get; set; }
     public required string ActorAccountId { get; set; }
     public required string Action { get; set; }
-    public string? Note { get; set; }
+    public string? PreviousNote { get; set; }
+    public string? ResultingNote { get; set; }
+    public bool PreviousIsAcknowledged { get; set; }
+    public bool ResultingIsAcknowledged { get; set; }
     public int PreviousVersion { get; set; }
     public int ResultingVersion { get; set; }
     public required string CorrelationId { get; set; }
