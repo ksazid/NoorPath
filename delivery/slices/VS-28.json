@@ -1,0 +1,71 @@
+{
+  "id": "VS-28",
+  "title": "Final departure handover and readiness",
+  "slug": "final-departure-handover-readiness",
+  "outcome": "Approved operator staff can complete a governed final departure handover only when the departure manifest is operationally ready, record final exceptions and handover evidence, and preserve an auditable immutable departure-closeout trail without mutating authoritative source-module state.",
+  "actor": "Approved operator staff responsible for final departure closeout.",
+  "dependsOn": ["VS-27"],
+  "modules": [
+    "Booking owns final handover state, optimistic versions and append-only handover audit evidence.",
+    "VS-27 readiness remains authoritative for operational blocker calculation; VS-28 consumes equivalent source projections without mutating Payments, Documents, Visa or Accommodation state.",
+    "Catalogue remains authoritative for departure identity and schedule.",
+    "Web adds a final handover workspace using the established NoorPath operator shell and visual language."
+  ],
+  "routes": [
+    "Operator departures -> open departure",
+    "Departure detail -> Pilgrim manifest",
+    "Pilgrim manifest -> Final handover",
+    "Final handover -> review blockers and completion evidence",
+    "Final handover -> complete governed departure handover"
+  ],
+  "acceptance": [
+    "Operator-isolated final handover projection is reachable from departure operations.",
+    "Handover cannot be completed while authoritative readiness blockers remain.",
+    "Final completion requires an explicit handover note and remains auditable.",
+    "Completion is concurrency-safe and idempotent.",
+    "Completed handover is read-only except for a separately governed correction workflow.",
+    "No payment, document, visa, accommodation or booking commercial source state is mutated.",
+    "Desktop and mobile rendered flows pass accessibility, target-size and overflow checks.",
+    "Product Owner approval is required for the exact certified SHA before merge; production deployment remains separately approved."
+  ],
+  "policyDecisionsRequired": [
+    "No automatic override of readiness blockers.",
+    "Any exceptional departure approval must be explicit, reasoned and auditable through a separately governed workflow rather than this completion endpoint.",
+    "Production deployment remains separately authorized."
+  ],
+  "exclusions": [
+    "Airline ticketing or supplier check-in integration",
+    "Airport device scanning",
+    "Customer-facing boarding pass",
+    "Payment or refund execution",
+    "Document, visa or accommodation source-state mutation",
+    "Production deployment"
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "migration",
+    "security",
+    "authorization",
+    "concurrency",
+    "financial-integrity",
+    "privacy",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "rendered-regression",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "apps/web/e2e/operator-departure-handover.spec.ts"
+  },
+  "specPath": "docs/slices/VS-28-FINAL-DEPARTURE-HANDOVER-READINESS.md",
+  "checklistPath": "docs/slices/VS-28-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-28-NAVIGATION-VERIFICATION.md"
+}
