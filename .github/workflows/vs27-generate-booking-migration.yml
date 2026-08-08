@@ -22,6 +22,8 @@ jobs:
           global-json-file: global.json
       - run: dotnet tool install --global dotnet-ef --version 10.0.10
       - run: dotnet restore NoorPath.slnx
+      - name: Build before migration
+        run: dotnet build NoorPath.slnx --configuration Release --no-restore
       - name: Generate booking migration
         run: >-
           dotnet ef migrations add VS27DepartureManifest
@@ -29,6 +31,7 @@ jobs:
           --project src/Modules/NoorPath.Booking.Infrastructure/NoorPath.Booking.Infrastructure.csproj
           --startup-project apps/api/NoorPath.Api.csproj
           --output-dir Migrations
+          --no-build
       - name: Commit migration
         run: |
           git config user.name "github-actions[bot]"
