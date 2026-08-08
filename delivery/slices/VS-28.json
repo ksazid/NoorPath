@@ -1,0 +1,50 @@
+{
+  "id": "VS-28",
+  "title": "Final departure handover and readiness",
+  "slug": "final-departure-handover-readiness",
+  "outcome": "Approved operator staff can complete a governed final departure handover only when the departure manifest is operationally ready, record final exceptions and handover evidence, and preserve an auditable immutable departure-closeout trail without mutating authoritative source-module state.",
+  "actor": "Operator",
+  "dependsOn": ["VS-27"],
+  "modules": ["Booking", "Catalogue", "Operators"],
+  "routes": [
+    "/operator/departures/{departureId}/handover",
+    "/api/v1/operator/departures/{departureId}/handover"
+  ],
+  "acceptance": [
+    "Operator-isolated final handover projection is reachable from departure operations.",
+    "Handover cannot be completed while authoritative readiness blockers remain.",
+    "Final exceptions require an explicit operator reason and remain auditable.",
+    "Completion is concurrency-safe and idempotent.",
+    "Completed handover is read-only except for separately governed correction workflow.",
+    "No payment, document, visa, accommodation or booking commercial source state is mutated.",
+    "Desktop and mobile rendered flows pass accessibility, target-size and overflow checks."
+  ],
+  "policyDecisionsRequired": [
+    "No automatic override of readiness blockers.",
+    "Any exceptional departure approval must be explicit, reasoned and auditable.",
+    "Production deployment remains separately authorized."
+  ],
+  "exclusions": [
+    "Airline ticketing or supplier check-in integration",
+    "Airport device scanning",
+    "Customer-facing boarding pass",
+    "Payment or refund execution",
+    "Document, visa or accommodation source-state mutation",
+    "Production deployment"
+  ],
+  "qualityGates": {
+    "sliceGovernance": true,
+    "ci": true,
+    "renderedReview": true,
+    "navigationReview": true,
+    "exactHeadCertification": true,
+    "productOwnerApproval": true
+  },
+  "rendered": {
+    "enabled": true,
+    "tests": ["apps/web/e2e/operator-departure-handover.spec.ts"]
+  },
+  "specPath": "docs/slices/VS-28-FINAL-DEPARTURE-HANDOVER-READINESS.md",
+  "checklistPath": "docs/slices/VS-28-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-28-NAVIGATION-VERIFICATION.md"
+}
