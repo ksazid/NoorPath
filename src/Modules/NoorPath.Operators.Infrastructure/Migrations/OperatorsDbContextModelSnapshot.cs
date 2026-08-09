@@ -17,6 +17,7 @@ partial class OperatorsDbContextModelSnapshot : ModelSnapshot
             .HasAnnotation("ProductVersion", "10.0.10")
             .HasAnnotation("Relational:MaxIdentifierLength", 63);
         NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
         modelBuilder.Entity("NoorPath.Operators.Infrastructure.OperatorRecord", b =>
         {
             b.Property<string>("Id").HasMaxLength(80).HasColumnType("character varying(80)");
@@ -28,6 +29,7 @@ partial class OperatorsDbContextModelSnapshot : ModelSnapshot
             b.HasKey("Id");
             b.ToTable("operators", "operators");
         });
+
         modelBuilder.Entity("NoorPath.Operators.Infrastructure.OperatorMembershipRecord", b =>
         {
             b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
@@ -41,6 +43,7 @@ partial class OperatorsDbContextModelSnapshot : ModelSnapshot
             b.HasIndex("OperatorId", "AccountId").IsUnique();
             b.ToTable("operator_memberships", "operators");
         });
+
         modelBuilder.Entity("NoorPath.Operators.Infrastructure.OperatorMembershipPermissionRecord", b =>
         {
             b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
@@ -50,13 +53,36 @@ partial class OperatorsDbContextModelSnapshot : ModelSnapshot
             b.HasIndex("MembershipId", "Permission").IsUnique();
             b.ToTable("operator_membership_permissions", "operators");
         });
+
+        modelBuilder.Entity("NoorPath.Operators.Infrastructure.OperatorStateAuditRecord", b =>
+        {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+            b.Property<string>("ActorAccountId").IsRequired().HasMaxLength(120).HasColumnType("character varying(120)");
+            b.Property<string>("CorrelationId").IsRequired().HasMaxLength(120).HasColumnType("character varying(120)");
+            b.Property<OperatorState>("FromState").IsRequired().HasMaxLength(24).HasColumnType("character varying(24)");
+            b.Property<string>("OperatorId").IsRequired().HasMaxLength(80).HasColumnType("character varying(80)");
+            b.Property<int>("OperatorVersion").HasColumnType("integer");
+            b.Property<string>("Reason").HasMaxLength(500).HasColumnType("character varying(500)");
+            b.Property<DateTimeOffset>("Timestamp").HasColumnType("timestamp with time zone");
+            b.Property<OperatorState>("ToState").IsRequired().HasMaxLength(24).HasColumnType("character varying(24)");
+            b.HasKey("Id");
+            b.HasIndex("OperatorId", "Timestamp");
+            b.ToTable("operator_state_audits", "operators");
+        });
+
         modelBuilder.Entity("NoorPath.Operators.Infrastructure.OperatorMembershipRecord", b =>
         {
             b.HasOne("NoorPath.Operators.Infrastructure.OperatorRecord", null).WithMany().HasForeignKey("OperatorId").OnDelete(DeleteBehavior.Restrict).IsRequired();
         });
+
         modelBuilder.Entity("NoorPath.Operators.Infrastructure.OperatorMembershipPermissionRecord", b =>
         {
             b.HasOne("NoorPath.Operators.Infrastructure.OperatorMembershipRecord", null).WithMany().HasForeignKey("MembershipId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+        });
+
+        modelBuilder.Entity("NoorPath.Operators.Infrastructure.OperatorStateAuditRecord", b =>
+        {
+            b.HasOne("NoorPath.Operators.Infrastructure.OperatorRecord", null).WithMany().HasForeignKey("OperatorId").OnDelete(DeleteBehavior.Restrict).IsRequired();
         });
     }
 }
