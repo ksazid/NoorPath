@@ -93,8 +93,20 @@
   outline-offset: 2px;
 }
 
+.np-customer-mobile-actions {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .np-staff-header .np-account-menu {
   margin-inline-start: auto;
+}
+
+@media (max-width: 900px) {
+  .np-customer-mobile-actions {
+    display: flex;
+  }
 }
 
 @media (max-width: 600px) {
