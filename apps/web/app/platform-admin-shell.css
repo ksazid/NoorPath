@@ -1,0 +1,197 @@
+.np-platform-admin-shell .np-staff-header {
+  position: sticky;
+  top: 0;
+}
+
+.np-platform-admin-shell .np-staff-header .np-account-menu {
+  flex: 0 0 auto;
+}
+
+.np-platform-admin-content-column {
+  min-width: 0;
+}
+
+.np-platform-admin-shell .np-staff-content {
+  width: min(100%, 1320px);
+  margin-inline: auto;
+}
+
+.np-platform-admin-shell .np-staff-menu__panel nav {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.np-platform-admin-shell .np-staff-menu__panel .np-staff-nav-group a {
+  min-height: 44px;
+}
+
+.np-platform-admin-footer {
+  display: flex;
+  width: min(100%, 1320px);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  margin-inline: auto;
+  padding: var(--space-6) max(var(--space-6), 4vw);
+  border-top: 1px solid var(--color-border-default);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.np-platform-admin-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-4);
+}
+
+.np-platform-admin-footer a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.np-platform-admin-footer a:hover {
+  color: var(--color-text-primary);
+}
+
+/* Existing VS-34 and publication workflows keep their tested task logic while
+   the shared Platform Admin shell becomes the only visible route chrome. */
+.np-platform-admin-legacy-embed > .account-shell,
+.np-platform-admin-legacy-embed > .admin-shell,
+.np-platform-admin-legacy-embed > .publication-queue-page,
+.np-platform-admin-legacy-embed > .account-gate,
+.np-platform-admin-legacy-embed > .composer-state-page {
+  min-height: 0;
+}
+
+.np-platform-admin-legacy-embed > .account-shell,
+.np-platform-admin-legacy-embed > .admin-shell {
+  display: block;
+  background: transparent;
+}
+
+.np-platform-admin-legacy-embed > .account-shell > .account-header,
+.np-platform-admin-legacy-embed > .account-shell > .account-sidebar,
+.np-platform-admin-legacy-embed > .admin-shell > .admin-sidebar,
+.np-platform-admin-legacy-embed > .publication-queue-page > .skip-link,
+.np-platform-admin-legacy-embed > .publication-queue-page > .publication-queue-header,
+.np-platform-admin-legacy-embed > .composer-state-page > .brand {
+  display: none;
+}
+
+.np-platform-admin-legacy-embed > .account-shell > .account-content,
+.np-platform-admin-legacy-embed > .admin-shell > .admin-content {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+}
+
+.np-platform-admin-legacy-embed > .account-gate,
+.np-platform-admin-legacy-embed > .composer-state-page {
+  align-content: start;
+  justify-items: stretch;
+  padding: 0;
+  background: transparent;
+}
+
+.np-platform-admin-legacy-embed > .account-gate .auth-card,
+.np-platform-admin-legacy-embed > .composer-state-page .composer-state-card {
+  width: min(100%, 720px);
+  margin-inline: auto;
+}
+
+.np-platform-admin-legacy-embed .platform-admin-content #overview > .auth-eyebrow,
+.np-platform-admin-legacy-embed .platform-admin-content #overview > h1,
+.np-platform-admin-legacy-embed .platform-admin-content #overview > p {
+  display: none;
+}
+
+.np-platform-admin-legacy-embed .platform-admin-content #overview .platform-metrics {
+  margin-top: 0;
+}
+
+.np-platform-admin-legacy-embed > .publication-queue-page {
+  background: transparent;
+}
+
+.np-platform-admin-legacy-embed > .publication-queue-page > .publication-queue-content {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.np-platform-admin-legacy-embed .platform-approval-titlebar > div:first-child,
+.np-platform-admin-legacy-embed .publication-titlebar > div:first-child {
+  display: none;
+}
+
+.np-platform-admin-legacy-embed .platform-approval-titlebar,
+.np-platform-admin-legacy-embed .publication-titlebar {
+  justify-content: flex-end;
+}
+
+.np-platform-admin-legacy-embed > .admin-shell > .admin-sticky-footer {
+  margin-inline: 0;
+}
+
+.np-platform-admin-shell a:focus-visible,
+.np-platform-admin-shell button:focus-visible,
+.np-platform-admin-shell summary:focus-visible,
+.np-platform-admin-shell input:focus-visible,
+.np-platform-admin-shell select:focus-visible,
+.np-platform-admin-shell textarea:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+  .np-platform-admin-shell .np-staff-header {
+    padding-inline: var(--space-4);
+  }
+
+  .np-platform-admin-shell .np-staff-menu {
+    border-bottom: 1px solid var(--color-border-default);
+    background: var(--color-surface-raised);
+  }
+
+  .np-platform-admin-shell .np-staff-menu summary {
+    width: 100%;
+  }
+
+  .np-platform-admin-shell .np-staff-menu__panel {
+    right: var(--space-4);
+    left: var(--space-4);
+  }
+}
+
+@media (max-width: 600px) {
+  .np-platform-admin-shell .np-staff-header > span {
+    display: none;
+  }
+
+  .np-platform-admin-shell .np-staff-content {
+    padding-inline: var(--space-4);
+  }
+
+  .np-platform-admin-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    padding-inline: var(--space-4);
+  }
+
+  .np-platform-admin-footer nav {
+    justify-content: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .np-platform-admin-shell *,
+  .np-platform-admin-shell *::before,
+  .np-platform-admin-shell *::after {
+    scroll-behavior: auto !important;
+  }
+}
