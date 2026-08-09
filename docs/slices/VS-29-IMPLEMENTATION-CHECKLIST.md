@@ -1,0 +1,24 @@
+# VS-29 — Implementation Checklist
+
+- [x] Slice specification and requirement traceability registered.
+- [x] UI UX Pro Max, Design Taste Frontend, Impeccable, Emil Design Engineering and Ponytail project skills verified/read.
+- [x] Approved Package visual language preserved; no new icon family, palette or design system introduced.
+- [x] Package pricing card changed from passive rows to explicit occupancy choice controls.
+- [x] Unavailable occupancy remains visible and disabled.
+- [x] Selected occupancy is carried in the Package -> Plan route.
+- [x] Planner revalidates requested occupancy and falls back to current first saleable option when stale/invalid.
+- [x] Shared `CustomerRouteShell` remains the only visible customer header/footer chrome; legacy page-local chrome stays suppressed by the existing route adapter.
+- [x] Existing package breadcrumb and planner back link remain available.
+- [x] Existing authentication, traveller, quote, inventory-hold and payment contracts remain unchanged.
+- [x] Keyboard-native radio interaction retained.
+- [x] 44px target, visible focus, unavailable text state and reduced-motion styling added.
+- [x] Desktop/mobile rendered E2E coverage added for package -> planner selection, unavailable state, shell uniqueness, back route and overflow.
+- [ ] `pnpm format:check` passes on exact head.
+- [ ] `pnpm check` / build passes on exact head.
+- [ ] Playwright VS-29 rendered tests pass on exact head.
+- [ ] Slice Governance passes on exact head.
+- [ ] Navigation Reachability Review passes on exact head.
+- [ ] Rendered Slice Review passes on exact head.
+- [ ] Full CI passes on exact head.
+- [ ] Product Owner reviews exact-head rendered evidence and explicitly approves before merge.
+- [ ] No production deployment without separate approval.
