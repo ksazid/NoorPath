@@ -85,30 +85,33 @@ async function arrangeAdminApi(page: import("@playwright/test").Page) {
     }),
   );
 
-  await page.route("**/api/v1/platform/operators/barakah/state", async (route) => {
-    const request = route.request();
-    const body = request.postDataJSON() as {
-      targetState: string;
-      expectedVersion: number;
-      reason?: string | null;
-    };
-    expect(body.targetState).toBe("approved");
-    expect(body.expectedVersion).toBe(1);
-    approved = true;
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        operator: {
-          ...pendingOperator,
-          state: "approved",
-          version: 2,
-          allowedTransitions: ["suspended", "deactivated"],
-        },
-        changedAtUtc: "2026-08-09T12:00:00Z",
-      }),
-    });
-  });
+  await page.route(
+    "**/api/v1/platform/operators/barakah/state",
+    async (route) => {
+      const request = route.request();
+      const body = request.postDataJSON() as {
+        targetState: string;
+        expectedVersion: number;
+        reason?: string | null;
+      };
+      expect(body.targetState).toBe("approved");
+      expect(body.expectedVersion).toBe(1);
+      approved = true;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          operator: {
+            ...pendingOperator,
+            state: "approved",
+            version: 2,
+            allowedTransitions: ["suspended", "deactivated"],
+          },
+          changedAtUtc: "2026-08-09T12:00:00Z",
+        }),
+      });
+    },
+  );
 
   await page.route("**/api/v1/platform/operators", (route) =>
     route.fulfill({
@@ -140,8 +143,12 @@ test("platform administrator can approve an operator from the command centre", a
   await expect(
     page.getByRole("heading", { level: 1, name: "Platform operations" }),
   ).toBeVisible();
-  await expect(page.getByText("Pending approval", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Barakah Umrah", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Pending approval", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Barakah Umrah", { exact: true }),
+  ).toBeVisible();
 
   const card = page.locator(".platform-operator-card").filter({
     hasText: "Barakah Umrah",
@@ -150,11 +157,15 @@ test("platform administrator can approve an operator from the command centre", a
   await card.getByLabel(/Reason/).fill("Business verification completed.");
   await card.getByRole("button", { name: "Apply decision" }).click();
 
-  await expect(page.getByText("Barakah Umrah is now Approved.")).toBeVisible();
-  await expect(card.getByText("Approved", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Pending approval", { exact: true }).first()).toHaveText(
-    "Pending approval",
-  );
+  await expect(
+    page.getByText("Barakah Umrah is now Approved."),
+  ).toBeVisible();
+  await expect(
+    card.getByText("Approved", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Pending approval", { exact: true }).first(),
+  ).toHaveText("Pending approval");
 
   await expectNoA11yViolations(page);
   await expectMinimumTargets(page);
@@ -171,12 +182,18 @@ test("platform administrator can inspect append-only operator decision history",
     hasText: "Barakah Umrah",
   });
   await card.getByRole("button", { name: "Apply decision" }).click();
-  await expect(page.getByText("Barakah Umrah is now Approved.")).toBeVisible();
+  await expect(
+    page.getByText("Barakah Umrah is now Approved."),
+  ).toBeVisible();
   await card.getByRole("button", { name: "View history" }).click();
 
-  await expect(card.getByRole("heading", { name: "Decision history" })).toBeVisible();
+  await expect(
+    card.getByRole("heading", { name: "Decision history" }),
+  ).toBeVisible();
   await expect(card.getByText("Pending approval → Approved")).toBeVisible();
-  await expect(card.getByText("Business verification completed.")).toBeVisible();
+  await expect(
+    card.getByText("Business verification completed."),
+  ).toBeVisible();
 
   await expectNoA11yViolations(page);
   await expectMinimumTargets(page);
@@ -188,7 +205,9 @@ test("platform administration reflows at mobile width", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/admin");
 
-  await expect(page.getByRole("heading", { name: "Platform operations" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Platform operations" }),
+  ).toBeVisible();
   await expectNoA11yViolations(page);
   await expectMinimumTargets(page);
   await expectNoHorizontalOverflow(page);
