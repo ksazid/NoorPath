@@ -1,4 +1,5 @@
 import Link from "next/link";
+import OperatorWorkspaceShell from "../../../OperatorWorkspaceShell";
 import PublicationReview from "../../PublicationReview";
 
 export default async function OperatorPublicationReviewPage({
@@ -9,7 +10,13 @@ export default async function OperatorPublicationReviewPage({
   const { departureId } = await params;
 
   return (
-    <>
+    <OperatorWorkspaceShell
+      title="Publication review"
+      summary="Review the saved customer facts and submit them from the same operator workspace used for package and departure operations."
+      contentOwnsLandmark
+      showPageHeader={false}
+      contentClassName="np-operator-legacy-embed"
+    >
       <div className="operator-preview-bar operator-review-guidance">
         <div>
           <strong>Publication review</strong>
@@ -35,6 +42,6 @@ export default async function OperatorPublicationReviewPage({
         </div>
       </div>
       <PublicationReview departureId={departureId} mode="operator" />
-    </>
+    </OperatorWorkspaceShell>
   );
 }
