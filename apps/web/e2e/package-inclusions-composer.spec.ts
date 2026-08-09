@@ -56,17 +56,23 @@ test("operator can move package items between Included and Not included", async 
   ).toHaveCount(0);
 });
 
-test("pointer drag uses the same mutually exclusive move behavior", async ({
+test("native drag uses the same mutually exclusive move behavior", async ({
   page,
 }) => {
   await mockOperator(page);
   await page.goto("/operator/packages/new");
 
   const included = page.getByTestId("included-board");
+  const source = included.locator('[data-item="Visa included"]');
   const excludedZone = page.locator(
     '.package-drop-zone[data-destination="excluded"]',
   );
-  await included.locator('[data-item="Visa included"]').dragTo(excludedZone);
+  const dataTransfer = await page.evaluateHandle(() => new DataTransfer());
+
+  await source.dispatchEvent("dragstart", { dataTransfer });
+  await excludedZone.dispatchEvent("dragenter", { dataTransfer });
+  await excludedZone.dispatchEvent("dragover", { dataTransfer });
+  await excludedZone.dispatchEvent("drop", { dataTransfer });
 
   await expect(
     included.getByText("Visa included", { exact: true }),
