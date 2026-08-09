@@ -1,33 +1,20 @@
 # VS-34 Navigation Verification
 
-## Platform Administrator
+| Path / action | Actor / precondition | Expected outcome | Evidence | Status |
+| --- | --- | --- | --- | --- |
+| `/admin` -> Platform operations | Configured Platform Administrator demo identity | Command centre loads with lifecycle summary and operator queue | `platform-operator-administration.spec.ts` | VERIFIED |
+| `/admin` -> pending operator -> Apply approval | Platform Administrator, pending provisioned operator | Version-checked transition records approval and the queue reloads to authoritative Approved state | integration + rendered tests | VERIFIED |
+| `/admin` -> operator -> View history | Platform Administrator, operator with lifecycle decisions | Append-only lifecycle decision history is reachable and readable | `platform-operator-administration.spec.ts` | VERIFIED |
+| `/admin` -> Publication reviews | Platform Administrator | Existing `/platform/publications` workflow remains reachable | platform navigation + existing publication approval tests | VERIFIED |
+| Customer demo identity -> account/operator/platform access | `customer-account` | Account allowed; operator and platform administration denied | persona authorization integration test | VERIFIED |
+| Approved operator demo identity -> account/operator/platform access | `approved-account` | Account and operator access allowed; platform administration denied | persona authorization integration test | VERIFIED |
+| Platform Administrator demo identity -> account/operator/platform access | `platform-administrator` without operator membership | Account and platform administration allowed; operator administration denied | persona authorization integration test | VERIFIED |
+| Pending operator member -> operator access before/after approval | Active member of PendingApproval operator, then Platform Administrator approval | Operator access is denied before approval and allowed immediately after approval through the unchanged operator-access endpoint | platform operator administration integration test | VERIFIED |
+| `/admin` at 390 x 844 | Configured Platform Administrator demo identity | Command centre reflows without horizontal overflow and remains keyboard/touch operable | `platform-operator-administration.spec.ts` | VERIFIED |
+| Customer phone OTP provider delivery/configuration | Customer | Provider configuration is explicitly deferred from VS-34 | VS-34 scope contract | NOT_APPLICABLE |
+| Knowledge Pack | Any | Knowledge Pack work is explicitly deferred from VS-34 | VS-34 scope contract | NOT_APPLICABLE |
+| Production deployment | Any | Deployment remains separately authorized and outside VS-34 | standing release discipline | NOT_APPLICABLE |
 
-1. Open `/admin` with an authorized Platform Administrator identity.
-2. Confirm the `Platform operations` command centre loads.
-3. Confirm Overview and Operators remain reachable within the page.
-4. Confirm `Publication reviews` reaches `/platform/publications`.
-5. Confirm a pending operator appears before non-pending operators.
-6. Apply an allowed decision and confirm the queue reloads to the new authoritative state.
-7. Open `View history` and confirm the transition evidence is visible.
-8. Confirm stale state feedback reloads the latest operator state rather than overwriting it.
+## Certification rule
 
-## Demo persona boundaries
-
-- Customer demo identity: `/api/v1/account/access` allowed; operator/platform access denied.
-- Approved operator demo identity: account/operator access allowed; platform access denied.
-- Platform Administrator demo identity: account/platform access allowed; operator access denied unless separately provisioned.
-- Pending operator demo identity: operator access denied before approval and allowed after Platform Administrator approval.
-
-## Responsive / accessibility verification
-
-- Run the VS-34 rendered test at desktop width and 390 x 844.
-- Verify no horizontal overflow.
-- Verify interactive targets meet the 44px minimum.
-- Verify WCAG 2.2 AA automated checks are clean.
-- Verify every decision input has a visible label and history disclosure exposes its expanded state.
-
-## Explicitly not certified by VS-34
-
-- Customer phone OTP provider delivery/configuration.
-- Knowledge Pack.
-- Production deployment.
+These rows describe the intended implementation contract and executable evidence registered by VS-34. Exact-head CI, Slice Governance, Rendered Slice Review and Navigation Reachability Review must execute and pass on the unchanged final SHA before merge. Customer phone OTP delivery, Knowledge Pack work and production deployment are deliberately outside this certification.
