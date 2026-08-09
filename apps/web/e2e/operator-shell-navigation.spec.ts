@@ -24,29 +24,27 @@ test("operator collections share one wordmark, header and route navigation", asy
   await page.goto("/operator/packages");
   const header = page.locator(".np-staff-header");
   const sidebar = page.locator(".np-staff-sidebar");
+  const packageLink = page.locator(
+    'a[href="/operator/packages"][aria-current="page"]',
+  );
 
   await expect(header).toBeVisible();
   await expect(sidebar).toBeVisible();
-  await expect(
-    header.getByRole("img", { name: "NoorPath" }),
-  ).toBeVisible();
+  await expect(header.getByRole("img", { name: "NoorPath" })).toBeVisible();
   await expect(header.getByText("Noor Travel", { exact: true })).toBeVisible();
-  await expect(
-    page.locator('a[href="/operator/packages"][aria-current="page"]'),
-  ).toBeVisible();
-  await expect(
-    page.locator('a[href="/operator/departures"]'),
-  ).toHaveCount(2);
+  await expect(packageLink).toBeVisible();
+  await expect(page.locator('a[href="/operator/departures"]')).toHaveCount(2);
 
   const packagesHeader = await header.boundingBox();
   await page.goto("/operator/departures");
   const departuresHeader = await header.boundingBox();
+  const departureLink = page.locator(
+    'a[href="/operator/departures"][aria-current="page"]',
+  );
 
   expect(packagesHeader?.x).toBe(departuresHeader?.x);
   expect(packagesHeader?.width).toBe(departuresHeader?.width);
-  await expect(
-    page.locator('a[href="/operator/departures"][aria-current="page"]'),
-  ).toBeVisible();
+  await expect(departureLink).toBeVisible();
 });
 
 test("package authoring keeps task UI but removes competing operator chrome", async ({
@@ -55,14 +53,22 @@ test("package authoring keeps task UI but removes competing operator chrome", as
   await mockOperatorShell(page);
   await page.goto("/operator/packages/new");
 
+  const embeddedSidebar = page.locator(
+    ".np-operator-legacy-embed .admin-sidebar",
+  );
+  const wordmark = page
+    .locator(".np-staff-header")
+    .getByRole("img", { name: "NoorPath" });
+  const packageHeading = page.getByRole("heading", {
+    name: "Create a package draft",
+  });
+
   await expect(page.locator(".np-staff-header")).toBeVisible();
   await expect(page.locator(".np-staff-sidebar")).toBeVisible();
   await expect(page.locator(".np-operator-legacy-embed")).toBeVisible();
-  await expect(page.locator(".np-operator-legacy-embed .admin-sidebar")).toBeHidden();
-  await expect(
-    page.locator(".np-staff-header").getByRole("img", { name: "NoorPath" }),
-  ).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Create a package draft" })).toBeVisible();
+  await expect(embeddedSidebar).toBeHidden();
+  await expect(wordmark).toBeVisible();
+  await expect(packageHeading).toBeVisible();
 });
 
 test("operator shell reflows to native mobile navigation without overflow", async ({
@@ -76,9 +82,10 @@ test("operator shell reflows to native mobile navigation without overflow", asyn
   const menu = page.locator(".np-staff-menu > summary");
   await expect(menu).toBeVisible();
   await menu.click();
-  await expect(
-    page.locator(".np-staff-menu__panel").getByRole("link", { name: "Departures" }),
-  ).toBeVisible();
+  const departuresLink = page
+    .locator(".np-staff-menu__panel")
+    .getByRole("link", { name: "Departures" });
+  await expect(departuresLink).toBeVisible();
 
   const overflow = await page.evaluate(
     () =>
