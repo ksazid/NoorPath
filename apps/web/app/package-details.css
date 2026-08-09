@@ -249,3 +249,56 @@
     transition-duration: 0.01ms;
   }
 }
+
+/* VS-29: occupancy is a decision control on package detail, not a passive price row. */
+.occupancy-price-list {
+  min-width: 0;
+  padding: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+}
+
+.occupancy-choice {
+  position: relative;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease-out,
+    transform 160ms ease-out;
+}
+
+.occupancy-choice input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--public-green);
+}
+
+.occupancy-choice.selected {
+  background: var(--public-ivory);
+}
+
+.occupancy-choice.unavailable {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.occupancy-choice:focus-within {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.occupancy-choice:not(.unavailable):active {
+  transform: scale(0.99);
+}
+
+.package-plan-primary.disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .occupancy-choice {
+    transition-duration: 0.01ms;
+  }
+}

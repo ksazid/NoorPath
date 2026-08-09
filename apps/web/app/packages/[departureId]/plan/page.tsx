@@ -139,6 +139,10 @@ const occupancyMeta: Record<
   },
 };
 
+function isOccupancy(value: string | null): value is Occupancy {
+  return value === "double" || value === "triple" || value === "quad";
+}
+
 function requestHeaders(
   json = false,
   additional: Record<string, string> = {},
@@ -298,10 +302,22 @@ export default function PlanJourneyPage() {
       }
       const details = (await response.json()) as PackageDetails;
       setPackageState({ kind: "loaded", details });
+      const requestedOccupancy = new URLSearchParams(
+        window.location.search,
+      ).get("occupancy");
+      const requestedAvailable = isOccupancy(requestedOccupancy)
+        ? details.pricing.occupancies.find(
+            (item) =>
+              item.occupancy === requestedOccupancy &&
+              item.status === "available",
+          )
+        : undefined;
       const firstAvailable = details.pricing.occupancies.find(
         (item) => item.status === "available",
       );
-      setOccupancy(firstAvailable?.occupancy ?? null);
+      setOccupancy(
+        requestedAvailable?.occupancy ?? firstAvailable?.occupancy ?? null,
+      );
     } catch {
       setPackageState({ kind: "error" });
     }

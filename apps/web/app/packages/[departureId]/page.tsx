@@ -382,39 +382,72 @@ function PackageMilestones({ departureDate }: { departureDate: string }) {
 }
 
 function PricingSummary({ details }: { details: PackageDetails }) {
+  const firstAvailable = details.pricing.occupancies.find(
+    (item) => item.status === "available",
+  );
+  const [occupancy, setOccupancy] = useState<Occupancy | null>(
+    firstAvailable?.occupancy ?? null,
+  );
+  const selected = details.pricing.occupancies.find(
+    (item) => item.occupancy === occupancy,
+  );
+
   return (
     <aside
       className="payment-summary-card"
       id="pricing-and-availability"
       aria-label="Published pricing and availability"
     >
-      <h2>Pricing &amp; availability</h2>
-      <div className="occupancy-price-list">
-        {details.pricing.occupancies.map((item) => (
-          <div className="occupancy-price-row" key={item.occupancy}>
-            <span>
-              <strong>{occupancyLabel(item.occupancy)}</strong>
-              <small>
-                {item.status === "available"
-                  ? `${item.availableQuantity} available`
-                  : "Currently unavailable"}
-              </small>
-            </span>
-            <strong>
-              {formatMoney(item.amount, details.pricing.currency)}
-            </strong>
-          </div>
-        ))}
-      </div>
+      <h2>Choose your room sharing</h2>
       <p className="package-pricing-note">
-        Published occupancy pricing. No payment is taken on this page.
+        Select an available option to continue. Published prices are per
+        traveller.
       </p>
-      <Link
-        className="package-plan-primary"
-        href={`/packages/${details.departureId}/plan`}
-      >
-        Plan this journey <span aria-hidden="true">›</span>
-      </Link>
+      <fieldset className="occupancy-price-list">
+        <legend className="sr-only">Room sharing options</legend>
+        {details.pricing.occupancies.map((item) => {
+          const unavailable = item.status !== "available";
+          return (
+            <label
+              className={`occupancy-price-row occupancy-choice${occupancy === item.occupancy ? " selected" : ""}${unavailable ? " unavailable" : ""}`}
+              key={item.occupancy}
+            >
+              <input
+                type="radio"
+                name="package-occupancy"
+                value={item.occupancy}
+                checked={occupancy === item.occupancy}
+                disabled={unavailable}
+                onChange={() => setOccupancy(item.occupancy)}
+              />
+              <span>
+                <strong>{occupancyLabel(item.occupancy)}</strong>
+                <small>
+                  {unavailable
+                    ? "Currently unavailable"
+                    : `${item.availableQuantity} available`}
+                </small>
+              </span>
+              <strong>
+                {formatMoney(item.amount, details.pricing.currency)}
+              </strong>
+            </label>
+          );
+        })}
+      </fieldset>
+      {occupancy && selected?.status === "available" ? (
+        <Link
+          className="package-plan-primary"
+          href={`/packages/${details.departureId}/plan?occupancy=${occupancy}`}
+        >
+          Continue with {occupancyLabel(occupancy).toLowerCase()}{" "}
+          <span aria-hidden="true">›</span>
+        </Link>
+      ) : (
+        <span className="package-plan-primary disabled" aria-disabled="true">
+          No room option is currently available
+        </span>
+      )}
       <a href="mailto:support@noorpath.example">
         Ask about this package <span aria-hidden="true">›</span>
       </a>
