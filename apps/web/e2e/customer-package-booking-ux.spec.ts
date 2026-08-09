@@ -74,7 +74,9 @@ test("package occupancy selection carries into the booking planner", async ({
   await mockDeparture(page);
   await page.goto(`/packages/${departure.departureId}`);
 
-  const triple = page.locator('input[name="package-occupancy"][value="triple"]');
+  const triple = page.locator(
+    'input[name="package-occupancy"][value="triple"]',
+  );
   await expect(triple).toBeEnabled();
   await triple.check();
 
@@ -112,7 +114,9 @@ test("package flow uses one customer shell and reflows on mobile", async ({
   await expect(page.locator(".public-topbar")).toBeHidden();
 
   const overflow = await page.evaluate(
-    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    () =>
+      document.documentElement.scrollWidth >
+      document.documentElement.clientWidth,
   );
   expect(overflow).toBe(false);
 
