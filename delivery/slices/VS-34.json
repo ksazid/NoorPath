@@ -1,0 +1,77 @@
+{
+  "id": "VS-34",
+  "title": "Platform Administration & Persona Certification",
+  "slug": "platform-admin-persona-certification",
+  "outcome": "NoorPath platform administrators can govern operator approval state from one command centre, with auditable version-checked decisions, while demo customer, operator and platform identities prove deny-by-default persona boundaries without depending on the deferred customer OTP provider.",
+  "actor": "NoorPath platform administrators governing operator access and product owners certifying persona-level access.",
+  "dependsOn": ["VS-16", "VS-31", "VS-33"],
+  "modules": [
+    "Operators remains authoritative for operator state, membership, permissions and approval eligibility.",
+    "The API owns platform-administrator authorization, lifecycle decisions, optimistic concurrency and append-only operator decision audit.",
+    "The web application extends the existing NoorPath protected-account visual language with a platform administration command centre.",
+    "Existing customer and operator journeys remain authoritative; VS-34 adds persona-level certification rather than duplicating their workflows."
+  ],
+  "routes": [
+    "Platform administrator -> /admin -> operator lifecycle overview and queue",
+    "Platform administrator -> operator decision -> approved/rejected/suspended/deactivated governed transition",
+    "Platform administrator -> operator history -> append-only lifecycle evidence",
+    "Platform administrator -> publication reviews -> existing /platform/publications workflow",
+    "Demo customer/operator/platform identities -> protected access endpoints -> persona boundary certification"
+  ],
+  "acceptance": [
+    "Only configured Platform Administrator identities can list, inspect or change operator lifecycle state.",
+    "Draft, pending approval, approved, rejected, suspended and deactivated operators follow the explicit NoorPath transition policy without shortcut transitions.",
+    "Rejection, suspension and deactivation require a bounded auditable reason.",
+    "Lifecycle changes are optimistic-concurrency protected and stale decisions return a safe conflict response.",
+    "Every accepted lifecycle change records actor account, previous state, target state, operator version, timestamp, correlation identifier and optional reason.",
+    "Operator administration access remains deny-by-default unless the operator is Approved and the active member has the explicit operator administration permission.",
+    "A demo pending operator is denied operator access before Platform Administrator approval and allowed immediately after approval through the same authority path used by the application.",
+    "Demo customer, approved operator and Platform Administrator identities prove their expected account/operator/platform access boundaries without using a production OTP provider.",
+    "The /admin command centre exposes operator lifecycle summary, pending-first queue, governed decisions, stale/error feedback and decision history using the existing NoorPath account visual language.",
+    "The admin command centre has keyboard-operable controls, visible labels, WCAG 2.2 AA checks, minimum 44px interactive targets and no horizontal overflow at 390px.",
+    "Forward-only Operators migration, generated migration metadata and model-snapshot parity are present for lifecycle audit persistence.",
+    "Existing customer and operator journey tests remain part of certification so VS-34 cannot regress previously accepted persona workflows.",
+    "Customer phone OTP provider configuration and Knowledge Pack work remain explicitly deferred and do not block VS-34 certification.",
+    "Production deployment remains separately authorized and is not performed by this slice."
+  ],
+  "exclusions": [
+    "Customer phone OTP provider selection, credentials, delivery configuration or production authentication cutover.",
+    "Knowledge Pack authoring, ingestion or AI grounding.",
+    "Production deployment or changing the currently approved production SHA.",
+    "Agent portal or agent-assisted booking.",
+    "Supplier, airline, hotel, insurance or WhatsApp integrations.",
+    "Replacing NoorPath's existing customer or operator visual identity."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "component",
+    "migration",
+    "security",
+    "authorization",
+    "privacy",
+    "persona-certification",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "keyboard",
+    "focus",
+    "target-size",
+    "responsive-reflow",
+    "rendered-regression",
+    "design-token-consistency",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "apps/web/e2e/platform-operator-administration.spec.ts"
+  },
+  "specPath": "docs/slices/VS-34-PLATFORM-ADMIN-PERSONA-CERTIFICATION.md",
+  "checklistPath": "docs/slices/VS-34-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-34-NAVIGATION-VERIFICATION.md"
+}

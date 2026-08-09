@@ -111,6 +111,7 @@ app.MapGet("/health/ready", async (OperatorsDbContext database, CancellationToke
         : Results.StatusCode(StatusCodes.Status503ServiceUnavailable));
 app.MapOperatorAccess();
 app.MapAccountAccess();
+app.MapPlatformOperatorAdministration();
 app.MapCatalogueAuthoring();
 app.MapOperatorCatalogueQueries();
 app.MapOperatorBookingManagement();

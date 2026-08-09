@@ -9,6 +9,7 @@ public sealed class OperatorsDbContext(DbContextOptions<OperatorsDbContext> opti
     public DbSet<OperatorRecord> Operators => Set<OperatorRecord>();
     public DbSet<OperatorMembershipRecord> Memberships => Set<OperatorMembershipRecord>();
     public DbSet<OperatorMembershipPermissionRecord> MembershipPermissions => Set<OperatorMembershipPermissionRecord>();
+    public DbSet<OperatorStateAuditRecord> StateAudits => Set<OperatorStateAuditRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -40,6 +41,19 @@ public sealed class OperatorsDbContext(DbContextOptions<OperatorsDbContext> opti
             entity.Property(x => x.Permission).HasMaxLength(100);
             entity.HasIndex(x => new { x.MembershipId, x.Permission }).IsUnique();
             entity.HasOne<OperatorMembershipRecord>().WithMany().HasForeignKey(x => x.MembershipId).OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<OperatorStateAuditRecord>(entity =>
+        {
+            entity.ToTable("operator_state_audits");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.OperatorId).HasMaxLength(80);
+            entity.Property(x => x.FromState).HasConversion<string>().HasMaxLength(24);
+            entity.Property(x => x.ToState).HasConversion<string>().HasMaxLength(24);
+            entity.Property(x => x.ActorAccountId).HasMaxLength(120);
+            entity.Property(x => x.Reason).HasMaxLength(500);
+            entity.Property(x => x.CorrelationId).HasMaxLength(120);
+            entity.HasIndex(x => new { x.OperatorId, x.Timestamp });
+            entity.HasOne<OperatorRecord>().WithMany().HasForeignKey(x => x.OperatorId).OnDelete(DeleteBehavior.Restrict);
         });
     }
 
@@ -103,4 +117,17 @@ public sealed class OperatorMembershipPermissionRecord
     public Guid Id { get; set; }
     public Guid MembershipId { get; set; }
     public required string Permission { get; set; }
+}
+
+public sealed class OperatorStateAuditRecord
+{
+    public Guid Id { get; set; }
+    public required string OperatorId { get; set; }
+    public OperatorState FromState { get; set; }
+    public OperatorState ToState { get; set; }
+    public required string ActorAccountId { get; set; }
+    public string? Reason { get; set; }
+    public required string CorrelationId { get; set; }
+    public int OperatorVersion { get; set; }
+    public DateTimeOffset Timestamp { get; set; }
 }

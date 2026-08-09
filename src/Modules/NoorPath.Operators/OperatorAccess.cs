@@ -13,6 +13,28 @@ public static class OperatorPermissions
     public const string OperationalSupport = "operator.support.manage";
 }
 
+public static class OperatorStatePolicy
+{
+    public static bool CanTransition(OperatorState from, OperatorState to) =>
+        (from, to) switch
+        {
+            (OperatorState.Draft, OperatorState.PendingApproval) => true,
+            (OperatorState.PendingApproval, OperatorState.Approved) => true,
+            (OperatorState.PendingApproval, OperatorState.Rejected) => true,
+            (OperatorState.Rejected, OperatorState.PendingApproval) => true,
+            (OperatorState.Approved, OperatorState.Suspended) => true,
+            (OperatorState.Approved, OperatorState.Deactivated) => true,
+            (OperatorState.Suspended, OperatorState.Approved) => true,
+            (OperatorState.Suspended, OperatorState.Deactivated) => true,
+            _ => false
+        };
+
+    public static bool RequiresReason(OperatorState target) => target is
+        OperatorState.Rejected or
+        OperatorState.Suspended or
+        OperatorState.Deactivated;
+}
+
 public sealed record OperatorAccess(
     string OperatorId,
     string OperatorDisplayName,
