@@ -1,0 +1,76 @@
+{
+  "id": "VS-32",
+  "title": "Package Inclusions Composer",
+  "slug": "package-inclusions-composer",
+  "outcome": "Approved operator members can manage truthful package Included and Not included terms in one NoorPath composer, move items between the two lists by drag or keyboard-accessible controls, and add package-specific items with curated NoorPath icon choices while the existing ordered string authoring contract remains authoritative.",
+  "actor": "Approved operator members authoring a private package and departure draft.",
+  "dependsOn": ["VS-02", "VS-31"],
+  "modules": [
+    "Web owns the package-inclusion composer interaction, icon presentation, responsive behavior and accessible drag alternatives.",
+    "Catalogue remains authoritative for the ordered inclusion and exclusion strings persisted on the draft package version.",
+    "Existing VS-02 operator authorization, tenant isolation, validation, audit and create/update API contracts remain unchanged.",
+    "Curated icon choices are presentation metadata for authoring and do not create a new persisted catalogue field in this slice."
+  ],
+  "routes": [
+    "Operator workspace -> Packages -> Create package -> Package inclusions & exclusions",
+    "Included item -> drag or Move to Not included -> Not included list",
+    "Not included item -> drag or Move to Included -> Included list",
+    "Suggested item -> Include or Exclude -> selected list",
+    "Add custom item -> choose NoorPath icon -> Included or Not included",
+    "Create package -> existing draft creation contract -> departure editor",
+    "Package authoring -> shared operator navigation -> Packages"
+  ],
+  "acceptance": [
+    "Package authoring presents explicit Included and Not included lists using the existing NoorPath visual language and one consistent SVG icon family.",
+    "An item can be moved between Included and Not included by native drag-and-drop without being duplicated across both lists.",
+    "Every drag move has a visible keyboard- and touch-operable Move control that performs the same state change without requiring pointer precision.",
+    "The existing standard package inclusions and exclusions remain operator-editable defaults; market research is advisory only and does not turn third-party promises into NoorPath policy.",
+    "Variable travel-kit, Umrah-kit, baggage, room-service, laundry, SIM, Zamzam and insurance facts remain explicit suggestions or operator choices rather than silently guaranteed inclusions.",
+    "Add custom item offers curated icon choices from the existing NoorPath line-icon family and adds the item to the operator-selected destination list.",
+    "Draft submission continues to persist ordered inclusion and exclusion strings through the existing VS-02 create contract without a schema or API compatibility change.",
+    "Existing operator authorization, tenant isolation, validation and draft audit behavior remain unchanged.",
+    "Changed controls preserve visible focus, at least 44px actionable targets, reduced-motion behavior, mobile reflow and no horizontal overflow at 390px.",
+    "Rendered and navigation evidence belongs to the exact unchanged implementation SHA.",
+    "Production deployment remains separately authorized."
+  ],
+  "exclusions": [
+    "Persisting icon metadata as a new Catalogue field or changing public package API contracts.",
+    "Importing scraped competitor package terms, prices, visa rules, taxes, refunds or guarantees as NoorPath commercial policy.",
+    "Changing package publication, pricing, inventory, booking or payment rules.",
+    "Changing operator permissions or tenant isolation.",
+    "Adding a drag-and-drop or icon dependency when native browser behavior and the existing icon family are sufficient.",
+    "Redesigning the shared operator shell or customer package presentation.",
+    "Production deployment."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "component",
+    "migration",
+    "security",
+    "authorization",
+    "privacy",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "keyboard",
+    "focus",
+    "target-size",
+    "responsive-reflow",
+    "rendered-regression",
+    "design-token-consistency",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "apps/web/e2e/package-inclusions-composer.spec.ts"
+  },
+  "specPath": "docs/slices/VS-32-PACKAGE-INCLUSIONS-COMPOSER.md",
+  "checklistPath": "docs/slices/VS-32-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-32-NAVIGATION-VERIFICATION.md"
+}
