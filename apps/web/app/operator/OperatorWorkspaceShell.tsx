@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useCallback, useEffect, useState } from "react";
+import AccountIdentityMenu from "../AccountIdentityMenu";
 
 type AccessResponse = {
   accountId: string;
+  displayName: string;
   operator: { id: string; displayName: string };
   permissions: string[];
 };
@@ -57,9 +59,13 @@ export default function OperatorWorkspaceShell({
     try {
       const response = await fetch("/api/v1/operator/access", request);
       if (response.ok) {
+        const access = (await response.json()) as AccessResponse;
         setState({
           kind: "authorized",
-          access: (await response.json()) as AccessResponse,
+          access: {
+            ...access,
+            displayName: access.displayName?.trim() || "NoorPath member",
+          },
         });
         return;
       }
@@ -171,6 +177,12 @@ export default function OperatorWorkspaceShell({
           NoorPath
         </Link>
         <span>{state.access.operator.displayName}</span>
+        <AccountIdentityMenu
+          displayName={state.access.displayName}
+          accountHref="/operator/account"
+          settingsHref="/operator/account/settings"
+          helpHref="/operator/support"
+        />
       </header>
       <aside className="account-sidebar" aria-label="Operator navigation">
         <nav>
