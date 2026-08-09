@@ -1,10 +1,20 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const departureId = "11111111-1111-1111-1111-111111111111";
+const operatorAccess = {
+  accountId: "operator-member-a",
+  displayName: "Yusuf Ali",
+  operator: { id: "operator-a", displayName: "Noor Travel" },
+  permissions: ["operator.admin.access"],
+};
 
 async function mockManifest(page: Page) {
   let leader: string | null = null;
   let version = 0;
+
+  await page.route("**/api/v1/operator/access", (route) =>
+    route.fulfill({ status: 200, json: operatorAccess }),
+  );
 
   await page.route(
     `**/api/v1/operator/departures/${departureId}/manifest/group-leader`,
