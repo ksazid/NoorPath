@@ -80,7 +80,6 @@ export default function PlatformAdminWorkspace() {
   const [historyLoading, setHistoryLoading] = useState<string | null>(null);
 
   const loadWorkspace = useCallback(async () => {
-    setStatus("loading");
     try {
       const accessResponse = await fetch("/api/v1/platform/access", {
         cache: "no-store",
