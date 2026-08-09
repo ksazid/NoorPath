@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import AccountIdentityMenu from "./AccountIdentityMenu";
 
 type Kind = "customer" | "operator" | "platform";
+type AccessData = { displayName: string };
 type State =
-  | "loading"
-  | "authorized"
-  | "unauthenticated"
-  | "forbidden"
-  | "platform-administrator"
-  | "error";
+  | { kind: "loading" }
+  | { kind: "authorized"; access: AccessData }
+  | { kind: "unauthenticated" }
+  | { kind: "forbidden" }
+  | { kind: "platform-administrator" }
+  | { kind: "error" };
 
 const content = {
   customer: {
@@ -56,10 +58,10 @@ const content = {
 
 export default function ProtectedAccountShell({ kind }: { kind: Kind }) {
   const details = content[kind];
-  const [state, setState] = useState<State>("loading");
+  const [state, setState] = useState<State>({ kind: "loading" });
 
   const load = useCallback(async () => {
-    setState("loading");
+    setState({ kind: "loading" });
     const request: RequestInit = {
       cache: "no-store",
       credentials: "same-origin",
@@ -74,25 +76,36 @@ export default function ProtectedAccountShell({ kind }: { kind: Kind }) {
             request,
           );
           setState(
-            platformResponse.ok ? "platform-administrator" : "forbidden",
+            platformResponse.ok
+              ? { kind: "platform-administrator" }
+              : { kind: "forbidden" },
           );
         } catch {
-          setState("forbidden");
+          setState({ kind: "forbidden" });
         }
         return;
       }
 
+      if (response.ok) {
+        const body = (await response.json()) as { displayName?: string };
+        setState({
+          kind: "authorized",
+          access: {
+            displayName: body.displayName?.trim() || "NoorPath member",
+          },
+        });
+        return;
+      }
+
       setState(
-        response.ok
-          ? "authorized"
-          : response.status === 401
-            ? "unauthenticated"
-            : response.status === 403
-              ? "forbidden"
-              : "error",
+        response.status === 401
+          ? { kind: "unauthenticated" }
+          : response.status === 403
+            ? { kind: "forbidden" }
+            : { kind: "error" },
       );
     } catch {
-      setState("error");
+      setState({ kind: "error" });
     }
   }, [details.endpoint, kind]);
 
@@ -101,7 +114,7 @@ export default function ProtectedAccountShell({ kind }: { kind: Kind }) {
     return () => window.clearTimeout(pending);
   }, [load]);
 
-  if (state !== "authorized") {
+  if (state.kind !== "authorized") {
     return (
       <main className="account-gate" id="main-content">
         <Link className="auth-brand" href="/">
@@ -110,32 +123,32 @@ export default function ProtectedAccountShell({ kind }: { kind: Kind }) {
         <section
           className="auth-card"
           aria-live="polite"
-          aria-busy={state === "loading"}
+          aria-busy={state.kind === "loading"}
         >
           <p className="auth-eyebrow">{details.label}</p>
           <h1>
-            {state === "loading"
+            {state.kind === "loading"
               ? "Checking secure access"
-              : state === "unauthenticated"
+              : state.kind === "unauthenticated"
                 ? "Sign in to continue"
-                : state === "platform-administrator"
+                : state.kind === "platform-administrator"
                   ? "Use NoorPath administration"
-                  : state === "forbidden"
+                  : state.kind === "forbidden"
                     ? "Access unavailable"
                     : "We could not verify access"}
           </h1>
           <p className="auth-intro">
-            {state === "loading"
+            {state.kind === "loading"
               ? "Please wait while NoorPath verifies your account."
-              : state === "platform-administrator"
+              : state.kind === "platform-administrator"
                 ? "You are signed in as a Platform Administrator. Operator workspaces require an approved Operator membership. Continue in NoorPath administration instead."
-                : state === "forbidden"
+                : state.kind === "forbidden"
                   ? "You are signed in, but this account does not have permission to open this workspace."
-                  : state === "error"
+                  : state.kind === "error"
                     ? "Check your connection and try again. Your account details are safe."
                     : "Use your phone or Google account to continue securely."}
           </p>
-          {state === "unauthenticated" && (
+          {state.kind === "unauthenticated" && (
             <Link
               className="auth-primary"
               href={`/auth/sign-in?returnUrl=${kind === "customer" ? "/account" : kind === "operator" ? "/operator" : "/admin"}`}
@@ -143,7 +156,7 @@ export default function ProtectedAccountShell({ kind }: { kind: Kind }) {
               Sign in securely
             </Link>
           )}
-          {state === "platform-administrator" && (
+          {state.kind === "platform-administrator" && (
             <div className="auth-actions">
               <Link className="auth-primary" href="/admin">
                 Open admin workspace
@@ -153,12 +166,12 @@ export default function ProtectedAccountShell({ kind }: { kind: Kind }) {
               </Link>
             </div>
           )}
-          {state === "forbidden" && (
+          {state.kind === "forbidden" && (
             <Link className="auth-secondary" href="/">
               Return to NoorPath
             </Link>
           )}
-          {state === "error" && (
+          {state.kind === "error" && (
             <button className="auth-primary" type="button" onClick={load}>
               Try again
             </button>
@@ -167,6 +180,10 @@ export default function ProtectedAccountShell({ kind }: { kind: Kind }) {
       </main>
     );
   }
+
+  const accountHref =
+    kind === "customer" ? "/account" : kind === "operator" ? "/operator/account" : "/admin";
+  const helpHref = kind === "operator" ? "/operator/support" : "/support";
 
   return (
     <div className="account-shell">
@@ -178,6 +195,12 @@ export default function ProtectedAccountShell({ kind }: { kind: Kind }) {
           NoorPath
         </Link>
         <span>{details.label}</span>
+        <AccountIdentityMenu
+          displayName={state.access.displayName}
+          accountHref={accountHref}
+          settingsHref={accountHref}
+          helpHref={helpHref}
+        />
       </header>
       <aside
         className="account-sidebar"
