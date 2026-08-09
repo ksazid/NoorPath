@@ -1,9 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 function accountMenu(page: Page, displayName: string) {
-  return page.locator(
-    `summary[aria-label="Account menu for ${displayName}"]`,
-  );
+  return page.locator(`summary[aria-label="Account menu for ${displayName}"]`);
 }
 
 test("customer account menu exposes identity, safe options and staff login", async ({
@@ -93,7 +91,8 @@ test("account actions reflow at customer mobile width", async ({ page }) => {
   await expect(accountMenu(page, "Amina Khan")).toBeVisible();
   const overflow = await page.evaluate(
     () =>
-      document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      document.documentElement.scrollWidth >
+      document.documentElement.clientWidth,
   );
   expect(overflow).toBe(false);
 });
