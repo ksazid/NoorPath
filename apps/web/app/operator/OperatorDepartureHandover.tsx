@@ -26,6 +26,7 @@ type Handover = {
   canComplete: boolean;
   handover: {
     isCompleted: boolean;
+    groupLeaderName: string | null;
     finalNote: string | null;
     completedByAccountId: string | null;
     completedAtUtc: string | null;
@@ -203,6 +204,16 @@ export default function OperatorDepartureHandover({
                 {state.value.departure.departureDate} to{" "}
                 {state.value.departure.returnDate}
               </p>
+              <p>
+                Accompanying group leader:{" "}
+                {state.value.handover.groupLeaderName ?? "Not assigned"}
+              </p>
+              <Link
+                className={styles.manifestLink}
+                href={`/operator/departures/${departureId}/preview`}
+              >
+                View package being fulfilled
+              </Link>
             </section>
 
             <section

@@ -15,6 +15,7 @@ public static class DepartureHandoverPersistence
             entity.HasKey(x => x.Id);
             entity.Property(x => x.OperatorId).HasMaxLength(80);
             entity.Property(x => x.CompletedByAccountId).HasMaxLength(120);
+            entity.Property(x => x.GroupLeaderName).HasMaxLength(120);
             entity.Property(x => x.FinalNote).HasMaxLength(500);
             entity.Property(x => x.Version).IsConcurrencyToken();
             entity.HasIndex(x => new { x.OperatorId, x.DepartureId }).IsUnique();
@@ -40,6 +41,7 @@ public sealed class DepartureHandoverRecord
     public Guid DepartureId { get; set; }
     public required string OperatorId { get; set; }
     public bool IsCompleted { get; set; }
+    public string? GroupLeaderName { get; set; }
     public string? FinalNote { get; set; }
     public string? CompletedByAccountId { get; set; }
     public DateTimeOffset? CompletedAtUtc { get; set; }

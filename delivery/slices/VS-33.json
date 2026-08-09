@@ -1,0 +1,74 @@
+{
+  "id": "VS-33",
+  "title": "Departure Fulfilment & Group Leader",
+  "slug": "departure-fulfilment-group-leader",
+  "outcome": "Approved operator members can see the package a departure is fulfilling and record one accompanying group leader as governed departure operational metadata without changing traveller readiness or commercial commitments.",
+  "actor": "Approved operator members preparing and handing over a departure.",
+  "dependsOn": ["VS-27", "VS-28", "VS-31", "VS-32"],
+  "modules": [
+    "Catalogue remains authoritative for the package/departure commercial relationship.",
+    "Booking owns the departure operational group-leader assignment and append-oriented audit evidence.",
+    "VS-27 remains authoritative for traveller readiness; the group leader does not become a traveller or alter readiness counts unless separately booked through the normal booking flow.",
+    "VS-28 final handover consumes the same operational record and remains immutable after completion."
+  ],
+  "routes": [
+    "Operator workspace -> Departures -> Pilgrim manifest",
+    "Pilgrim manifest -> View package being fulfilled -> existing operator package/departure preview",
+    "Pilgrim manifest -> Add or update group leader -> governed departure operational record",
+    "Pilgrim manifest -> Final handover -> group leader visible in closeout context",
+    "Final handover -> View package being fulfilled -> existing operator package/departure preview"
+  ],
+  "acceptance": [
+    "Manifest and final handover show the authoritative package name and a reachable View package being fulfilled link without inventing a second package relationship.",
+    "An approved operator member can set, update, or clear one accompanying group leader name for an owned departure before final handover completion.",
+    "Group leader changes are operator-isolated, version-checked, attributable and append-audited.",
+    "A foreign departure identifier returns safe not-found behavior and cannot create or mutate operational metadata.",
+    "Completed final handover prevents later group-leader mutation so closeout history remains immutable.",
+    "The group leader is operational metadata only: it does not become a booked traveller and does not affect traveller, ready or blocked counts.",
+    "Existing payment, document, visa, accommodation, booking and Catalogue source states are not mutated by group-leader operations.",
+    "The operator UI provides loading, success, stale/completed error and retry-safe feedback with visible focus and minimum 44px controls.",
+    "The fulfilment panel reflows without horizontal overflow at 390px and remains operable by keyboard and touch.",
+    "Forward-only Booking migration and model-snapshot parity are present for persistence changes.",
+    "Rendered and navigation evidence belongs to the exact unchanged implementation SHA.",
+    "Production deployment remains separately authorized."
+  ],
+  "exclusions": [
+    "Making a group leader a NoorPath account, operator member or booked traveller automatically.",
+    "Collecting passport, date of birth, gender, phone or other group-leader personal data not required by this approved slice.",
+    "Changing traveller readiness derivation, payment, documents, visa, accommodation or handover blocker policy.",
+    "Changing package/departure commercial ownership or booked customer commitments.",
+    "Airline, hotel, supplier, insurance or WhatsApp integration.",
+    "Production deployment."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "component",
+    "migration",
+    "security",
+    "authorization",
+    "privacy",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "keyboard",
+    "focus",
+    "target-size",
+    "responsive-reflow",
+    "rendered-regression",
+    "design-token-consistency",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "apps/web/e2e/departure-fulfilment-group-leader.spec.ts"
+  },
+  "specPath": "docs/slices/VS-33-DEPARTURE-FULFILMENT-GROUP-LEADER.md",
+  "checklistPath": "docs/slices/VS-33-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-33-NAVIGATION-VERIFICATION.md"
+}

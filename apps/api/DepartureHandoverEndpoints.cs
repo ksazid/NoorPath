@@ -47,9 +47,10 @@ public static class DepartureHandoverEndpoints
             .ToArrayAsync(cancellationToken);
 
         var handoverResponse = handover is null
-            ? new HandoverStateResponse(false, null, null, null, 0)
+            ? new HandoverStateResponse(false, null, null, null, null, 0)
             : new HandoverStateResponse(
                 handover.IsCompleted,
+                handover.GroupLeaderName,
                 handover.FinalNote,
                 handover.CompletedByAccountId,
                 handover.CompletedAtUtc,
@@ -311,6 +312,7 @@ public static class DepartureHandoverEndpoints
         int AccommodationBlocked);
     private sealed record HandoverStateResponse(
         bool IsCompleted,
+        string? GroupLeaderName,
         string? FinalNote,
         string? CompletedByAccountId,
         DateTimeOffset? CompletedAtUtc,
