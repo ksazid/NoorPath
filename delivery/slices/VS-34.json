@@ -4,7 +4,7 @@
   "slug": "platform-admin-persona-certification",
   "outcome": "NoorPath platform administrators can govern operator approval state from one command centre, with auditable version-checked decisions, while demo customer, operator and platform identities prove deny-by-default persona boundaries without depending on the deferred customer OTP provider.",
   "actor": "NoorPath platform administrators governing operator access and product owners certifying persona-level access.",
-  "dependsOn": ["VS-02R", "VS-16", "VS-31", "VS-33"],
+  "dependsOn": ["VS-16", "VS-31", "VS-33"],
   "modules": [
     "Operators remains authoritative for operator state, membership, permissions and approval eligibility.",
     "The API owns platform-administrator authorization, lifecycle decisions, optimistic concurrency and append-only operator decision audit.",
