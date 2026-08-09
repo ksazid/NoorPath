@@ -9,6 +9,7 @@ import "./primitives.css";
 import "./interaction-primitives.css";
 import "./shells.css";
 import "./operator-shell.css";
+import "./platform-admin-shell.css";
 import "./account-identity-menu.css";
 import "./shell-slots.css";
 import "./customer-route-shell.css";
