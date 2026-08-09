@@ -146,9 +146,7 @@ test("platform administrator can approve an operator from the command centre", a
   await expect(
     page.getByText("Pending approval", { exact: true }).first(),
   ).toBeVisible();
-  await expect(
-    page.getByText("Barakah Umrah", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText("Barakah Umrah", { exact: true })).toBeVisible();
 
   const card = page.locator(".platform-operator-card").filter({
     hasText: "Barakah Umrah",
@@ -157,9 +155,7 @@ test("platform administrator can approve an operator from the command centre", a
   await card.getByLabel(/Reason/).fill("Business verification completed.");
   await card.getByRole("button", { name: "Apply decision" }).click();
 
-  await expect(
-    page.getByText("Barakah Umrah is now Approved."),
-  ).toBeVisible();
+  await expect(page.getByText("Barakah Umrah is now Approved.")).toBeVisible();
   await expect(
     card.getByText("Approved", { exact: true }).first(),
   ).toBeVisible();
@@ -182,9 +178,7 @@ test("platform administrator can inspect append-only operator decision history",
     hasText: "Barakah Umrah",
   });
   await card.getByRole("button", { name: "Apply decision" }).click();
-  await expect(
-    page.getByText("Barakah Umrah is now Approved."),
-  ).toBeVisible();
+  await expect(page.getByText("Barakah Umrah is now Approved.")).toBeVisible();
   await card.getByRole("button", { name: "View history" }).click();
 
   await expect(
