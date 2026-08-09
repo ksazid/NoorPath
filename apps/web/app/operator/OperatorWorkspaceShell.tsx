@@ -180,7 +180,7 @@ export default function OperatorWorkspaceShell({
         <AccountIdentityMenu
           displayName={state.access.displayName}
           accountHref="/operator/account"
-          settingsHref="/operator/account/settings"
+          settingsHref="/operator/account"
           helpHref="/operator/support"
         />
       </header>
