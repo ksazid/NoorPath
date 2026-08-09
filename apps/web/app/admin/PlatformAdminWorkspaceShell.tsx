@@ -105,11 +105,16 @@ function PlatformAdminNavigation({
           <h2>{group.label}</h2>
           {group.items.map((item) => {
             const current = item.match(pathname, hash);
-            return (
+            const currentValue = current ? "page" : undefined;
+            return item.href.includes("#") ? (
+              <a key={item.href} href={item.href} aria-current={currentValue}>
+                {item.label}
+              </a>
+            ) : (
               <Link
                 key={item.href}
                 href={item.href}
-                aria-current={current ? "page" : undefined}
+                aria-current={currentValue}
               >
                 {item.label}
               </Link>
