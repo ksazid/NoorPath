@@ -1,3 +1,4 @@
+import OperatorWorkspaceShell from "../../OperatorWorkspaceShell";
 import DepartureComposer from "../DepartureComposer";
 
 export default async function EditDeparturePage({
@@ -6,5 +7,15 @@ export default async function EditDeparturePage({
   params: Promise<{ departureId: string }>;
 }) {
   const { departureId } = await params;
-  return <DepartureComposer initialDepartureId={departureId} />;
+  return (
+    <OperatorWorkspaceShell
+      title="Departure authoring"
+      summary="Update the saved package and departure facts without leaving the shared operator workspace."
+      contentOwnsLandmark
+      showPageHeader={false}
+      contentClassName="np-operator-legacy-embed"
+    >
+      <DepartureComposer initialDepartureId={departureId} />
+    </OperatorWorkspaceShell>
+  );
 }

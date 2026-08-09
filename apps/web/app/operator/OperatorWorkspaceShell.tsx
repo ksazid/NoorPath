@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useCallback, useEffect, useState } from "react";
@@ -20,16 +21,32 @@ type AccessState =
   | { kind: "forbidden" }
   | { kind: "error" };
 
-const navigation = [
-  { label: "Overview", href: "/operator" },
-  { label: "Packages", href: "/operator/packages" },
-  { label: "Departures", href: "/operator/departures" },
-  { label: "Bookings", href: "/operator/bookings" },
-  { label: "Visa", href: "/operator/visa" },
-  { label: "Support", href: "/operator/support" },
-  { label: "Cancellations", href: "/operator/cancellations" },
-  { label: "Account", href: "/operator/account" },
-] as const;
+type NavigationItem = { label: string; href: string };
+type NavigationGroup = { label: string; items: NavigationItem[] };
+
+const navigation: NavigationGroup[] = [
+  {
+    label: "Workspace",
+    items: [
+      { label: "Overview", href: "/operator" },
+      { label: "Packages", href: "/operator/packages" },
+      { label: "Departures", href: "/operator/departures" },
+      { label: "Bookings", href: "/operator/bookings" },
+    ],
+  },
+  {
+    label: "Operations",
+    items: [
+      { label: "Visa", href: "/operator/visa" },
+      { label: "Support", href: "/operator/support" },
+      { label: "Cancellations", href: "/operator/cancellations" },
+    ],
+  },
+  {
+    label: "Account",
+    items: [{ label: "Account", href: "/operator/account" }],
+  },
+];
 
 function isCurrentPath(pathname: string, href: string) {
   return href === "/operator"
@@ -37,14 +54,62 @@ function isCurrentPath(pathname: string, href: string) {
     : pathname === href || pathname.startsWith(`${href}/`);
 }
 
+function OperatorBrand() {
+  return (
+    <Link
+      className="np-brand np-staff-brand"
+      href="/operator"
+      aria-label="NoorPath operator home"
+    >
+      <Image
+        src="/assets/noorpath-wordmark.svg"
+        alt="NoorPath"
+        width={252}
+        height={100}
+        priority
+      />
+    </Link>
+  );
+}
+
+function OperatorNavigation({ pathname }: { pathname: string }) {
+  return (
+    <nav aria-label="Operator navigation">
+      {navigation.map((group) => (
+        <section className="np-staff-nav-group" key={group.label}>
+          <h2>{group.label}</h2>
+          {group.items.map((item) => {
+            const current = isCurrentPath(pathname, item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={current ? "page" : undefined}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </section>
+      ))}
+    </nav>
+  );
+}
+
 export default function OperatorWorkspaceShell({
   title,
   summary,
   children,
+  contentOwnsLandmark = false,
+  showPageHeader = true,
+  contentClassName = "",
 }: {
   title: string;
   summary: string;
   children: ReactNode;
+  contentOwnsLandmark?: boolean;
+  showPageHeader?: boolean;
+  contentClassName?: string;
 }) {
   const pathname = usePathname();
   const [state, setState] = useState<AccessState>({ kind: "loading" });
@@ -167,15 +232,30 @@ export default function OperatorWorkspaceShell({
     );
   }
 
+  const contentClass = ["np-staff-content", contentClassName]
+    .filter(Boolean)
+    .join(" ");
+  const pageHeader = showPageHeader ? (
+    <header className="np-staff-content__header">
+      <p>Protected operator workspace</p>
+      <h1>{title}</h1>
+      <span className="np-staff-content__summary">{summary}</span>
+    </header>
+  ) : null;
+  const pageContent = (
+    <>
+      {pageHeader}
+      {children}
+    </>
+  );
+
   return (
-    <div className="account-shell">
-      <a className="skip-link" href="#account-content">
+    <div className="np-staff-shell np-operator-shell">
+      <a className="np-skip-link" href="#operator-content">
         Skip to main content
       </a>
-      <header className="account-header">
-        <Link className="auth-brand" href="/">
-          NoorPath
-        </Link>
+      <header className="np-staff-header">
+        <OperatorBrand />
         <span>{state.access.operator.displayName}</span>
         <AccountIdentityMenu
           displayName={state.access.displayName}
@@ -184,28 +264,24 @@ export default function OperatorWorkspaceShell({
           helpHref="/operator/support"
         />
       </header>
-      <aside className="account-sidebar" aria-label="Operator navigation">
-        <nav>
-          {navigation.map((item) => {
-            const current = isCurrentPath(pathname, item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={current ? "page" : undefined}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+      <aside className="np-staff-sidebar">
+        <OperatorNavigation pathname={pathname} />
       </aside>
-      <main className="account-content" id="account-content">
-        <p className="auth-eyebrow">Protected operator account</p>
-        <h1>{title}</h1>
-        <p>{summary}</p>
-        {children}
-      </main>
+      <details className="np-staff-menu">
+        <summary>Operator menu</summary>
+        <div className="np-staff-menu__panel">
+          <OperatorNavigation pathname={pathname} />
+        </div>
+      </details>
+      {contentOwnsLandmark ? (
+        <div className={contentClass} id="operator-content">
+          {pageContent}
+        </div>
+      ) : (
+        <main className={contentClass} id="operator-content">
+          {pageContent}
+        </main>
+      )}
     </div>
   );
 }

@@ -1,0 +1,73 @@
+{
+  "id": "VS-31",
+  "title": "Unified Operator Shell and Navigation",
+  "slug": "unified-operator-shell-navigation",
+  "outcome": "All current NoorPath operator routes use one consistent operator workspace chrome with the approved NoorPath wordmark, operator business context, signed-in member account menu, grouped route navigation, aligned content and responsive mobile behavior while existing domain workflows remain unchanged.",
+  "actor": "Approved operator members managing packages, departures, bookings and fulfilment work.",
+  "dependsOn": ["VS-19", "VS-30"],
+  "modules": [
+    "Web owns operator shell presentation, responsive navigation and route composition.",
+    "Operators remains authoritative for operator membership, business identity and permissions.",
+    "Existing domain modules remain authoritative for package, booking, visa, accommodation, manifest and handover behavior.",
+    "This slice does not change server authorization or tenant isolation."
+  ],
+  "routes": [
+    "Operator overview -> Packages -> Departures -> Bookings through one shared workspace navigation",
+    "Operator workspace -> Operations -> Visa, Support, Cancellations",
+    "Operator workspace -> Account -> signed-in member account menu",
+    "Packages -> Create package -> shared operator shell -> existing package quick start / clone flow",
+    "Departures -> New or existing departure -> shared operator shell -> existing authoring flow",
+    "Departure -> Customer preview / Publication review -> shared operator shell"
+  ],
+  "acceptance": [
+    "Operator routes render one approved NoorPath wordmark/header treatment and one route-aware navigation system.",
+    "Operator business display name remains distinct from the signed-in member account menu.",
+    "Desktop navigation groups Workspace, Operations and Account destinations using real routes.",
+    "Mobile navigation exposes the same destinations through a keyboard-operable native disclosure.",
+    "Package quick start, departure authoring, customer preview and publication review no longer expose a competing operator sidebar or brand when rendered in operator routes.",
+    "Existing package, pricing, inventory, booking, payment, visa, accommodation, manifest and handover business behavior remains unchanged.",
+    "Operator access remains fail-closed and tenant isolation remains server-enforced.",
+    "Changed operator UI preserves NoorPath tokens, visible focus, 44px targets, responsive reflow and no horizontal overflow at 390px.",
+    "Rendered and navigation evidence belongs to the exact unchanged implementation SHA.",
+    "Production deployment remains separately authorized."
+  ],
+  "exclusions": [
+    "Moving staff routes to a dedicated portal hostname.",
+    "New operator permissions or changes to tenant isolation.",
+    "Redesigning individual operator domain workflows.",
+    "Changing customer shell/footer behavior.",
+    "Changing the NoorPath icon family or adding a new UI dependency.",
+    "Production deployment."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "component",
+    "migration",
+    "security",
+    "authorization",
+    "privacy",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "keyboard",
+    "focus",
+    "target-size",
+    "responsive-reflow",
+    "rendered-regression",
+    "design-token-consistency",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "apps/web/e2e/operator-shell-navigation.spec.ts"
+  },
+  "specPath": "docs/slices/VS-31-UNIFIED-OPERATOR-SHELL-NAVIGATION.md",
+  "checklistPath": "docs/slices/VS-31-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-31-NAVIGATION-VERIFICATION.md"
+}
