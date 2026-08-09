@@ -21,7 +21,11 @@ async function operatorNavigation(page: Page) {
     const menu = page.locator(".np-staff-menu");
     const summary = menu.locator(":scope > summary");
     await expect(summary).toBeVisible();
-    if (!(await menu.evaluate((element) => (element as HTMLDetailsElement).open))) {
+    if (
+      !(await menu.evaluate(
+        (element) => (element as HTMLDetailsElement).open,
+      ))
+    ) {
       await summary.click();
     }
     return menu.locator(".np-staff-menu__panel");
