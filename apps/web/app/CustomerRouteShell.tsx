@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import AccountIdentityMenu from "./AccountIdentityMenu";
 
 export type CustomerRouteMode = "public" | "authenticated" | "transactional";
 
@@ -12,6 +13,8 @@ type NavigationItem = {
   label: string;
   match: (pathname: string) => boolean;
 };
+
+type AccountIdentity = { displayName: string } | null;
 
 const publicNavigation: NavigationItem[] = [
   {
@@ -57,11 +60,6 @@ const authenticatedNavigation: NavigationItem[] = [
     match: (pathname) => pathname === "/support",
   },
   {
-    href: "/support",
-    label: "Talk to Us",
-    match: (pathname) => pathname === "/support",
-  },
-  {
     href: "/account",
     label: "Profile",
     match: (pathname) => pathname.startsWith("/account"),
@@ -74,6 +72,10 @@ const footerGroups = [
     links: [
       { href: "/#plan-ahead", label: "How It Works" },
       { href: "/#packages", label: "Packages" },
+      {
+        href: "/auth/sign-in?returnUrl=%2Foperator",
+        label: "Operator / Admin login",
+      },
     ],
   },
   {
@@ -185,12 +187,21 @@ function Navigation({
 function Header({
   mode,
   pathname,
+  identity,
 }: {
   mode: CustomerRouteMode;
   pathname: string;
+  identity: AccountIdentity;
 }) {
   const navigation =
     mode === "authenticated" ? authenticatedNavigation : publicNavigation;
+  const account = identity ? (
+    <AccountIdentityMenu
+      displayName={identity.displayName}
+      accountHref="/account"
+      settingsHref="/account"
+    />
+  ) : null;
 
   return (
     <header className="np-customer-header">
@@ -199,18 +210,30 @@ function Header({
         <div className="np-transactional-context">
           <strong>Secure NoorPath journey</strong>
           <Link href="/support">Talk to Us</Link>
+          {account}
         </div>
       ) : (
         <>
           <div className="np-customer-navigation--desktop">
             <Navigation items={navigation} pathname={pathname} />
+            {account ?? (
+              <Link
+                className="np-profile-link"
+                href="/auth/sign-in?returnUrl=%2Faccount"
+              >
+                Sign in
+              </Link>
+            )}
           </div>
-          <details className="np-customer-menu">
-            <summary>Menu</summary>
-            <div className="np-customer-menu__panel">
-              <Navigation items={navigation} pathname={pathname} />
-            </div>
-          </details>
+          <div className="np-customer-mobile-actions">
+            {account}
+            <details className="np-customer-menu">
+              <summary>Menu</summary>
+              <div className="np-customer-menu__panel">
+                <Navigation items={navigation} pathname={pathname} />
+              </div>
+            </details>
+          </div>
         </>
       )}
     </header>
@@ -265,6 +288,32 @@ export default function CustomerRouteShell({
 }) {
   const pathname = usePathname();
   const mode = classifyCustomerRoute(pathname);
+  const [identity, setIdentity] = useState<AccountIdentity>(null);
+
+  const loadIdentity = useCallback(async () => {
+    try {
+      const response = await fetch("/api/v1/account/access", {
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+      if (!response.ok) {
+        setIdentity(null);
+        return;
+      }
+      const body = (await response.json()) as { displayName?: string };
+      setIdentity({
+        displayName: body.displayName?.trim() || "NoorPath member",
+      });
+    } catch {
+      setIdentity(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!mode) return;
+    const pending = window.setTimeout(loadIdentity, 0);
+    return () => window.clearTimeout(pending);
+  }, [loadIdentity, mode]);
 
   if (!mode) return children;
 
@@ -276,7 +325,7 @@ export default function CustomerRouteShell({
       <a className="np-skip-link" href="#customer-route-content">
         Skip to main content
       </a>
-      <Header mode={mode} pathname={pathname} />
+      <Header mode={mode} pathname={pathname} identity={identity} />
       <div
         className="np-route-shell__content"
         id="customer-route-content"

@@ -1,0 +1,120 @@
+.np-account-menu {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.np-account-menu summary {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border-default);
+  border-radius: 999px;
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  list-style: none;
+}
+
+.np-account-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.np-account-menu__avatar {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--color-surface-subtle);
+  color: var(--color-text-accent);
+  font-size: var(--font-size-sm);
+  font-weight: 800;
+}
+
+.np-account-menu__name {
+  max-width: 18ch;
+  overflow: hidden;
+  padding-inline-end: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.np-account-menu__panel {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  z-index: var(--layer-drawer);
+  display: grid;
+  width: min(260px, calc(100vw - 32px));
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-md);
+}
+
+.np-account-menu__panel > strong {
+  overflow: hidden;
+  font-size: var(--font-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.np-account-menu__panel nav {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.np-account-menu__panel a {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
+
+.np-account-menu__panel a:hover,
+.np-account-menu__panel a:focus-visible {
+  background: var(--color-surface-subtle);
+  color: var(--color-text-primary);
+}
+
+.np-account-menu summary:focus-visible,
+.np-account-menu__panel a:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.np-customer-mobile-actions {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.np-staff-header .np-account-menu {
+  margin-inline-start: auto;
+}
+
+@media (max-width: 900px) {
+  .np-customer-mobile-actions {
+    display: flex;
+  }
+}
+
+@media (max-width: 600px) {
+  .np-account-menu__name {
+    display: none;
+  }
+
+  .np-account-menu summary {
+    padding: var(--space-1);
+  }
+}

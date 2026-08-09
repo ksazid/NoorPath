@@ -1,0 +1,72 @@
+{
+  "id": "VS-30",
+  "title": "Account Identity and Staff Access",
+  "slug": "account-identity-staff-access",
+  "outcome": "Authenticated NoorPath customer, operator and platform accounts expose a safe signed-in member name with reachable account, settings, help and logout actions, while the public customer experience provides a temporary staff login route without changing identity policy or moving staff workspaces.",
+  "actor": "Authenticated customers, approved operator members, Platform Administrators, and public visitors who need to find the current staff sign-in entry.",
+  "dependsOn": ["VS-19", "VS-21", "VS-29"],
+  "modules": [
+    "Accounts remains authoritative for authenticated account identity and session establishment.",
+    "Operators remains authoritative for operator membership, operator display name and permissions.",
+    "Web owns shared account-menu presentation and the temporary public staff sign-in link.",
+    "Auth0 remains the configured session provider; this slice does not introduce a new authentication method or identity store."
+  ],
+  "routes": [
+    "Public customer page -> Sign in or existing customer navigation",
+    "Authenticated customer header -> account menu -> My account, Settings, Help, Log out",
+    "Public customer footer -> Operator / Admin login -> existing secure sign-in -> operator route",
+    "Approved operator workspace -> named account menu -> operator account, settings, support, logout",
+    "Platform Administrator protected shell -> named account menu -> admin account context, help, logout"
+  ],
+  "acceptance": [
+    "Authenticated customer account chrome displays a safe member display name when the identity provider supplies one, with a calm fallback when it does not.",
+    "Approved operator account chrome displays the signed-in member name separately from the operator business display name.",
+    "Platform Administrator protected account chrome exposes the same account-menu pattern.",
+    "Account menus provide reachable My account, Settings, Help and Log out actions without dead links.",
+    "Logout uses the existing Auth0 session boundary and safely returns to NoorPath; browser code never receives provider secrets or tokens.",
+    "The public customer footer exposes a temporary Operator / Admin login entry that returns staff users to the existing operator route after authentication.",
+    "No staff portal subdomain migration, permission broadening, phone OTP activation or profile-preference persistence is introduced.",
+    "Desktop and mobile account actions preserve NoorPath visual language, 44px targets, keyboard focus and responsive reflow.",
+    "Rendered and navigation evidence belongs to the exact unchanged implementation SHA.",
+    "Production deployment remains separately authorized."
+  ],
+  "exclusions": [
+    "Moving operator or admin routes to portal.noorpath or another hostname.",
+    "New authentication providers, phone OTP activation or changes to Auth0 authorization policy.",
+    "Persisted customer preferences or a new settings domain.",
+    "Operator shell redesign beyond the account control needed by this slice.",
+    "Package authoring, departure operations or commercial policy changes.",
+    "Production deployment."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "component",
+    "migration",
+    "security",
+    "authorization",
+    "privacy",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "keyboard",
+    "focus",
+    "target-size",
+    "responsive-reflow",
+    "rendered-regression",
+    "design-token-consistency",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "apps/web/e2e/account-identity-staff-access.spec.ts"
+  },
+  "specPath": "docs/slices/VS-30-ACCOUNT-IDENTITY-STAFF-ACCESS.md",
+  "checklistPath": "docs/slices/VS-30-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-30-NAVIGATION-VERIFICATION.md"
+}

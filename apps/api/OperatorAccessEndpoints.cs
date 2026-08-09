@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using NoorPath.Operators;
 
 public static class OperatorAccessEndpoints
@@ -25,10 +26,23 @@ public static class OperatorAccessEndpoints
             return Results.Ok(new
             {
                 accountId = principal.AccountId.Value,
+                displayName = SafeDisplayName(http.User),
                 @operator = new { id = access.OperatorId, displayName = access.OperatorDisplayName },
                 permissions = access.Permissions.Order()
             });
         }).RequireAuthorization();
+    }
+
+    private static string SafeDisplayName(ClaimsPrincipal user)
+    {
+        var displayName = user.FindFirstValue("name")
+            ?? user.FindFirstValue(ClaimTypes.Name)
+            ?? user.FindFirstValue("nickname")
+            ?? user.FindFirstValue("given_name");
+
+        if (string.IsNullOrWhiteSpace(displayName)) return "NoorPath member";
+        displayName = displayName.Trim();
+        return displayName.Length <= 80 ? displayName : displayName[..80];
     }
 
     private static Dictionary<string, object?> ProblemExtensions(HttpContext http, string code) => new()
