@@ -45,7 +45,9 @@ test("operator collections share one wordmark, header and route navigation", asy
   await expect(header).toBeVisible();
   await expect(packagesNavigation).toBeVisible();
   await expect(header.getByRole("img", { name: "NoorPath" })).toBeVisible();
-  await expect(header.getByText("Noor Travel", { exact: true })).toBeVisible();
+  await expect(header.getByText("Noor Travel", { exact: true })).toHaveText(
+    "Noor Travel",
+  );
   await expect(packageLink).toBeVisible();
   await expect(
     packagesNavigation.getByRole("link", { name: "Departures" }),
