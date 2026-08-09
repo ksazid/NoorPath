@@ -217,7 +217,10 @@ function Header({
           <div className="np-customer-navigation--desktop">
             <Navigation items={navigation} pathname={pathname} />
             {account ?? (
-              <Link className="np-profile-link" href="/auth/sign-in?returnUrl=%2Faccount">
+              <Link
+                className="np-profile-link"
+                href="/auth/sign-in?returnUrl=%2Faccount"
+              >
                 Sign in
               </Link>
             )}
@@ -298,7 +301,9 @@ export default function CustomerRouteShell({
         return;
       }
       const body = (await response.json()) as { displayName?: string };
-      setIdentity({ displayName: body.displayName?.trim() || "NoorPath member" });
+      setIdentity({
+        displayName: body.displayName?.trim() || "NoorPath member",
+      });
     } catch {
       setIdentity(null);
     }
