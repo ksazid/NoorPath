@@ -1,0 +1,158 @@
+.np-operator-shell .np-staff-header {
+  position: sticky;
+  top: 0;
+}
+
+.np-staff-brand {
+  width: min(172px, 32vw);
+  min-height: 48px;
+  overflow: hidden;
+}
+
+.np-staff-brand img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.np-operator-shell .np-staff-content {
+  width: min(100%, 1320px);
+  margin-inline: auto;
+}
+
+.np-staff-content__summary {
+  display: block;
+  max-width: 72ch;
+  margin-top: var(--space-3);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-body);
+}
+
+.np-operator-shell .np-staff-header .np-account-menu {
+  flex: 0 0 auto;
+}
+
+.np-operator-shell .np-staff-menu__panel nav {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.np-operator-shell .np-staff-menu__panel .np-staff-nav-group + .np-staff-nav-group {
+  margin-top: 0;
+}
+
+.np-operator-shell .np-staff-menu__panel .np-staff-nav-group a {
+  min-height: 44px;
+}
+
+/* Older package-authoring surfaces keep their task-specific content but no
+   longer own a competing operator sidebar or brand. */
+.np-operator-legacy-embed {
+  width: min(100%, 1440px) !important;
+  max-width: none;
+  padding-bottom: 0;
+}
+
+.np-operator-legacy-embed > .admin-shell,
+.np-operator-legacy-embed > .package-page,
+.np-operator-legacy-embed > .composer-state-page {
+  min-height: 0;
+}
+
+.np-operator-legacy-embed > .admin-shell {
+  display: block;
+  background: transparent;
+}
+
+.np-operator-legacy-embed > .admin-shell > .admin-sidebar {
+  display: none;
+}
+
+.np-operator-legacy-embed > .admin-shell > .admin-content {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+}
+
+.np-operator-legacy-embed > .admin-shell > .admin-sticky-footer {
+  margin-inline: 0;
+}
+
+.np-operator-legacy-embed > .composer-state-page {
+  align-content: start;
+  justify-items: stretch;
+  padding: 0;
+  background: transparent;
+}
+
+.np-operator-legacy-embed > .composer-state-page .composer-state-card {
+  width: min(100%, 720px);
+  margin-inline: auto;
+}
+
+.np-operator-legacy-embed > .operator-package-preview {
+  width: 100%;
+  background: var(--color-surface-canvas);
+}
+
+.np-operator-legacy-embed .operator-preview-bar {
+  border-radius: var(--radius-md);
+}
+
+.np-operator-shell a:focus-visible,
+.np-operator-shell button:focus-visible,
+.np-operator-shell summary:focus-visible,
+.np-operator-shell input:focus-visible,
+.np-operator-shell select:focus-visible,
+.np-operator-shell textarea:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+  .np-operator-shell .np-staff-header {
+    padding-inline: var(--space-4);
+  }
+
+  .np-staff-brand {
+    width: min(148px, 40vw);
+  }
+
+  .np-operator-shell .np-staff-menu {
+    border-bottom: 1px solid var(--color-border-default);
+    background: var(--color-surface-raised);
+  }
+
+  .np-operator-shell .np-staff-menu summary {
+    width: 100%;
+  }
+
+  .np-operator-shell .np-staff-menu__panel {
+    right: var(--space-4);
+    left: var(--space-4);
+  }
+}
+
+@media (max-width: 600px) {
+  .np-operator-shell .np-staff-header > span {
+    display: none;
+  }
+
+  .np-operator-shell .np-staff-content {
+    padding-inline: var(--space-4);
+  }
+
+  .np-operator-legacy-embed .admin-titlebar,
+  .np-operator-legacy-embed .operator-preview-bar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .np-operator-shell *,
+  .np-operator-shell *::before,
+  .np-operator-shell *::after {
+    scroll-behavior: auto !important;
+  }
+}
