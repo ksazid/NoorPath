@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
 
+function accountMenu(page: Parameters<typeof test>[0]["page"], displayName: string) {
+  return page.locator(`summary[aria-label="Account menu for ${displayName}"]`);
+}
+
 test("customer account menu exposes identity, safe options and staff login", async ({
   page,
 }) => {
@@ -12,11 +16,9 @@ test("customer account menu exposes identity, safe options and staff login", asy
 
   await page.goto("/");
 
-  const accountMenu = page.getByRole("button", {
-    name: "Account menu for Amina Khan",
-  });
-  await expect(accountMenu).toBeVisible();
-  await accountMenu.click();
+  const menu = accountMenu(page, "Amina Khan");
+  await expect(menu).toBeVisible();
+  await menu.click();
 
   await expect(page.getByRole("link", { name: "My account" })).toHaveAttribute(
     "href",
@@ -57,11 +59,9 @@ test("operator shell exposes member identity without losing operator context", a
   await page.goto("/operator/account");
 
   await expect(page.getByText("Noor Travel", { exact: true }).first()).toBeVisible();
-  const accountMenu = page.getByRole("button", {
-    name: "Account menu for Yusuf Ali",
-  });
-  await expect(accountMenu).toBeVisible();
-  await accountMenu.click();
+  const menu = accountMenu(page, "Yusuf Ali");
+  await expect(menu).toBeVisible();
+  await menu.click();
   await expect(page.getByRole("link", { name: "My account" })).toHaveAttribute(
     "href",
     "/operator/account",
@@ -86,9 +86,7 @@ test("account actions reflow at customer mobile width", async ({ page }) => {
   );
 
   await page.goto("/");
-  await expect(
-    page.getByRole("button", { name: "Account menu for Amina Khan" }),
-  ).toBeVisible();
+  await expect(accountMenu(page, "Amina Khan")).toBeVisible();
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
   );
