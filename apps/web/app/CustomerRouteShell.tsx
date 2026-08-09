@@ -199,7 +199,7 @@ function Header({
     <AccountIdentityMenu
       displayName={identity.displayName}
       accountHref="/account"
-      settingsHref="/account/settings"
+      settingsHref="/account"
     />
   ) : null;
 
