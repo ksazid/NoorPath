@@ -1,0 +1,37 @@
+name: VS-32 format
+
+on:
+  push:
+    branches:
+      - ux/vs32-package-inclusions-composer
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ux/vs32-package-inclusions-composer
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Format VS-32 files
+        run: |
+          pnpm --dir apps/web exec prettier --write \
+            app/operator/packages/new/PackageInclusionsEditor.tsx \
+            e2e/package-inclusions-composer.spec.ts
+      - name: Commit formatting
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web/app/operator/packages/new/PackageInclusionsEditor.tsx apps/web/e2e/package-inclusions-composer.spec.ts
+          git commit -m "VS-32: format web implementation"
+          git push origin HEAD:ux/vs32-package-inclusions-composer
