@@ -41,8 +41,18 @@ type Option = {
 };
 
 const OPTIONS: Option[] = [
-  { value: "Return flights", label: "Return flights", icon: "plane", group: "Package" },
-  { value: "Visa included", label: "Visa included", icon: "visa", group: "Package" },
+  {
+    value: "Return flights",
+    label: "Return flights",
+    icon: "plane",
+    group: "Package",
+  },
+  {
+    value: "Visa included",
+    label: "Visa included",
+    icon: "visa",
+    group: "Package",
+  },
   {
     value: "Makkah accommodation",
     label: "Makkah accommodation",
@@ -61,10 +71,30 @@ const OPTIONS: Option[] = [
     icon: "meal",
     group: "Package",
   },
-  { value: "Intercity travel", label: "Intercity travel", icon: "bus", group: "Package" },
-  { value: "Ziyarat transport", label: "Ziyarat transport", icon: "mosque", group: "Package" },
-  { value: "Umrah guidance", label: "Umrah guidance", icon: "guide", group: "Package" },
-  { value: "Luggage tag", label: "Luggage tag", icon: "baggage", group: "Travel kit" },
+  {
+    value: "Intercity travel",
+    label: "Intercity travel",
+    icon: "bus",
+    group: "Package",
+  },
+  {
+    value: "Ziyarat transport",
+    label: "Ziyarat transport",
+    icon: "mosque",
+    group: "Package",
+  },
+  {
+    value: "Umrah guidance",
+    label: "Umrah guidance",
+    icon: "guide",
+    group: "Package",
+  },
+  {
+    value: "Luggage tag",
+    label: "Luggage tag",
+    icon: "baggage",
+    group: "Travel kit",
+  },
   {
     value: "Neck pouch / document wallet",
     label: "Document wallet",
@@ -90,21 +120,36 @@ const OPTIONS: Option[] = [
     icon: "custom",
     group: "Umrah kit",
   },
-  { value: "Drawstring bag", label: "Drawstring bag", icon: "bag", group: "Umrah kit" },
+  {
+    value: "Drawstring bag",
+    label: "Drawstring bag",
+    icon: "bag",
+    group: "Umrah kit",
+  },
   {
     value: "Unscented toiletries",
     label: "Unscented toiletries",
     icon: "custom",
     group: "Umrah kit",
   },
-  { value: "Pocket Dua guide", label: "Pocket Dua guide", icon: "book", group: "Umrah kit" },
+  {
+    value: "Pocket Dua guide",
+    label: "Pocket Dua guide",
+    icon: "book",
+    group: "Umrah kit",
+  },
   {
     value: "Zamzam handling guidance",
     label: "Zamzam handling guidance",
     icon: "water",
     group: "Umrah kit",
   },
-  { value: "Personal expenses", label: "Personal expenses", icon: "wallet", group: "Common exclusions" },
+  {
+    value: "Personal expenses",
+    label: "Personal expenses",
+    icon: "wallet",
+    group: "Common exclusions",
+  },
   {
     value: "Optional excursions",
     label: "Optional excursions",
@@ -117,9 +162,24 @@ const OPTIONS: Option[] = [
     icon: "shield",
     group: "Common exclusions",
   },
-  { value: "Extra baggage", label: "Extra baggage", icon: "baggage", group: "Common exclusions" },
-  { value: "Room upgrade", label: "Room upgrade", icon: "bed", group: "Common exclusions" },
-  { value: "Laundry", label: "Laundry", icon: "laundry", group: "Common exclusions" },
+  {
+    value: "Extra baggage",
+    label: "Extra baggage",
+    icon: "baggage",
+    group: "Common exclusions",
+  },
+  {
+    value: "Room upgrade",
+    label: "Room upgrade",
+    icon: "bed",
+    group: "Common exclusions",
+  },
+  {
+    value: "Laundry",
+    label: "Laundry",
+    icon: "laundry",
+    group: "Common exclusions",
+  },
 ];
 
 const ICON_CHOICES: { value: IconName; label: string }[] = [
@@ -150,7 +210,12 @@ function PackageOptionIcon({ name }: { name: IconName }) {
   };
 
   const paths: Record<IconName, React.ReactNode> = {
-    plane: <path {...common} d="m3 13 7-2 4-7 2 1-2 6 6 2v2l-6 1-2 5-2-1 1-5-6 1-2-3Z" />,
+    plane: (
+      <path
+        {...common}
+        d="m3 13 7-2 4-7 2 1-2 6 6 2v2l-6 1-2 5-2-1 1-5-6 1-2-3Z"
+      />
+    ),
     visa: (
       <>
         <rect {...common} x="5" y="3" width="12" height="18" rx="2" />
@@ -166,7 +231,10 @@ function PackageOptionIcon({ name }: { name: IconName }) {
     ),
     mosque: (
       <>
-        <path {...common} d="M4 21h16M6 21v-8h12v8M8 13c0-4 8-4 8 0M12 5v3M10 5h4" />
+        <path
+          {...common}
+          d="M4 21h16M6 21v-8h12v8M8 13c0-4 8-4 8 0M12 5v3M10 5h4"
+        />
         <path {...common} d="M10 21v-4h4v4" />
       </>
     ),
@@ -245,7 +313,11 @@ function PackageOptionIcon({ name }: { name: IconName }) {
 }
 
 function knownIcon(item: string, customIcons: Record<string, IconName>) {
-  return customIcons[item] ?? OPTIONS.find((option) => option.value === item)?.icon ?? "custom";
+  return (
+    customIcons[item] ??
+    OPTIONS.find((option) => option.value === item)?.icon ??
+    "custom"
+  );
 }
 
 export default function PackageInclusionsEditor({
@@ -257,17 +329,24 @@ export default function PackageInclusionsEditor({
   const [customIcons, setCustomIcons] = useState<Record<string, IconName>>({});
   const [customLabel, setCustomLabel] = useState("");
   const [customIcon, setCustomIcon] = useState<IconName>("custom");
-  const [customDestination, setCustomDestination] = useState<Destination>("included");
+  const [customDestination, setCustomDestination] =
+    useState<Destination>("included");
   const [adding, setAdding] = useState(false);
   const [dragOver, setDragOver] = useState<Destination | null>(null);
   const [status, setStatus] = useState("");
 
   const selectedValues = useMemo(
-    () => new Set([...inclusions, ...exclusions].map((item) => item.toLocaleLowerCase())),
+    () =>
+      new Set(
+        [...inclusions, ...exclusions].map((item) => item.toLocaleLowerCase()),
+      ),
     [inclusions, exclusions],
   );
   const suggestions = useMemo(
-    () => OPTIONS.filter((option) => !selectedValues.has(option.value.toLocaleLowerCase())),
+    () =>
+      OPTIONS.filter(
+        (option) => !selectedValues.has(option.value.toLocaleLowerCase()),
+      ),
     [selectedValues],
   );
   const suggestionGroups = useMemo(
@@ -296,7 +375,10 @@ export default function PackageInclusionsEditor({
     event.dataTransfer.effectAllowed = "move";
   };
 
-  const dropItem = (event: DragEvent<HTMLElement>, destination: Destination) => {
+  const dropItem = (
+    event: DragEvent<HTMLElement>,
+    destination: Destination,
+  ) => {
     event.preventDefault();
     const item = event.dataTransfer.getData("text/plain");
     setDragOver(null);
@@ -309,22 +391,29 @@ export default function PackageInclusionsEditor({
     if (!value) return;
 
     const normalized = value.toLocaleLowerCase();
-    if (selectedValues.has(normalized) || OPTIONS.some((option) => option.value.toLocaleLowerCase() === normalized)) {
+    if (
+      selectedValues.has(normalized) ||
+      OPTIONS.some((option) => option.value.toLocaleLowerCase() === normalized)
+    ) {
       setStatus(`${value} already exists in this package or suggestions.`);
       return;
     }
 
     setCustomIcons((current) => ({ ...current, [value]: customIcon }));
     moveItem(value, customDestination);
-    setStatus(`${value} added to ${customDestination === "included" ? "Included" : "Not included"}.`);
+    setStatus(
+      `${value} added to ${customDestination === "included" ? "Included" : "Not included"}.`,
+    );
     setCustomLabel("");
     setCustomIcon("custom");
     setAdding(false);
   };
 
   const renderBoard = (destination: Destination, items: string[]) => {
-    const oppositeLabel = destination === "included" ? "Not included" : "Included";
-    const oppositeDestination: Destination = destination === "included" ? "excluded" : "included";
+    const oppositeLabel =
+      destination === "included" ? "Not included" : "Included";
+    const oppositeDestination: Destination =
+      destination === "included" ? "excluded" : "included";
     const title = destination === "included" ? "Included" : "Not included";
 
     return (
@@ -334,7 +423,8 @@ export default function PackageInclusionsEditor({
         data-drag-over={dragOver === destination ? "true" : "false"}
         onDragEnter={() => setDragOver(destination)}
         onDragLeave={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragOver(null);
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null))
+            setDragOver(null);
         }}
         onDragOver={(event) => {
           event.preventDefault();
@@ -355,9 +445,14 @@ export default function PackageInclusionsEditor({
           <span>{items.length}</span>
         </header>
 
-        <div className="package-board-list" data-testid={`${destination}-board`}>
+        <div
+          className="package-board-list"
+          data-testid={`${destination}-board`}
+        >
           {items.length === 0 ? (
-            <p className="package-board-empty">Drop an item here or use an Include / Exclude action below.</p>
+            <p className="package-board-empty">
+              Drop an item here or use an Include / Exclude action below.
+            </p>
           ) : (
             items.map((item) => (
               <article
@@ -400,15 +495,23 @@ export default function PackageInclusionsEditor({
         {status}
       </p>
 
-      <section className="package-suggestions" aria-labelledby="package-suggestions-title">
+      <section
+        className="package-suggestions"
+        aria-labelledby="package-suggestions-title"
+      >
         <div className="package-option-group-heading">
           <div>
             <h3 id="package-suggestions-title">Suggested items</h3>
             <p>
-              Common Umrah-package items are suggestions only. Confirm each item for this package before adding it.
+              Common Umrah-package items are suggestions only. Confirm each item
+              for this package before adding it.
             </p>
           </div>
-          <button className="package-option-add-inline" type="button" onClick={() => setAdding((current) => !current)}>
+          <button
+            className="package-option-add-inline"
+            type="button"
+            onClick={() => setAdding((current) => !current)}
+          >
             Add custom item
           </button>
         </div>
@@ -420,16 +523,25 @@ export default function PackageInclusionsEditor({
               {suggestions
                 .filter((option) => option.group === group)
                 .map((option) => (
-                  <article className="package-option-tile package-suggestion-tile" key={option.value}>
+                  <article
+                    className="package-option-tile package-suggestion-tile"
+                    key={option.value}
+                  >
                     <span className="package-option-icon">
                       <PackageOptionIcon name={option.icon} />
                     </span>
                     <strong>{option.label}</strong>
                     <div className="package-suggestion-actions">
-                      <button type="button" onClick={() => moveItem(option.value, "included")}>
+                      <button
+                        type="button"
+                        onClick={() => moveItem(option.value, "included")}
+                      >
                         Include
                       </button>
-                      <button type="button" onClick={() => moveItem(option.value, "excluded")}>
+                      <button
+                        type="button"
+                        onClick={() => moveItem(option.value, "excluded")}
+                      >
                         Exclude
                       </button>
                     </div>
@@ -440,7 +552,10 @@ export default function PackageInclusionsEditor({
         ))}
 
         {adding ? (
-          <form className="package-option-custom package-custom-composer" onSubmit={addCustomItem}>
+          <form
+            className="package-option-custom package-custom-composer"
+            onSubmit={addCustomItem}
+          >
             <label className="package-custom-label">
               <span>Custom item</span>
               <input
@@ -506,7 +621,11 @@ export default function PackageInclusionsEditor({
               >
                 Cancel
               </button>
-              <button className="primary-button" type="submit" disabled={!customLabel.trim()}>
+              <button
+                className="primary-button"
+                type="submit"
+                disabled={!customLabel.trim()}
+              >
                 Add item
               </button>
             </div>
