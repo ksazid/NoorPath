@@ -8,7 +8,7 @@
     "check": "tsc --noEmit && eslint .",
     "dev": "next dev",
     "format": "prettier --write .",
-    "format:check": "prettier --write app/admin/PlatformAdminWorkspace.tsx e2e/platform-operator-administration.spec.ts && git diff -- app/admin/PlatformAdminWorkspace.tsx e2e/platform-operator-administration.spec.ts && exit 1",
+    "format:check": "prettier --check .",
     "start": "next start",
     "test": "vitest run",
     "e2e": "playwright test"
