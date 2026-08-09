@@ -6,50 +6,62 @@ async function mockManifest(page: Page) {
   let leader: string | null = null;
   let version = 0;
 
-  await page.route("**/manifest/group-leader", async (route) => {
-    const body = route.request().postDataJSON() as {
-      name?: string | null;
-      expectedVersion: number;
-    };
-    if (body.expectedVersion !== version) {
+  await page.route(
+    `**/api/v1/operator/departures/${departureId}/manifest/group-leader`,
+    async (route) => {
+      const body = route.request().postDataJSON() as {
+        name?: string | null;
+        expectedVersion: number;
+      };
+      if (body.expectedVersion !== version) {
+        await route.fulfill({
+          status: 409,
+          json: {
+            code: "departure_operations_stale",
+            currentVersion: version,
+          },
+        });
+        return;
+      }
+      leader = body.name?.trim() || null;
+      version += 1;
       await route.fulfill({
-        status: 409,
-        json: { code: "departure_operations_stale", currentVersion: version },
+        status: 200,
+        json: { groupLeaderName: leader, version },
       });
-      return;
-    }
-    leader = body.name?.trim() || null;
-    version += 1;
-    await route.fulfill({
-      status: 200,
-      json: { groupLeaderName: leader, version },
-    });
-  });
+    },
+  );
 
-  await page.route("**/manifest", (route) =>
-    route.fulfill({
-      status: 200,
-      json: {
-        departure: {
-          id: departureId,
-          packageName: "NoorPath Essential Umrah",
-          origin: "Mumbai",
-          departureDate: "2026-10-10",
-          returnDate: "2026-10-20",
+  await page.route(
+    `**/api/v1/operator/departures/${departureId}/manifest`,
+    (route) =>
+      route.fulfill({
+        status: 200,
+        json: {
+          departure: {
+            id: departureId,
+            packageName: "NoorPath Essential Umrah",
+            origin: "Mumbai",
+            departureDate: "2026-10-10",
+            returnDate: "2026-10-20",
+          },
+          summary: {
+            travellers: 2,
+            ready: 1,
+            blocked: 1,
+            paymentBlocked: 0,
+            documentBlocked: 0,
+            visaBlocked: 1,
+            accommodationBlocked: 0,
+          },
+          fulfilment: {
+            groupLeaderName: leader,
+            version,
+            isCompleted: false,
+          },
+          items: [],
         },
-        summary: {
-          travellers: 2,
-          ready: 1,
-          blocked: 1,
-          paymentBlocked: 0,
-          documentBlocked: 0,
-          visaBlocked: 1,
-          accommodationBlocked: 0,
-        },
-        fulfilment: { groupLeaderName: leader, version, isCompleted: false },
-        items: [],
-      },
-    }),
+      }),
   );
 }
 
