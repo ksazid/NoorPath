@@ -151,7 +151,13 @@ export default function ProtectedAccountShell({ kind }: { kind: Kind }) {
           {state.kind === "unauthenticated" && (
             <Link
               className="auth-primary"
-              href={`/auth/sign-in?returnUrl=${kind === "customer" ? "/account" : kind === "operator" ? "/operator" : "/admin"}`}
+              href={`/auth/sign-in?returnUrl=${
+                kind === "customer"
+                  ? "/account"
+                  : kind === "operator"
+                    ? "/operator"
+                    : "/admin"
+              }`}
             >
               Sign in securely
             </Link>
@@ -182,7 +188,11 @@ export default function ProtectedAccountShell({ kind }: { kind: Kind }) {
   }
 
   const accountHref =
-    kind === "customer" ? "/account" : kind === "operator" ? "/operator/account" : "/admin";
+    kind === "customer"
+      ? "/account"
+      : kind === "operator"
+        ? "/operator/account"
+        : "/admin";
   const helpHref = kind === "operator" ? "/operator/support" : "/support";
 
   return (
