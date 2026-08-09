@@ -10,16 +10,16 @@
 
 ## Build
 
-- [ ] Add nullable group-leader name to Booking handover persistence.
-- [ ] Add forward-only Booking migration and model snapshot.
-- [ ] Add operator-isolated, version-checked group-leader endpoint.
-- [ ] Append audit evidence for set/update/clear operations.
-- [ ] Block mutation after final handover completion.
-- [ ] Expose group leader in manifest and handover responses.
-- [ ] Add `View package being fulfilled` link to manifest and handover.
-- [ ] Add accessible manifest add/update/clear UI with explicit non-traveller helper text.
-- [ ] Add integration and rendered/navigation coverage.
-- [ ] Preserve 44px controls, focus, mobile reflow and no horizontal overflow.
+- [x] Add nullable group-leader name to Booking handover persistence.
+- [x] Add forward-only Booking migration and model snapshot.
+- [x] Add operator-isolated, version-checked group-leader endpoint.
+- [x] Append audit evidence for set/update/clear operations.
+- [x] Block mutation after final handover completion.
+- [x] Expose group leader in manifest and handover responses.
+- [x] Add `View package being fulfilled` link to manifest and handover.
+- [x] Add accessible manifest add/update/clear UI with explicit non-traveller helper text.
+- [x] Add integration and rendered/navigation coverage.
+- [x] Preserve 44px controls, focus, mobile reflow and no horizontal overflow.
 
 ## Safety
 
