@@ -16,6 +16,20 @@ async function mockOperatorShell(page: Page) {
   );
 }
 
+async function operatorNavigation(page: Page) {
+  if ((page.viewportSize()?.width ?? 1280) <= 900) {
+    const menu = page.locator(".np-staff-menu");
+    const summary = menu.locator(":scope > summary");
+    await expect(summary).toBeVisible();
+    if (!(await menu.evaluate((element) => (element as HTMLDetailsElement).open))) {
+      await summary.click();
+    }
+    return menu.locator(".np-staff-menu__panel");
+  }
+
+  return page.locator(".np-staff-sidebar");
+}
+
 test("operator collections share one wordmark, header and route navigation", async ({
   page,
 }) => {
@@ -23,27 +37,31 @@ test("operator collections share one wordmark, header and route navigation", asy
 
   await page.goto("/operator/packages");
   const header = page.locator(".np-staff-header");
-  const sidebar = page.locator(".np-staff-sidebar");
-  const packageLink = page.locator(
+  const packagesNavigation = await operatorNavigation(page);
+  const packageLink = packagesNavigation.locator(
     'a[href="/operator/packages"][aria-current="page"]',
   );
 
   await expect(header).toBeVisible();
-  await expect(sidebar).toBeVisible();
+  await expect(packagesNavigation).toBeVisible();
   await expect(header.getByRole("img", { name: "NoorPath" })).toBeVisible();
   await expect(header.getByText("Noor Travel", { exact: true })).toBeVisible();
   await expect(packageLink).toBeVisible();
-  await expect(page.locator('a[href="/operator/departures"]')).toHaveCount(2);
+  await expect(
+    packagesNavigation.getByRole("link", { name: "Departures" }),
+  ).toHaveAttribute("href", "/operator/departures");
 
   const packagesHeader = await header.boundingBox();
   await page.goto("/operator/departures");
   const departuresHeader = await header.boundingBox();
-  const departureLink = page.locator(
+  const departuresNavigation = await operatorNavigation(page);
+  const departureLink = departuresNavigation.locator(
     'a[href="/operator/departures"][aria-current="page"]',
   );
 
   expect(packagesHeader?.x).toBe(departuresHeader?.x);
   expect(packagesHeader?.width).toBe(departuresHeader?.width);
+  await expect(departuresNavigation).toBeVisible();
   await expect(departureLink).toBeVisible();
 });
 
@@ -53,6 +71,7 @@ test("package authoring keeps task UI but removes competing operator chrome", as
   await mockOperatorShell(page);
   await page.goto("/operator/packages/new");
 
+  const navigation = await operatorNavigation(page);
   const embeddedSidebar = page.locator(
     ".np-operator-legacy-embed .admin-sidebar",
   );
@@ -64,7 +83,7 @@ test("package authoring keeps task UI but removes competing operator chrome", as
   });
 
   await expect(page.locator(".np-staff-header")).toBeVisible();
-  await expect(page.locator(".np-staff-sidebar")).toBeVisible();
+  await expect(navigation).toBeVisible();
   await expect(page.locator(".np-operator-legacy-embed")).toBeVisible();
   await expect(embeddedSidebar).toBeHidden();
   await expect(wordmark).toBeVisible();
