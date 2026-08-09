@@ -18,6 +18,8 @@ public static class DepartureManifestEndpoints
             .RequireAuthorization();
         app.MapPost("/api/v1/operator/departures/{departureId:guid}/manifest/travellers/{travellerId:guid}/operations", UpdateOperationAsync)
             .RequireAuthorization();
+        app.MapPost("/api/v1/operator/departures/{departureId:guid}/manifest/group-leader", UpdateGroupLeaderAsync)
+            .RequireAuthorization();
     }
 
     private static async Task<IResult> GetAsync(
@@ -115,6 +117,11 @@ public static class DepartureManifestEndpoints
                     && travellerIds.Contains(item.TravellerId))
                 .ToArrayAsync(cancellationToken);
 
+        var fulfilmentRecord = await bookings.Set<DepartureHandoverRecord>().AsNoTracking()
+            .SingleOrDefaultAsync(item =>
+                item.DepartureId == departureId && item.OperatorId == access.OperatorId,
+                cancellationToken);
+
         var items = travellerRows.Select(traveller =>
         {
             var booking = bookingRows.Single(item => item.Id == traveller.BookingId);
@@ -198,6 +205,12 @@ public static class DepartureManifestEndpoints
                 documentBlocked = items.Count(item => item.blockers.Contains("documents")),
                 visaBlocked = items.Count(item => item.blockers.Contains("visa")),
                 accommodationBlocked = items.Count(item => item.blockers.Contains("accommodation"))
+            },
+            fulfilment = new
+            {
+                groupLeaderName = fulfilmentRecord?.GroupLeaderName,
+                version = fulfilmentRecord?.Version ?? 0,
+                isCompleted = fulfilmentRecord?.IsCompleted ?? false
             },
             items
         });
@@ -330,6 +343,123 @@ public static class DepartureManifestEndpoints
         });
     }
 
+    private static async Task<IResult> UpdateGroupLeaderAsync(
+        Guid departureId,
+        UpdateDepartureGroupLeaderRequest request,
+        HttpContext http,
+        IOperatorAccess operators,
+        BookingDbContext bookings,
+        CatalogueDbContext catalogue,
+        TimeProvider timeProvider,
+        CancellationToken cancellationToken)
+    {
+        var access = await ResolveAccessAsync(http, operators, cancellationToken);
+        if (access.Result is not null)
+            return access.Result;
+
+        var departureExists = await catalogue.DepartureBatches.AsNoTracking().AnyAsync(
+            item => item.Id == departureId && item.OperatorId == access.OperatorId,
+            cancellationToken);
+        if (!departureExists)
+            return Results.NotFound();
+
+        var name = request.Name?.Trim();
+        if (name?.Length > 120)
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["name"] = ["Group leader name must be 120 characters or fewer."]
+            });
+        }
+        if (string.IsNullOrWhiteSpace(name))
+            name = null;
+
+        var record = await bookings.Set<DepartureHandoverRecord>()
+            .SingleOrDefaultAsync(item =>
+                item.DepartureId == departureId && item.OperatorId == access.OperatorId,
+                cancellationToken);
+
+        if (record?.IsCompleted == true)
+            return Results.Conflict(new { code = "handover_completed" });
+
+        var currentVersion = record?.Version ?? 0;
+        if (currentVersion != request.ExpectedVersion)
+            return Results.Conflict(new { code = "departure_operations_stale", currentVersion });
+
+        if (record is null && name is null)
+            return Results.Ok(new { groupLeaderName = (string?)null, version = 0, idempotent = true });
+
+        var principal = http.User.GetCurrentPrincipal()!;
+        var actor = principal.AccountId.Value;
+        var now = timeProvider.GetUtcNow();
+        var previousName = record?.GroupLeaderName;
+
+        if (record is null)
+        {
+            record = new DepartureHandoverRecord
+            {
+                Id = Guid.NewGuid(),
+                DepartureId = departureId,
+                OperatorId = access.OperatorId,
+                IsCompleted = false,
+                GroupLeaderName = name,
+                Version = 1,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now
+            };
+            bookings.Add(record);
+        }
+        else
+        {
+            record.GroupLeaderName = name;
+            record.Version += 1;
+            record.UpdatedAtUtc = now;
+        }
+
+        var travellerCount = await (
+            from booking in bookings.Bookings.AsNoTracking()
+            join traveller in bookings.Travellers.AsNoTracking() on booking.Id equals traveller.BookingId
+            where booking.OperatorId == access.OperatorId
+                && booking.DepartureId == departureId
+                && booking.State == BookingState.Confirmed
+            select traveller.Id).CountAsync(cancellationToken);
+
+        bookings.Add(new DepartureHandoverAuditRecord
+        {
+            Id = Guid.NewGuid(),
+            DepartureId = departureId,
+            OperatorId = access.OperatorId,
+            ActorAccountId = actor,
+            Action = name is null ? "group_leader_cleared" : "group_leader_updated",
+            Note = name is null
+                ? "Accompanying group leader cleared."
+                : $"Accompanying group leader set to {name}.",
+            PreviousVersion = currentVersion,
+            ResultingVersion = record.Version,
+            TravellerCount = travellerCount,
+            BlockedCount = 0,
+            CorrelationId = http.TraceIdentifier,
+            OccurredAtUtc = now
+        });
+
+        try
+        {
+            await bookings.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Results.Conflict(new { code = "departure_operations_stale" });
+        }
+
+        return Results.Ok(new
+        {
+            groupLeaderName = record.GroupLeaderName,
+            record.Version,
+            previousGroupLeaderName = previousName,
+            idempotent = false
+        });
+    }
+
     private static async Task<(IResult? Result, string OperatorId)> ResolveAccessAsync(
         HttpContext http,
         IOperatorAccess operators,
@@ -351,3 +481,5 @@ public sealed record UpdateDepartureManifestOperationRequest(
     string? Note,
     bool IsAcknowledged,
     int ExpectedVersion);
+
+public sealed record UpdateDepartureGroupLeaderRequest(string? Name, int ExpectedVersion);

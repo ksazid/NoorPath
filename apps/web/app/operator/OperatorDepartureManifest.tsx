@@ -51,6 +51,11 @@ type Manifest = {
     visaBlocked: number;
     accommodationBlocked: number;
   };
+  fulfilment: {
+    groupLeaderName: string | null;
+    version: number;
+    isCompleted: boolean;
+  };
   items: ManifestItem[];
 };
 
@@ -80,6 +85,8 @@ export default function OperatorDepartureManifest({
   const [filter, setFilter] = useState("all");
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [busy, setBusy] = useState("");
+  const [leaderBusy, setLeaderBusy] = useState(false);
+  const [groupLeaderName, setGroupLeaderName] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -95,6 +102,7 @@ export default function OperatorDepartureManifest({
       if (response.status === 404) return setState({ kind: "not-found" });
       if (!response.ok) throw new Error();
       const manifest = (await response.json()) as Manifest;
+      setGroupLeaderName(manifest.fulfilment.groupLeaderName ?? "");
       setDrafts(
         Object.fromEntries(
           manifest.items.map((item) => [
@@ -176,6 +184,54 @@ export default function OperatorDepartureManifest({
     }
   };
 
+  const saveGroupLeader = async (name: string | null) => {
+    if (leaderBusy || state.kind !== "ready") return;
+    setLeaderBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      const response = await fetch(
+        `/api/v1/operator/departures/${departureId}/manifest/group-leader`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            expectedVersion: state.manifest.fulfilment.version,
+          }),
+        },
+      );
+      if (response.status === 409) {
+        const detail = (await response.json()) as { code?: string };
+        setError(
+          detail.code === "handover_completed"
+            ? "The final handover is completed, so the accompanying group leader can no longer be changed."
+            : "Departure fulfilment changed in another session. Refresh before retrying.",
+        );
+        return;
+      }
+      if (!response.ok) {
+        setError(
+          "The accompanying group leader could not be saved. Review the name and retry.",
+        );
+        return;
+      }
+      setMessage(
+        name?.trim()
+          ? "Accompanying group leader saved."
+          : "Accompanying group leader cleared.",
+      );
+      await load();
+    } catch {
+      setError(
+        "Departure fulfilment is temporarily unavailable. Retry when connected.",
+      );
+    } finally {
+      setLeaderBusy(false);
+    }
+  };
+
   return (
     <OperatorWorkspaceShell
       title="Pilgrim manifest"
@@ -254,6 +310,82 @@ export default function OperatorDepartureManifest({
                 {state.manifest.departure.departureDate} to{" "}
                 {state.manifest.departure.returnDate}
               </p>
+            </section>
+
+            <section
+              className={styles.fulfilmentPanel}
+              aria-label="Departure fulfilment"
+            >
+              <div className={styles.fulfilmentHeader}>
+                <div>
+                  <span className={styles.eyebrow}>Departure fulfilment</span>
+                  <h2>{state.manifest.departure.packageName}</h2>
+                  <p>
+                    Keep the package being delivered and the accompanying group
+                    leader visible during operations.
+                  </p>
+                </div>
+                <Link
+                  className={styles.secondaryButton}
+                  href={`/operator/departures/${departureId}/preview`}
+                >
+                  View package being fulfilled
+                </Link>
+              </div>
+              <div className={styles.leaderRow}>
+                <label className={styles.field}>
+                  Accompanying group leader
+                  <input
+                    maxLength={120}
+                    value={groupLeaderName}
+                    disabled={
+                      state.manifest.fulfilment.isCompleted || leaderBusy
+                    }
+                    onChange={(event) => setGroupLeaderName(event.target.value)}
+                    placeholder="Add group leader name"
+                  />
+                  <span className={styles.fieldHint}>
+                    Operational contact only. This does not add a booked
+                    traveller.
+                  </span>
+                </label>
+                <div className={styles.leaderActions}>
+                  <button
+                    className={styles.button}
+                    type="button"
+                    disabled={
+                      state.manifest.fulfilment.isCompleted ||
+                      leaderBusy ||
+                      !groupLeaderName.trim()
+                    }
+                    onClick={() => saveGroupLeader(groupLeaderName)}
+                  >
+                    {leaderBusy
+                      ? "Saving…"
+                      : state.manifest.fulfilment.groupLeaderName
+                        ? "Update group leader"
+                        : "Save group leader"}
+                  </button>
+                  {state.manifest.fulfilment.groupLeaderName ? (
+                    <button
+                      className={styles.secondaryButton}
+                      type="button"
+                      disabled={
+                        state.manifest.fulfilment.isCompleted || leaderBusy
+                      }
+                      onClick={() => saveGroupLeader(null)}
+                    >
+                      Clear
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+              {state.manifest.fulfilment.isCompleted ? (
+                <p className={styles.fieldHint}>
+                  Final handover is complete. Departure fulfilment metadata is
+                  read-only.
+                </p>
+              ) : null}
             </section>
 
             <section
