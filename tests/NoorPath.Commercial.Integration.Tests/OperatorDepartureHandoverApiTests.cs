@@ -265,6 +265,49 @@ public sealed class OperatorDepartureHandoverApiTests
         Assert.Equal(2, record.Version);
     }
 
+    [Fact]
+    public async Task Stale_group_leader_write_is_rejected_without_mutation_or_audit()
+    {
+        await using var app = await OperatorBookingAmendmentApi.CreateAsync(
+            TestContext.Current.CancellationToken);
+        await EnsureReadinessSchemasAsync(app, TestContext.Current.CancellationToken);
+        using var client = app.CreateClientFor(OperatorBookingAmendmentApi.OperatorAccount);
+
+        Guid departureId;
+        await using (var scope = app.Services.CreateAsyncScope())
+        {
+            var bookings = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
+            var booking = await bookings.Bookings.AsNoTracking()
+                .SingleAsync(item => item.Id == OperatorBookingAmendmentApi.OwnedBookingId, TestContext.Current.CancellationToken);
+            departureId = booking.DepartureId;
+        }
+
+        var first = await client.PostAsJsonAsync(
+            $"/api/v1/operator/departures/{departureId}/manifest/group-leader",
+            new { name = "Amina Rahman", expectedVersion = 0 },
+            TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+
+        var stale = await client.PostAsJsonAsync(
+            $"/api/v1/operator/departures/{departureId}/manifest/group-leader",
+            new { name = "Stale Leader", expectedVersion = 0 },
+            TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.Conflict, stale.StatusCode);
+        Assert.Contains(
+            "departure_operations_stale",
+            await stale.Content.ReadAsStringAsync(TestContext.Current.CancellationToken),
+            StringComparison.Ordinal);
+
+        await using var verifyScope = app.Services.CreateAsyncScope();
+        var database = verifyScope.ServiceProvider.GetRequiredService<BookingDbContext>();
+        var record = await database.Set<DepartureHandoverRecord>().AsNoTracking()
+            .SingleAsync(TestContext.Current.CancellationToken);
+        Assert.Equal("Amina Rahman", record.GroupLeaderName);
+        Assert.Equal(1, record.Version);
+        Assert.Single(await database.Set<DepartureHandoverAuditRecord>().AsNoTracking()
+            .ToArrayAsync(TestContext.Current.CancellationToken));
+    }
+
     private static async Task EnsureReadinessSchemasAsync(
         OperatorBookingAmendmentApi app,
         CancellationToken cancellationToken)
