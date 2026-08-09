@@ -66,6 +66,7 @@ public static class AccommodationPersistence
         });
 
         DepartureManifestPersistence.Configure(modelBuilder);
+        DepartureHandoverPersistence.Configure(modelBuilder);
     }
 }
 

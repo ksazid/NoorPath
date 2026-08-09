@@ -238,7 +238,17 @@ export default function OperatorDepartureManifest({
         {state.kind === "ready" ? (
           <>
             <section aria-label="Departure summary">
-              <h2>{state.manifest.departure.packageName}</h2>
+              <div className={styles.actions}>
+                <div>
+                  <h2>{state.manifest.departure.packageName}</h2>
+                </div>
+                <Link
+                  className={styles.secondaryButton}
+                  href={`/operator/departures/${departureId}/handover`}
+                >
+                  Final handover
+                </Link>
+              </div>
               <p>
                 {state.manifest.departure.origin} ·{" "}
                 {state.manifest.departure.departureDate} to{" "}
