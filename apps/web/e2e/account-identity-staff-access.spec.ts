@@ -1,6 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
-function accountMenu(page: Parameters<typeof test>[0]["page"], displayName: string) {
+function accountMenu(page: Page, displayName: string) {
   return page.locator(`summary[aria-label="Account menu for ${displayName}"]`);
 }
 
@@ -58,7 +58,9 @@ test("operator shell exposes member identity without losing operator context", a
 
   await page.goto("/operator/account");
 
-  await expect(page.getByText("Noor Travel", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByText("Noor Travel", { exact: true }).first(),
+  ).toBeVisible();
   const menu = accountMenu(page, "Yusuf Ali");
   await expect(menu).toBeVisible();
   await menu.click();
@@ -88,7 +90,8 @@ test("account actions reflow at customer mobile width", async ({ page }) => {
   await page.goto("/");
   await expect(accountMenu(page, "Amina Khan")).toBeVisible();
   const overflow = await page.evaluate(
-    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    () =>
+      document.documentElement.scrollWidth > document.documentElement.clientWidth,
   );
   expect(overflow).toBe(false);
 });
