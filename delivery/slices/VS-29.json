@@ -1,0 +1,72 @@
+{
+  "id": "VS-29",
+  "title": "Customer Package-to-Booking UX",
+  "slug": "customer-package-to-booking-ux",
+  "outcome": "A customer can move from a published package detail into a traveller-specific booking plan in a few clear steps while preserving authoritative occupancy, pricing, availability and customer-shell consistency.",
+  "actor": "Public or authenticated NoorPath customer evaluating a published Umrah departure.",
+  "dependsOn": ["VS-03", "VS-07", "VS-08", "VS-09", "VS-15", "VS-19"],
+  "requirements": [
+    "INV-ACC-003",
+    "INV-PRI-003",
+    "INV-PRI-006",
+    "INV-TRV-001",
+    "INV-BKG-001",
+    "INV-BKG-002"
+  ],
+  "modules": [
+    "Catalogue remains authoritative for published package and departure facts.",
+    "Pricing remains authoritative for occupancy prices and quote totals.",
+    "Inventory remains authoritative for effective availability and holds.",
+    "Travellers remains authoritative for account-owned traveller identity.",
+    "Booking consumes the selected departure, occupancy, travellers, price version and inventory references without inventing commercial state in the UI."
+  ],
+  "routes": [
+    "Landing -> Package detail",
+    "Package detail -> Select occupancy",
+    "Package detail -> Plan journey",
+    "Plan journey -> Sign in when required",
+    "Plan journey -> Select or add travellers",
+    "Plan journey -> Review quote -> Secure availability",
+    "Customer pages -> consistent NoorPath customer shell and footer"
+  ],
+  "acceptance": [
+    "Package detail exposes available occupancy options as an explicit customer choice rather than a passive price list only.",
+    "Unavailable occupancy remains visibly unavailable and cannot be selected.",
+    "The selected occupancy carries into the plan journey route and is restored only when it remains saleable.",
+    "Package and plan pages use the shared customer shell without duplicate legacy headers or footers.",
+    "Customers always have a deterministic route back to package context during planning.",
+    "The existing quote, inventory hold, traveller ownership and authentication boundaries remain unchanged.",
+    "Total, due-now, remaining balance and instalment information remain authoritative and are shown before commitment.",
+    "Loading, unavailable, error, unauthenticated and retry states remain complete.",
+    "Desktop and mobile layouts preserve the approved NoorPath Package visual language with WCAG 2.2 AA, keyboard access, visible focus, 44px minimum targets and reduced-motion support.",
+    "Rendered and navigation E2E coverage verifies package -> plan and back navigation without dead ends."
+  ],
+  "exclusions": [
+    "Operator package-authoring drag and drop, icon picking or smart inclusion defaults.",
+    "Operator/admin shell alignment and staff portal extraction.",
+    "Departure group-leader assignment.",
+    "New pricing, inventory, payment or booking policies.",
+    "Production deployment."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "security",
+    "authorization",
+    "journey-linking",
+    "navigation-reachability",
+    "accessibility",
+    "rendered-regression",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "apps/web/e2e/customer-package-booking-ux.spec.ts"
+  },
+  "specPath": "docs/slices/VS-29-CUSTOMER-PACKAGE-TO-BOOKING-UX.md",
+  "checklistPath": "docs/slices/VS-29-IMPLEMENTATION-CHECKLIST.md"
+}
