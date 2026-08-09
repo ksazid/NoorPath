@@ -70,5 +70,6 @@
     "testFile": "apps/web/e2e/customer-package-booking-ux.spec.ts"
   },
   "specPath": "docs/slices/VS-29-CUSTOMER-PACKAGE-TO-BOOKING-UX.md",
-  "checklistPath": "docs/slices/VS-29-IMPLEMENTATION-CHECKLIST.md"
+  "checklistPath": "docs/slices/VS-29-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-29-NAVIGATION-VERIFICATION.md"
 }
