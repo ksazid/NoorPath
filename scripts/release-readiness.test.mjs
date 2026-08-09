@@ -8,7 +8,7 @@ function configuration() {
   return {
     id: "noorpath-pilot-v1",
     releaseScope: Array.from(
-      { length: 29 },
+      { length: 35 },
       (_, index) => `VS-${String(index).padStart(2, "0")}`,
     ),
     deferredCapabilities: ["Production refunds remain disabled"],
