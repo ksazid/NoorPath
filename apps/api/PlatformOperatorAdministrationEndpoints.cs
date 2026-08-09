@@ -35,19 +35,11 @@ public static class PlatformOperatorAdministrationEndpoints
             .ToListAsync(cancellationToken);
 
         var byState = counts.ToDictionary(item => item.State, item => item.Count);
-        var pending = await operators.Operators
+        var pendingRecords = await operators.Operators
             .AsNoTracking()
             .Where(item => item.State == OperatorState.PendingApproval)
             .OrderBy(item => item.UpdatedAtUtc)
             .Take(10)
-            .Select(item => new
-            {
-                id = item.Id,
-                displayName = item.DisplayName,
-                state = StateKey(item.State),
-                version = item.Version,
-                updatedAtUtc = item.UpdatedAtUtc
-            })
             .ToListAsync(cancellationToken);
 
         return Results.Ok(new
@@ -58,7 +50,14 @@ public static class PlatformOperatorAdministrationEndpoints
             suspended = Count(byState, OperatorState.Suspended),
             rejected = Count(byState, OperatorState.Rejected),
             deactivated = Count(byState, OperatorState.Deactivated),
-            pending
+            pending = pendingRecords.Select(item => new
+            {
+                id = item.Id,
+                displayName = item.DisplayName,
+                state = StateKey(item.State),
+                version = item.Version,
+                updatedAtUtc = item.UpdatedAtUtc
+            })
         });
     }
 
@@ -119,26 +118,31 @@ public static class PlatformOperatorAdministrationEndpoints
         if (operation is null)
             return Results.NotFound();
 
-        var memberships = await operators.Memberships
+        var membershipRecords = await operators.Memberships
             .AsNoTracking()
             .Where(item => item.OperatorId == operatorId)
             .OrderBy(item => item.CreatedAtUtc)
-            .Select(item => new
+            .ToListAsync(cancellationToken);
+
+        var historyRecords = await operators.StateAudits
+            .AsNoTracking()
+            .Where(item => item.OperatorId == operatorId)
+            .OrderByDescending(item => item.Timestamp)
+            .Take(100)
+            .ToListAsync(cancellationToken);
+
+        return Results.Ok(new
+        {
+            @operator = ToOperatorResponse(operation),
+            memberships = membershipRecords.Select(item => new
             {
                 item.Id,
                 item.AccountId,
                 status = item.Status.ToString().ToLowerInvariant(),
                 item.CreatedAtUtc,
                 item.UpdatedAtUtc
-            })
-            .ToListAsync(cancellationToken);
-
-        var history = await operators.StateAudits
-            .AsNoTracking()
-            .Where(item => item.OperatorId == operatorId)
-            .OrderByDescending(item => item.Timestamp)
-            .Take(100)
-            .Select(item => new
+            }),
+            history = historyRecords.Select(item => new
             {
                 item.Id,
                 fromState = StateKey(item.FromState),
@@ -148,13 +152,6 @@ public static class PlatformOperatorAdministrationEndpoints
                 item.OperatorVersion,
                 item.Timestamp
             })
-            .ToListAsync(cancellationToken);
-
-        return Results.Ok(new
-        {
-            @operator = ToOperatorResponse(operation),
-            memberships,
-            history
         });
     }
 
