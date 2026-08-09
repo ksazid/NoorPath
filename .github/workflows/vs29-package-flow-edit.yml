@@ -1,0 +1,147 @@
+name: VS-29 package flow edit
+
+on:
+  push:
+    branches:
+      - ux/01-customer-package-booking
+    paths:
+      - .github/workflows/vs29-package-flow-edit.yml
+
+permissions:
+  contents: write
+
+jobs:
+  edit:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ux/01-customer-package-booking
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: corepack enable
+      - name: Apply focused package-to-plan UX edits
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          package = Path('apps/web/app/packages/[departureId]/page.tsx')
+          text = package.read_text()
+          replacement = r'''function PricingSummary({ details }: { details: PackageDetails }) {
+            const firstAvailable = details.pricing.occupancies.find(
+              (item) => item.status === "available",
+            );
+            const [occupancy, setOccupancy] = useState<Occupancy | null>(
+              firstAvailable?.occupancy ?? null,
+            );
+            const selected = details.pricing.occupancies.find(
+              (item) => item.occupancy === occupancy,
+            );
+
+            return (
+              <aside
+                className="payment-summary-card"
+                id="pricing-and-availability"
+                aria-label="Published pricing and availability"
+              >
+                <h2>Choose your room sharing</h2>
+                <p className="package-pricing-note">
+                  Select an available option to continue. Published prices are per traveller.
+                </p>
+                <fieldset className="occupancy-price-list">
+                  <legend className="sr-only">Room sharing options</legend>
+                  {details.pricing.occupancies.map((item) => {
+                    const unavailable = item.status !== "available";
+                    return (
+                      <label
+                        className={`occupancy-price-row occupancy-choice${occupancy === item.occupancy ? " selected" : ""}${unavailable ? " unavailable" : ""}`}
+                        key={item.occupancy}
+                      >
+                        <input
+                          type="radio"
+                          name="package-occupancy"
+                          value={item.occupancy}
+                          checked={occupancy === item.occupancy}
+                          disabled={unavailable}
+                          onChange={() => setOccupancy(item.occupancy)}
+                        />
+                        <span>
+                          <strong>{occupancyLabel(item.occupancy)}</strong>
+                          <small>
+                            {unavailable
+                              ? "Currently unavailable"
+                              : `${item.availableQuantity} available`}
+                          </small>
+                        </span>
+                        <strong>
+                          {formatMoney(item.amount, details.pricing.currency)}
+                        </strong>
+                      </label>
+                    );
+                  })}
+                </fieldset>
+                {occupancy && selected?.status === "available" ? (
+                  <Link
+                    className="package-plan-primary"
+                    href={`/packages/${details.departureId}/plan?occupancy=${occupancy}`}
+                  >
+                    Continue with {occupancyLabel(occupancy).toLowerCase()}{" "}
+                    <span aria-hidden="true">›</span>
+                  </Link>
+                ) : (
+                  <span className="package-plan-primary disabled" aria-disabled="true">
+                    No room option is currently available
+                  </span>
+                )}
+                <a href="mailto:support@noorpath.example">
+                  Ask about this package <span aria-hidden="true">›</span>
+                </a>
+              </aside>
+            );
+          }
+
+          '''
+          text, count = re.subn(
+              r'function PricingSummary\(\{ details \}: \{ details: PackageDetails \}\) \{.*?(?=function StaySummary)',
+              replacement,
+              text,
+              flags=re.S,
+          )
+          if count != 1:
+              raise SystemExit(f'PricingSummary replacement count was {count}')
+          package.write_text(text)
+
+          plan = Path('apps/web/app/packages/[departureId]/plan/page.tsx')
+          text = plan.read_text()
+          marker = '''function requestHeaders(\n  json = false,'''
+          helper = '''function isOccupancy(value: string | null): value is Occupancy {\n  return value === "double" || value === "triple" || value === "quad";\n}\n\nfunction requestHeaders(\n  json = false,'''
+          if marker not in text:
+              raise SystemExit('requestHeaders marker not found')
+          text = text.replace(marker, helper, 1)
+          old = '''      const firstAvailable = details.pricing.occupancies.find(\n        (item) => item.status === "available",\n      );\n      setOccupancy(firstAvailable?.occupancy ?? null);'''
+          new = '''      const requestedOccupancy = new URLSearchParams(\n        window.location.search,\n      ).get("occupancy");\n      const requestedAvailable = isOccupancy(requestedOccupancy)\n        ? details.pricing.occupancies.find(\n            (item) =>\n              item.occupancy === requestedOccupancy &&\n              item.status === "available",\n          )\n        : undefined;\n      const firstAvailable = details.pricing.occupancies.find(\n        (item) => item.status === "available",\n      );\n      setOccupancy(requestedAvailable?.occupancy ?? firstAvailable?.occupancy ?? null);'''
+          if old not in text:
+              raise SystemExit('loadPackage selection marker not found')
+          text = text.replace(old, new, 1)
+          plan.write_text(text)
+
+          css = Path('apps/web/app/package-details.css')
+          styles = '''\n/* VS-29: occupancy is a decision control on package detail, not a passive price row. */\n.occupancy-price-list {\n  min-width: 0;\n  padding: 0;\n  border-right: 0;\n  border-bottom: 0;\n  border-left: 0;\n}\n\n.occupancy-choice {\n  position: relative;\n  cursor: pointer;\n  transition: background-color 160ms ease-out, transform 160ms ease-out;\n}\n\n.occupancy-choice input {\n  width: 18px;\n  height: 18px;\n  margin: 0;\n  accent-color: var(--public-green);\n}\n\n.occupancy-choice.selected {\n  background: var(--public-ivory);\n}\n\n.occupancy-choice.unavailable {\n  cursor: not-allowed;\n  opacity: 0.62;\n}\n\n.occupancy-choice:focus-within {\n  outline: 3px solid var(--color-focus-ring);\n  outline-offset: 2px;\n}\n\n.occupancy-choice:not(.unavailable):active {\n  transform: scale(0.99);\n}\n\n.package-plan-primary.disabled {\n  cursor: not-allowed;\n  opacity: 0.62;\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .occupancy-choice {\n    transition-duration: 0.01ms;\n  }\n}\n'''
+          current = css.read_text()
+          if '/* VS-29: occupancy is a decision control' not in current:
+              css.write_text(current.rstrip() + '\n' + styles)
+          PY
+      - run: pnpm install --frozen-lockfile
+      - name: Format touched files
+        run: pnpm --dir apps/web exec prettier --write app/packages/'[departureId]'/page.tsx app/packages/'[departureId]'/plan/page.tsx app/package-details.css
+      - name: Commit and push
+        run: |
+          git config user.name "NoorPath UX automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add apps/web/app/packages/'[departureId]'/page.tsx apps/web/app/packages/'[departureId]'/plan/page.tsx apps/web/app/package-details.css
+          git commit -m "VS-29: streamline package to booking entry"
+          git push origin HEAD:ux/01-customer-package-booking
