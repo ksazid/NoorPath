@@ -1,24 +1,18 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { DragEvent, FormEvent, useMemo, useState } from "react";
 import {
   STANDARD_PACKAGE_EXCLUSIONS,
   STANDARD_PACKAGE_INCLUSIONS,
 } from "../packageDraftStandards";
+
+type Destination = "included" | "excluded";
 
 type PackageInclusionsEditorProps = {
   inclusions: string[];
   exclusions: string[];
   onToggleInclusion: (item: string) => void;
   onToggleExclusion: (item: string) => void;
-};
-
-type GroupKey = "package" | "travel" | "umrah" | "excluded";
-
-type Option = {
-  value: string;
-  label: string;
-  icon: IconName;
 };
 
 type IconName =
@@ -28,136 +22,123 @@ type IconName =
   | "mosque"
   | "meal"
   | "bus"
-  | "ziyarah"
   | "guide"
-  | "tag"
-  | "pouch"
-  | "id"
-  | "sim"
-  | "contact"
-  | "ihram"
   | "bag"
-  | "bottle"
   | "book"
   | "water"
   | "wallet"
-  | "excursion"
   | "shield"
   | "baggage"
   | "bed"
   | "laundry"
   | "custom";
 
-const PACKAGE_OPTIONS: Option[] = [
-  { value: "Return flights", label: "Return flights", icon: "plane" },
-  { value: "Visa included", label: "Visa included", icon: "visa" },
+type Option = {
+  value: string;
+  label: string;
+  icon: IconName;
+  group: string;
+};
+
+const OPTIONS: Option[] = [
+  { value: "Return flights", label: "Return flights", icon: "plane", group: "Package" },
+  { value: "Visa included", label: "Visa included", icon: "visa", group: "Package" },
   {
     value: "Makkah accommodation",
     label: "Makkah accommodation",
     icon: "hotel",
+    group: "Package",
   },
   {
     value: "Madinah accommodation",
     label: "Madinah accommodation",
     icon: "mosque",
+    group: "Package",
   },
   {
     value: "Breakfast, lunch and dinner",
     label: "Breakfast, lunch and dinner",
     icon: "meal",
+    group: "Package",
   },
-  { value: "Intercity travel", label: "Intercity travel", icon: "bus" },
-  {
-    value: "Ziyarat transport",
-    label: "Ziyarat transport",
-    icon: "ziyarah",
-  },
-  { value: "Umrah guidance", label: "Umrah guidance", icon: "guide" },
-];
-
-const TRAVEL_KIT_OPTIONS: Option[] = [
-  { value: "Luggage tag", label: "Luggage tag", icon: "tag" },
+  { value: "Intercity travel", label: "Intercity travel", icon: "bus", group: "Package" },
+  { value: "Ziyarat transport", label: "Ziyarat transport", icon: "mosque", group: "Package" },
+  { value: "Umrah guidance", label: "Umrah guidance", icon: "guide", group: "Package" },
+  { value: "Luggage tag", label: "Luggage tag", icon: "baggage", group: "Travel kit" },
   {
     value: "Neck pouch / document wallet",
-    label: "Neck pouch / document wallet",
-    icon: "pouch",
+    label: "Document wallet",
+    icon: "wallet",
+    group: "Travel kit",
   },
-  { value: "ID card", label: "ID card", icon: "id" },
+  { value: "ID card", label: "ID card", icon: "custom", group: "Travel kit" },
   {
     value: "SIM / eSIM guidance",
     label: "SIM / eSIM guidance",
-    icon: "sim",
+    icon: "custom",
+    group: "Travel kit",
   },
   {
     value: "Emergency contact card",
     label: "Emergency contact card",
-    icon: "contact",
+    icon: "custom",
+    group: "Travel kit",
   },
-];
-
-const UMRAH_KIT_OPTIONS: Option[] = [
   {
     value: "Ihram for men / prayer essentials option",
     label: "Ihram / prayer essentials",
-    icon: "ihram",
+    icon: "custom",
+    group: "Umrah kit",
   },
-  { value: "Drawstring bag", label: "Drawstring bag", icon: "bag" },
+  { value: "Drawstring bag", label: "Drawstring bag", icon: "bag", group: "Umrah kit" },
   {
     value: "Unscented toiletries",
     label: "Unscented toiletries",
-    icon: "bottle",
+    icon: "custom",
+    group: "Umrah kit",
   },
-  { value: "Pocket Dua guide", label: "Pocket Dua guide", icon: "book" },
+  { value: "Pocket Dua guide", label: "Pocket Dua guide", icon: "book", group: "Umrah kit" },
   {
     value: "Zamzam handling guidance",
     label: "Zamzam handling guidance",
     icon: "water",
+    group: "Umrah kit",
   },
-];
-
-const EXCLUSION_OPTIONS: Option[] = [
-  { value: "Personal expenses", label: "Personal expenses", icon: "wallet" },
+  { value: "Personal expenses", label: "Personal expenses", icon: "wallet", group: "Common exclusions" },
   {
     value: "Optional excursions",
     label: "Optional excursions",
-    icon: "excursion",
+    icon: "custom",
+    group: "Common exclusions",
   },
   {
     value: "Travel insurance unless stated",
     label: "Travel insurance unless stated",
     icon: "shield",
+    group: "Common exclusions",
   },
-  { value: "Extra baggage", label: "Extra baggage", icon: "baggage" },
-  { value: "Room upgrade", label: "Room upgrade", icon: "bed" },
-  { value: "Laundry", label: "Laundry", icon: "laundry" },
+  { value: "Extra baggage", label: "Extra baggage", icon: "baggage", group: "Common exclusions" },
+  { value: "Room upgrade", label: "Room upgrade", icon: "bed", group: "Common exclusions" },
+  { value: "Laundry", label: "Laundry", icon: "laundry", group: "Common exclusions" },
 ];
 
-const GROUP_COPY: Record<
-  GroupKey,
-  { title: string; helper: string; mode: "inclusion" | "exclusion" }
-> = {
-  package: {
-    title: "Package includes",
-    helper: "Standard NoorPath package items are selected by default.",
-    mode: "inclusion",
-  },
-  travel: {
-    title: "Travel kit included",
-    helper: "Select only the travel-kit items supplied with this package.",
-    mode: "inclusion",
-  },
-  umrah: {
-    title: "Umrah kit included",
-    helper: "Add kit items provided by the operator for this journey.",
-    mode: "inclusion",
-  },
-  excluded: {
-    title: "Not included",
-    helper:
-      "Standard exclusions are selected by default; add or remove as needed.",
-    mode: "exclusion",
-  },
-};
+const ICON_CHOICES: { value: IconName; label: string }[] = [
+  { value: "custom", label: "General" },
+  { value: "plane", label: "Flight" },
+  { value: "visa", label: "Visa" },
+  { value: "hotel", label: "Hotel" },
+  { value: "mosque", label: "Ziyarat" },
+  { value: "meal", label: "Meals" },
+  { value: "bus", label: "Transport" },
+  { value: "guide", label: "Guidance" },
+  { value: "bag", label: "Kit" },
+  { value: "book", label: "Guide book" },
+  { value: "water", label: "Zamzam" },
+  { value: "shield", label: "Insurance" },
+  { value: "baggage", label: "Baggage" },
+  { value: "bed", label: "Room" },
+  { value: "laundry", label: "Laundry" },
+];
 
 function PackageOptionIcon({ name }: { name: IconName }) {
   const common = {
@@ -169,14 +150,7 @@ function PackageOptionIcon({ name }: { name: IconName }) {
   };
 
   const paths: Record<IconName, React.ReactNode> = {
-    plane: (
-      <>
-        <path
-          {...common}
-          d="m3 13 7-2 4-7 2 1-2 6 6 2v2l-6 1-2 5-2-1 1-5-6 1-2-3Z"
-        />
-      </>
-    ),
+    plane: <path {...common} d="m3 13 7-2 4-7 2 1-2 6 6 2v2l-6 1-2 5-2-1 1-5-6 1-2-3Z" />,
     visa: (
       <>
         <rect {...common} x="5" y="3" width="12" height="18" rx="2" />
@@ -192,10 +166,7 @@ function PackageOptionIcon({ name }: { name: IconName }) {
     ),
     mosque: (
       <>
-        <path
-          {...common}
-          d="M4 21h16M6 21v-8h12v8M8 13c0-4 8-4 8 0M12 5v3M10 5h4"
-        />
+        <path {...common} d="M4 21h16M6 21v-8h12v8M8 13c0-4 8-4 8 0M12 5v3M10 5h4" />
         <path {...common} d="M10 21v-4h4v4" />
       </>
     ),
@@ -213,69 +184,13 @@ function PackageOptionIcon({ name }: { name: IconName }) {
         <circle {...common} cx="15" cy="16" r="1" />
       </>
     ),
-    ziyarah: (
-      <>
-        <path {...common} d="M4 21h16M6 21V10l6-5 6 5v11M9 21v-6h6v6" />
-        <path {...common} d="M9 11h6" />
-      </>
-    ),
     guide: (
       <>
         <circle {...common} cx="12" cy="7" r="3" />
         <path {...common} d="M6 21v-3a6 6 0 0 1 12 0v3M9 13l3 3 3-3" />
       </>
     ),
-    tag: (
-      <>
-        <path {...common} d="M7 4h8l4 4v12H7z" />
-        <circle {...common} cx="11" cy="8" r="1" />
-      </>
-    ),
-    pouch: (
-      <>
-        <path {...common} d="M7 8h10l-1 12H8zM9 8V5h6v3" />
-        <path {...common} d="M9 12h6" />
-      </>
-    ),
-    id: (
-      <>
-        <rect {...common} x="3" y="6" width="18" height="13" rx="2" />
-        <circle {...common} cx="8" cy="12" r="2" />
-        <path {...common} d="M5.5 16c1-2 4-2 5 0M13 11h5M13 15h4" />
-      </>
-    ),
-    sim: (
-      <>
-        <path {...common} d="M7 3h8l3 3v15H7z" />
-        <rect {...common} x="10" y="12" width="5" height="5" rx="1" />
-        <path {...common} d="M18 4c2 1 3 3 3 5M17 7c1 .5 1.5 1.5 1.5 3" />
-      </>
-    ),
-    contact: (
-      <>
-        <rect {...common} x="6" y="3" width="12" height="18" rx="2" />
-        <path {...common} d="M9 8h6M9 12h6M9 16h4" />
-      </>
-    ),
-    ihram: (
-      <>
-        <path
-          {...common}
-          d="M7 5c2 1 3 3 3 5v11H5V10c0-2 1-4 2-5ZM17 5c-2 1-3 3-3 5v11h5V10c0-2-1-4-2-5Z"
-        />
-      </>
-    ),
-    bag: (
-      <>
-        <path {...common} d="M7 8h10l2 12H5zM9 8c0-2 1-4 3-4s3 2 3 4" />
-      </>
-    ),
-    bottle: (
-      <>
-        <path {...common} d="M9 3h6v4l2 3v11H7V10l2-3z" />
-        <path {...common} d="M9 14h8M10 6h4" />
-      </>
-    ),
+    bag: <path {...common} d="M7 8h10l2 12H5zM9 8c0-2 1-4 3-4s3 2 3 4" />,
     book: (
       <>
         <path {...common} d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z" />
@@ -288,17 +203,7 @@ function PackageOptionIcon({ name }: { name: IconName }) {
         <path {...common} d="M17 14c2-2 4 0 4 2a2 2 0 0 1-4 0c0-1 .5-1.5 1-2" />
       </>
     ),
-    wallet: (
-      <>
-        <path {...common} d="M4 6h15v14H4zM4 9h17v7h-5a2 2 0 0 1 0-4h5" />
-      </>
-    ),
-    excursion: (
-      <>
-        <path {...common} d="M4 19 9 8l3 5 2-3 6 9z" />
-        <path {...common} d="M17 5v4M15 7h4" />
-      </>
-    ),
+    wallet: <path {...common} d="M4 6h15v14H4zM4 9h17v7h-5a2 2 0 0 1 0-4h5" />,
     shield: (
       <>
         <path {...common} d="M12 3 19 6v6c0 5-3 8-7 10-4-2-7-5-7-10V6z" />
@@ -339,158 +244,275 @@ function PackageOptionIcon({ name }: { name: IconName }) {
   );
 }
 
+function knownIcon(item: string, customIcons: Record<string, IconName>) {
+  return customIcons[item] ?? OPTIONS.find((option) => option.value === item)?.icon ?? "custom";
+}
+
 export default function PackageInclusionsEditor({
   inclusions,
   exclusions,
   onToggleInclusion,
   onToggleExclusion,
 }: PackageInclusionsEditorProps) {
-  const [customOptions, setCustomOptions] = useState<
-    Record<GroupKey, Option[]>
-  >({ package: [], travel: [], umrah: [], excluded: [] });
-  const [addingTo, setAddingTo] = useState<GroupKey | null>(null);
+  const [customIcons, setCustomIcons] = useState<Record<string, IconName>>({});
   const [customLabel, setCustomLabel] = useState("");
+  const [customIcon, setCustomIcon] = useState<IconName>("custom");
+  const [customDestination, setCustomDestination] = useState<Destination>("included");
+  const [adding, setAdding] = useState(false);
+  const [dragOver, setDragOver] = useState<Destination | null>(null);
+  const [status, setStatus] = useState("");
 
-  const groups = useMemo(
-    () => [
-      { key: "package" as const, options: PACKAGE_OPTIONS },
-      { key: "travel" as const, options: TRAVEL_KIT_OPTIONS },
-      { key: "umrah" as const, options: UMRAH_KIT_OPTIONS },
-      { key: "excluded" as const, options: EXCLUSION_OPTIONS },
-    ],
-    [],
+  const selectedValues = useMemo(
+    () => new Set([...inclusions, ...exclusions].map((item) => item.toLocaleLowerCase())),
+    [inclusions, exclusions],
+  );
+  const suggestions = useMemo(
+    () => OPTIONS.filter((option) => !selectedValues.has(option.value.toLocaleLowerCase())),
+    [selectedValues],
+  );
+  const suggestionGroups = useMemo(
+    () => [...new Set(suggestions.map((option) => option.group))],
+    [suggestions],
   );
 
-  const addCustomOption = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!addingTo) return;
+  const moveItem = (item: string, destination: Destination) => {
+    const isIncluded = inclusions.includes(item);
+    const isExcluded = exclusions.includes(item);
 
+    if (destination === "included") {
+      if (isExcluded) onToggleExclusion(item);
+      if (!isIncluded) onToggleInclusion(item);
+      setStatus(`${item} moved to Included.`);
+      return;
+    }
+
+    if (isIncluded) onToggleInclusion(item);
+    if (!isExcluded) onToggleExclusion(item);
+    setStatus(`${item} moved to Not included.`);
+  };
+
+  const startDrag = (event: DragEvent<HTMLElement>, item: string) => {
+    event.dataTransfer.setData("text/plain", item);
+    event.dataTransfer.effectAllowed = "move";
+  };
+
+  const dropItem = (event: DragEvent<HTMLElement>, destination: Destination) => {
+    event.preventDefault();
+    const item = event.dataTransfer.getData("text/plain");
+    setDragOver(null);
+    if (item) moveItem(item, destination);
+  };
+
+  const addCustomItem = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     const value = customLabel.trim();
     if (!value) return;
 
     const normalized = value.toLocaleLowerCase();
-    const existing = [
-      ...PACKAGE_OPTIONS,
-      ...TRAVEL_KIT_OPTIONS,
-      ...UMRAH_KIT_OPTIONS,
-      ...EXCLUSION_OPTIONS,
-      ...Object.values(customOptions).flat(),
-    ].some((item) => item.value.toLocaleLowerCase() === normalized);
-
-    if (existing) {
-      setCustomLabel("");
-      setAddingTo(null);
+    if (selectedValues.has(normalized) || OPTIONS.some((option) => option.value.toLocaleLowerCase() === normalized)) {
+      setStatus(`${value} already exists in this package or suggestions.`);
       return;
     }
 
-    const option: Option = { value, label: value, icon: "custom" };
-    setCustomOptions((current) => ({
-      ...current,
-      [addingTo]: [...current[addingTo], option],
-    }));
-
-    if (GROUP_COPY[addingTo].mode === "exclusion") {
-      if (!exclusions.includes(value)) onToggleExclusion(value);
-    } else if (!inclusions.includes(value)) {
-      onToggleInclusion(value);
-    }
-
+    setCustomIcons((current) => ({ ...current, [value]: customIcon }));
+    moveItem(value, customDestination);
+    setStatus(`${value} added to ${customDestination === "included" ? "Included" : "Not included"}.`);
     setCustomLabel("");
-    setAddingTo(null);
+    setCustomIcon("custom");
+    setAdding(false);
+  };
+
+  const renderBoard = (destination: Destination, items: string[]) => {
+    const oppositeLabel = destination === "included" ? "Not included" : "Included";
+    const oppositeDestination: Destination = destination === "included" ? "excluded" : "included";
+    const title = destination === "included" ? "Included" : "Not included";
+
+    return (
+      <section
+        className="package-drop-zone"
+        data-destination={destination}
+        data-drag-over={dragOver === destination ? "true" : "false"}
+        onDragEnter={() => setDragOver(destination)}
+        onDragLeave={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragOver(null);
+        }}
+        onDragOver={(event) => {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "move";
+        }}
+        onDrop={(event) => dropItem(event, destination)}
+        key={destination}
+      >
+        <header className="package-board-heading">
+          <div>
+            <h3>{title}</h3>
+            <p>
+              {destination === "included"
+                ? "Services the operator confirms are part of this package."
+                : "Services the operator explicitly excludes from this package."}
+            </p>
+          </div>
+          <span>{items.length}</span>
+        </header>
+
+        <div className="package-board-list" data-testid={`${destination}-board`}>
+          {items.length === 0 ? (
+            <p className="package-board-empty">Drop an item here or use an Include / Exclude action below.</p>
+          ) : (
+            items.map((item) => (
+              <article
+                className="package-selected-item"
+                draggable
+                onDragStart={(event) => startDrag(event, item)}
+                key={item}
+                data-item={item}
+              >
+                <span className="package-option-icon">
+                  <PackageOptionIcon name={knownIcon(item, customIcons)} />
+                </span>
+                <div className="package-selected-copy">
+                  <strong>{item}</strong>
+                  <small>Drag to the other list or use the move action.</small>
+                </div>
+                <button
+                  className="package-item-move"
+                  type="button"
+                  onClick={() => moveItem(item, oppositeDestination)}
+                >
+                  Move to {oppositeLabel}
+                </button>
+              </article>
+            ))
+          )}
+        </div>
+      </section>
+    );
   };
 
   return (
     <div className="package-options-editor">
-      {groups.map(({ key, options }) => {
-        const copy = GROUP_COPY[key];
-        const allOptions = [...options, ...customOptions[key]];
-        const selected = copy.mode === "exclusion" ? exclusions : inclusions;
-        const toggle =
-          copy.mode === "exclusion" ? onToggleExclusion : onToggleInclusion;
+      <div className="package-board-grid">
+        {renderBoard("included", inclusions)}
+        {renderBoard("excluded", exclusions)}
+      </div>
 
-        return (
-          <section className="package-option-group" key={key}>
-            <div className="package-option-group-heading">
-              <div>
-                <h3>{copy.title}</h3>
-                <p>{copy.helper}</p>
-              </div>
-            </div>
+      <p className="package-options-status" aria-live="polite" role="status">
+        {status}
+      </p>
 
+      <section className="package-suggestions" aria-labelledby="package-suggestions-title">
+        <div className="package-option-group-heading">
+          <div>
+            <h3 id="package-suggestions-title">Suggested items</h3>
+            <p>
+              Common Umrah-package items are suggestions only. Confirm each item for this package before adding it.
+            </p>
+          </div>
+          <button className="package-option-add-inline" type="button" onClick={() => setAdding((current) => !current)}>
+            Add custom item
+          </button>
+        </div>
+
+        {suggestionGroups.map((group) => (
+          <div className="package-suggestion-group" key={group}>
+            <h4>{group}</h4>
             <div className="package-option-grid">
-              {allOptions.map((item) => {
-                const checked = selected.includes(item.value);
-                return (
-                  <label
-                    className="package-option-tile"
-                    data-selected={checked ? "true" : "false"}
-                    key={item.value}
-                  >
+              {suggestions
+                .filter((option) => option.group === group)
+                .map((option) => (
+                  <article className="package-option-tile package-suggestion-tile" key={option.value}>
+                    <span className="package-option-icon">
+                      <PackageOptionIcon name={option.icon} />
+                    </span>
+                    <strong>{option.label}</strong>
+                    <div className="package-suggestion-actions">
+                      <button type="button" onClick={() => moveItem(option.value, "included")}>
+                        Include
+                      </button>
+                      <button type="button" onClick={() => moveItem(option.value, "excluded")}>
+                        Exclude
+                      </button>
+                    </div>
+                  </article>
+                ))}
+            </div>
+          </div>
+        ))}
+
+        {adding ? (
+          <form className="package-option-custom package-custom-composer" onSubmit={addCustomItem}>
+            <label className="package-custom-label">
+              <span>Custom item</span>
+              <input
+                autoFocus
+                value={customLabel}
+                placeholder="e.g. Wheelchair assistance"
+                onChange={(event) => setCustomLabel(event.target.value)}
+              />
+            </label>
+
+            <fieldset className="package-icon-picker">
+              <legend>Choose an icon</legend>
+              <div>
+                {ICON_CHOICES.map((choice) => (
+                  <label key={choice.value}>
                     <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggle(item.value)}
+                      type="radio"
+                      name="custom-package-icon"
+                      value={choice.value}
+                      checked={customIcon === choice.value}
+                      onChange={() => setCustomIcon(choice.value)}
                     />
                     <span className="package-option-icon">
-                      <PackageOptionIcon name={item.icon} />
+                      <PackageOptionIcon name={choice.value} />
                     </span>
-                    <strong>{item.label}</strong>
+                    <small>{choice.label}</small>
                   </label>
-                );
-              })}
+                ))}
+              </div>
+            </fieldset>
 
+            <fieldset className="package-custom-destination">
+              <legend>Add to</legend>
+              <label>
+                <input
+                  type="radio"
+                  name="custom-package-destination"
+                  checked={customDestination === "included"}
+                  onChange={() => setCustomDestination("included")}
+                />
+                Included
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="custom-package-destination"
+                  checked={customDestination === "excluded"}
+                  onChange={() => setCustomDestination("excluded")}
+                />
+                Not included
+              </label>
+            </fieldset>
+
+            <div className="package-custom-actions">
               <button
-                className="package-option-add"
+                className="secondary-button"
                 type="button"
-                aria-label={`Add another item to ${copy.title}`}
                 onClick={() => {
-                  setAddingTo(key);
+                  setAdding(false);
                   setCustomLabel("");
+                  setCustomIcon("custom");
                 }}
               >
-                <span aria-hidden="true">+</span>
-                <strong>Add more</strong>
+                Cancel
+              </button>
+              <button className="primary-button" type="submit" disabled={!customLabel.trim()}>
+                Add item
               </button>
             </div>
-
-            {addingTo === key ? (
-              <form
-                className="package-option-custom"
-                onSubmit={addCustomOption}
-              >
-                <label>
-                  <span>Custom item</span>
-                  <input
-                    autoFocus
-                    value={customLabel}
-                    placeholder="e.g. Wheelchair assistance"
-                    onChange={(event) => setCustomLabel(event.target.value)}
-                  />
-                </label>
-                <div>
-                  <button
-                    className="secondary-button"
-                    type="button"
-                    onClick={() => {
-                      setAddingTo(null);
-                      setCustomLabel("");
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="primary-button"
-                    type="submit"
-                    disabled={!customLabel.trim()}
-                  >
-                    Add item
-                  </button>
-                </div>
-              </form>
-            ) : null}
-          </section>
-        );
-      })}
+          </form>
+        ) : null}
+      </section>
     </div>
   );
 }
