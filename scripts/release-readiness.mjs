@@ -4,7 +4,7 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 const expectedScope = Array.from(
-  { length: 18 },
+  { length: 29 },
   (_, index) => `VS-${String(index).padStart(2, "0")}`,
 );
 
