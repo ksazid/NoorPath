@@ -1,5 +1,5 @@
-import ProtectedAccountShell from "../ProtectedAccountShell";
+import PlatformAdminWorkspace from "./PlatformAdminWorkspace";
 
 export default function AdminPage() {
-  return <ProtectedAccountShell kind="platform" />;
+  return <PlatformAdminWorkspace />;
 }
