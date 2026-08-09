@@ -173,9 +173,10 @@ export default function PlatformAdminWorkspace() {
         return;
       }
       if (!response.ok) {
-        const problem = (await response.json().catch(() => null)) as
-          | { detail?: string; title?: string }
-          | null;
+        const problem = (await response.json().catch(() => null)) as {
+          detail?: string;
+          title?: string;
+        } | null;
         setFeedback(
           problem?.detail ??
             problem?.title ??
@@ -457,8 +458,8 @@ export default function PlatformAdminWorkspace() {
                       </div>
                     ) : (
                       <p className="platform-terminal-note">
-                        No further lifecycle transitions are available from
-                        this state.
+                        No further lifecycle transitions are available from this
+                        state.
                       </p>
                     )}
 
@@ -474,7 +475,8 @@ export default function PlatformAdminWorkspace() {
                                 <strong>
                                   {stateLabels[entry.fromState] ??
                                     entry.fromState}{" "}
-                                  → {stateLabels[entry.toState] ?? entry.toState}
+                                  →{" "}
+                                  {stateLabels[entry.toState] ?? entry.toState}
                                 </strong>
                                 <span>
                                   {new Date(entry.timestamp).toLocaleString()}
