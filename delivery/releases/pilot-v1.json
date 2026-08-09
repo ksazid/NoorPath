@@ -29,7 +29,13 @@
     "VS-25",
     "VS-26",
     "VS-27",
-    "VS-28"
+    "VS-28",
+    "VS-29",
+    "VS-30",
+    "VS-31",
+    "VS-32",
+    "VS-33",
+    "VS-34"
   ],
   "deferredCapabilities": [
     "Production refund-provider execution",
