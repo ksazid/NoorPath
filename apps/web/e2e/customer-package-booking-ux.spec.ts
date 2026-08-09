@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const departure = {
   departureId: "11111111-1111-1111-1111-111111111111",
@@ -55,7 +55,7 @@ const departure = {
   },
 };
 
-async function mockDeparture(page: Parameters<typeof test>[0]["page"]) {
+async function mockDeparture(page: Page) {
   await page.route("**/api/v1/departures/**", async (route) => {
     if (route.request().url().includes("/quotes")) {
       await route.fallback();
@@ -91,7 +91,9 @@ test("package occupancy selection carries into the booking planner", async ({
 
   await continueLink.click();
   await expect(page).toHaveURL(/\/plan\?occupancy=triple$/);
-  await expect(page.locator('input[name="occupancy"][value="triple"]')).toBeChecked();
+  await expect(
+    page.locator('input[name="occupancy"][value="triple"]'),
+  ).toBeChecked();
   await expect(page.getByRole("link", { name: "Package" })).toHaveAttribute(
     "href",
     `/packages/${departure.departureId}`,
