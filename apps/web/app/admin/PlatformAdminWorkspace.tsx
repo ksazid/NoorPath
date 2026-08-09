@@ -70,9 +70,9 @@ export default function PlatformAdminWorkspace() {
   const [access, setAccess] = useState<AccessResponse | null>(null);
   const [summary, setSummary] = useState<SummaryResponse | null>(null);
   const [operators, setOperators] = useState<OperatorItem[]>([]);
-  const [status, setStatus] = useState<"loading" | "ready" | "forbidden" | "error">(
-    "loading",
-  );
+  const [status, setStatus] = useState<
+    "loading" | "ready" | "forbidden" | "error"
+  >("loading");
   const [drafts, setDrafts] = useState<Record<string, DecisionDraft>>({});
   const [busyOperator, setBusyOperator] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
@@ -143,25 +143,32 @@ export default function PlatformAdminWorkspace() {
     const draft = drafts[item.id] ?? { targetState: "", reason: "" };
     if (!draft.targetState) return;
     if (adverseStates.has(draft.targetState) && !draft.reason.trim()) {
-      setFeedback(`Add a reason before marking ${item.displayName} as ${stateLabels[draft.targetState]}.`);
+      setFeedback(
+        `Add a reason before marking ${item.displayName} as ${stateLabels[draft.targetState]}.`,
+      );
       return;
     }
 
     setBusyOperator(item.id);
     setFeedback("");
     try {
-      const response = await fetch(`/api/v1/platform/operators/${item.id}/state`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          targetState: draft.targetState,
-          expectedVersion: item.version,
-          reason: draft.reason.trim() || null,
-        }),
-      });
+      const response = await fetch(
+        `/api/v1/platform/operators/${item.id}/state`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            targetState: draft.targetState,
+            expectedVersion: item.version,
+            reason: draft.reason.trim() || null,
+          }),
+        },
+      );
 
       if (response.status === 409) {
-        setFeedback("This operator changed since you opened the queue. The latest state has been reloaded.");
+        setFeedback(
+          "This operator changed since you opened the queue. The latest state has been reloaded.",
+        );
         await loadWorkspace();
         return;
       }
@@ -169,11 +176,17 @@ export default function PlatformAdminWorkspace() {
         const problem = (await response.json().catch(() => null)) as
           | { detail?: string; title?: string }
           | null;
-        setFeedback(problem?.detail ?? problem?.title ?? "The operator decision could not be saved.");
+        setFeedback(
+          problem?.detail ??
+            problem?.title ??
+            "The operator decision could not be saved.",
+        );
         return;
       }
 
-      setFeedback(`${item.displayName} is now ${stateLabels[draft.targetState] ?? draft.targetState}.`);
+      setFeedback(
+        `${item.displayName} is now ${stateLabels[draft.targetState] ?? draft.targetState}.`,
+      );
       setHistory((current) => {
         const next = { ...current };
         delete next[item.id];
@@ -221,7 +234,10 @@ export default function PlatformAdminWorkspace() {
         <div className="auth-card">
           <p className="auth-eyebrow">Platform administration</p>
           <h1>Loading platform operations</h1>
-          <p>Checking administrator access and the latest operator lifecycle state.</p>
+          <p>
+            Checking administrator access and the latest operator lifecycle
+            state.
+          </p>
         </div>
       </main>
     );
@@ -233,7 +249,10 @@ export default function PlatformAdminWorkspace() {
         <div className="auth-card">
           <p className="auth-eyebrow">Access unavailable</p>
           <h1>Platform administrator access required</h1>
-          <p>This workspace is restricted to approved NoorPath platform administrators.</p>
+          <p>
+            This workspace is restricted to approved NoorPath platform
+            administrators.
+          </p>
           <Link className="auth-secondary" href="/account">
             Return to account
           </Link>
@@ -249,7 +268,11 @@ export default function PlatformAdminWorkspace() {
           <p className="auth-eyebrow">Platform administration</p>
           <h1>Platform operations are temporarily unavailable</h1>
           <p>Your access was not changed. Reload the workspace to try again.</p>
-          <button className="auth-primary" type="button" onClick={() => void loadWorkspace()}>
+          <button
+            className="auth-primary"
+            type="button"
+            onClick={() => void loadWorkspace()}
+          >
             Reload workspace
           </button>
         </div>
@@ -286,11 +309,14 @@ export default function PlatformAdminWorkspace() {
           <p className="auth-eyebrow">Platform administration</p>
           <h1 id="platform-title">Platform operations</h1>
           <p>
-            Review operator access centrally. Approval decisions are version-checked,
-            deny-by-default, and recorded in operator history.
+            Review operator access centrally. Approval decisions are
+            version-checked, deny-by-default, and recorded in operator history.
           </p>
 
-          <div className="platform-metrics" aria-label="Operator lifecycle summary">
+          <div
+            className="platform-metrics"
+            aria-label="Operator lifecycle summary"
+          >
             <article>
               <strong>{summary.pendingApproval}</strong>
               <span>Pending approval</span>
@@ -310,13 +336,21 @@ export default function PlatformAdminWorkspace() {
           </div>
         </section>
 
-        <section id="operators" className="platform-operators" aria-labelledby="operators-title">
+        <section
+          id="operators"
+          className="platform-operators"
+          aria-labelledby="operators-title"
+        >
           <div className="platform-section-heading">
             <div>
               <p className="auth-eyebrow">Governed access</p>
               <h2 id="operators-title">Operator lifecycle</h2>
             </div>
-            <button className="platform-secondary-button" type="button" onClick={() => void loadWorkspace()}>
+            <button
+              className="platform-secondary-button"
+              type="button"
+              onClick={() => void loadWorkspace()}
+            >
               Refresh
             </button>
           </div>
@@ -342,7 +376,9 @@ export default function PlatformAdminWorkspace() {
                   <article className="platform-operator-card" key={item.id}>
                     <div className="platform-operator-summary">
                       <div>
-                        <span className={`platform-status platform-status--${item.state}`}>
+                        <span
+                          className={`platform-status platform-status--${item.state}`}
+                        >
                           {stateLabels[item.state] ?? item.state}
                         </span>
                         <h3>{item.displayName}</h3>
@@ -389,7 +425,10 @@ export default function PlatformAdminWorkspace() {
                           </select>
                         </label>
                         <label>
-                          Reason {adverseStates.has(draft.targetState) ? "(required)" : "(optional)"}
+                          Reason{" "}
+                          {adverseStates.has(draft.targetState)
+                            ? "(required)"
+                            : "(optional)"}
                           <textarea
                             rows={2}
                             maxLength={500}
@@ -411,12 +450,15 @@ export default function PlatformAdminWorkspace() {
                           disabled={busyOperator === item.id}
                           onClick={() => void submitDecision(item)}
                         >
-                          {busyOperator === item.id ? "Saving decision…" : "Apply decision"}
+                          {busyOperator === item.id
+                            ? "Saving decision…"
+                            : "Apply decision"}
                         </button>
                       </div>
                     ) : (
                       <p className="platform-terminal-note">
-                        No further lifecycle transitions are available from this state.
+                        No further lifecycle transitions are available from
+                        this state.
                       </p>
                     )}
 
@@ -430,9 +472,13 @@ export default function PlatformAdminWorkspace() {
                             {audit.map((entry) => (
                               <li key={entry.id}>
                                 <strong>
-                                  {stateLabels[entry.fromState] ?? entry.fromState} → {stateLabels[entry.toState] ?? entry.toState}
+                                  {stateLabels[entry.fromState] ??
+                                    entry.fromState}{" "}
+                                  → {stateLabels[entry.toState] ?? entry.toState}
                                 </strong>
-                                <span>{new Date(entry.timestamp).toLocaleString()}</span>
+                                <span>
+                                  {new Date(entry.timestamp).toLocaleString()}
+                                </span>
                                 {entry.reason ? <p>{entry.reason}</p> : null}
                               </li>
                             ))}
