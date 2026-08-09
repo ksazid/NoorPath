@@ -333,6 +333,7 @@ export default function PackageInclusionsEditor({
     useState<Destination>("included");
   const [adding, setAdding] = useState(false);
   const [dragOver, setDragOver] = useState<Destination | null>(null);
+  const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const [status, setStatus] = useState("");
 
   const selectedValues = useMemo(
@@ -371,6 +372,7 @@ export default function PackageInclusionsEditor({
   };
 
   const startDrag = (event: DragEvent<HTMLElement>, item: string) => {
+    setDraggedItem(item);
     event.dataTransfer.setData("text/plain", item);
     event.dataTransfer.effectAllowed = "move";
   };
@@ -380,8 +382,9 @@ export default function PackageInclusionsEditor({
     destination: Destination,
   ) => {
     event.preventDefault();
-    const item = event.dataTransfer.getData("text/plain");
+    const item = event.dataTransfer.getData("text/plain") || draggedItem;
     setDragOver(null);
+    setDraggedItem(null);
     if (item) moveItem(item, destination);
   };
 
@@ -459,6 +462,10 @@ export default function PackageInclusionsEditor({
                 className="package-selected-item"
                 draggable
                 onDragStart={(event) => startDrag(event, item)}
+                onDragEnd={() => {
+                  setDragOver(null);
+                  setDraggedItem(null);
+                }}
                 key={item}
                 data-item={item}
               >
