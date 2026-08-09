@@ -37,7 +37,7 @@
   gap: var(--space-4);
 }
 
-.np-operator-shell .np-staff-menu__panel .np-staff-nav-group + .np-staff-nav-group {
+.np-staff-menu__panel .np-staff-nav-group + .np-staff-nav-group {
   margin-top: 0;
 }
 
