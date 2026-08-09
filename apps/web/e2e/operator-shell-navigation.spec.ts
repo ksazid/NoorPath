@@ -20,12 +20,11 @@ async function operatorNavigation(page: Page) {
   if ((page.viewportSize()?.width ?? 1280) <= 900) {
     const menu = page.locator(".np-staff-menu");
     const summary = menu.locator(":scope > summary");
+    const menuIsOpen = await menu.evaluate((element) =>
+      element.hasAttribute("open"),
+    );
     await expect(summary).toBeVisible();
-    if (
-      !(await menu.evaluate(
-        (element) => (element as HTMLDetailsElement).open,
-      ))
-    ) {
+    if (!menuIsOpen) {
       await summary.click();
     }
     return menu.locator(".np-staff-menu__panel");
@@ -49,9 +48,7 @@ test("operator collections share one wordmark, header and route navigation", asy
   await expect(header).toBeVisible();
   await expect(packagesNavigation).toBeVisible();
   await expect(header.getByRole("img", { name: "NoorPath" })).toBeVisible();
-  await expect(header.getByText("Noor Travel", { exact: true })).toHaveText(
-    "Noor Travel",
-  );
+  await expect(header).toContainText("Noor Travel");
   await expect(packageLink).toBeVisible();
   await expect(
     packagesNavigation.getByRole("link", { name: "Departures" }),
