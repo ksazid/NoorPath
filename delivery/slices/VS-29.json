@@ -55,12 +55,14 @@
     "unit",
     "integration",
     "architecture",
+    "migration",
     "security",
     "authorization",
     "journey-linking",
     "navigation-reachability",
     "accessibility",
     "rendered-regression",
+    "telemetry",
     "product-owner"
   ],
   "rendered": {
