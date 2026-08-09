@@ -125,7 +125,11 @@ export default function PlatformAdminWorkspace() {
   }, []);
 
   useEffect(() => {
-    void loadWorkspace();
+    const timer = window.setTimeout(() => {
+      void loadWorkspace();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [loadWorkspace]);
 
   const pendingFirst = useMemo(
