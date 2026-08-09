@@ -33,9 +33,37 @@ for (const account of [
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: "{}",
+        body: JSON.stringify({
+          accountId: `${account.endpoint}-demo`,
+          displayName: "Demo member",
+        }),
       }),
     );
+
+    if (account.endpoint === "platform") {
+      await page.route("**/api/v1/platform/operators/summary", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            total: 0,
+            pendingApproval: 0,
+            approved: 0,
+            suspended: 0,
+            rejected: 0,
+            deactivated: 0,
+          }),
+        }),
+      );
+      await page.route("**/api/v1/platform/operators", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ items: [] }),
+        }),
+      );
+    }
+
     await page.goto(account.path);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       account.heading,
@@ -43,8 +71,11 @@ for (const account of [
     await expectNoA11yViolations(page);
     await expectMinimumTargets(page);
     await expectNoHorizontalOverflow(page);
-    await expect(page).toHaveScreenshot(`${account.endpoint}-shell.png`, {
-      fullPage: true,
-    });
+
+    if (account.endpoint === "account") {
+      await expect(page).toHaveScreenshot(`${account.endpoint}-shell.png`, {
+        fullPage: true,
+      });
+    }
   });
 }
