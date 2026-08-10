@@ -45,6 +45,8 @@ public sealed class CatalogueDbContext(DbContextOptions<CatalogueDbContext> opti
             entity.Property(x => x.TravelRouteSummary).HasMaxLength(200);
             entity.Property(x => x.TravelDetails).HasMaxLength(600);
             entity.Property(x => x.TravelConfirmationState).HasConversion<string>().HasMaxLength(16);
+            entity.Property(x => x.TravelFactsJson).HasColumnType("jsonb");
+            entity.Property(x => x.TravelFactsVersion).IsConcurrencyToken();
             entity.HasIndex(x => new { x.PackageTemplateId, x.Sequence }).IsUnique();
             entity.HasOne<PackageTemplateRecord>().WithMany().HasForeignKey(x => x.PackageTemplateId).OnDelete(DeleteBehavior.Restrict);
         });
@@ -131,6 +133,8 @@ public sealed class PackageVersionRecord
     public required string TravelRouteSummary { get; set; }
     public required string TravelDetails { get; set; }
     public FactConfirmationState TravelConfirmationState { get; set; }
+    public string TravelFactsJson { get; set; } = "[]";
+    public int TravelFactsVersion { get; set; } = 1;
     public DateTimeOffset CreatedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
 }
