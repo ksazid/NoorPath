@@ -146,6 +146,13 @@ test.beforeEach(async ({ page }) => {
   );
 });
 
+test.afterEach(async ({ page }, testInfo) => {
+  await testInfo.attach(`rendered-${testInfo.title}`, {
+    body: await page.screenshot({ fullPage: true }),
+    contentType: "image/png",
+  });
+});
+
 test("package details show travel dates, journey and operator-authored content", async ({
   page,
 }) => {
@@ -172,7 +179,7 @@ test("package details show travel dates, journey and operator-authored content",
     page.getByText("Anwar Al Madinah Mövenpick", { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Journey & travel" }),
+    page.getByRole("heading", { name: "Your itinerary" }),
   ).toBeVisible();
   await expect(page.getByText("Makkah stay", { exact: true })).toBeVisible();
   await expect(
@@ -216,27 +223,47 @@ test("available same-origin dates navigate and browser back returns safely", asy
   ).toBeVisible();
 });
 
-test("adult guests, room sharing and payment breakdown are visible before booking", async ({
+test("guest categories, room sharing and payment breakdown are visible before booking", async ({
   page,
 }) => {
   await page.goto(`/packages/${departureId}`);
 
-  await expect(page.getByLabel("Adult guests")).toHaveValue("2");
+  await expect(page.locator('output[aria-label="Adult guests"]')).toHaveText(
+    "2",
+  );
+  await expect(page.getByText("Children (2–11 years)")).toBeVisible();
+  await expect(page.getByText("Children (2–4 years)")).toBeVisible();
+  await expect(page.getByText("Infants (0–2 years)")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Increase children with bed" }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Increase infants" }),
+  ).toBeDisabled();
+
   await expect(
     page.getByRole("radio", { name: /Double sharing/ }),
   ).toBeChecked();
   await expect(page.getByText("₹2,20,000").first()).toBeVisible();
   await expect(page.getByText("₹44,000").first()).toBeVisible();
   await expect(page.getByText("₹1,76,000").first()).toBeVisible();
-  await expect(
-    page.getByRole("radio", { name: /Milestone plan/ }),
-  ).toBeChecked();
+  await expect(page.getByRole("radio", { name: /Pay Full/ })).toBeVisible();
+  await expect(page.getByRole("radio", { name: /Milestone/ })).toBeChecked();
+  await expect(page.getByRole("radio", { name: /Pay Later/ })).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Milestone payment breakdown" }),
   ).toBeVisible();
   await expect(page.getByText("₹88,000").first()).toBeVisible();
 
-  await page.getByRole("radio", { name: /Pay later/ }).check();
+  await page.getByRole("radio", { name: /Pay Full/ }).check();
+  await expect(
+    page.getByRole("heading", { name: "Pay full breakdown" }),
+  ).toBeVisible();
+  await expect(
+    page.locator(".package-payment-breakdown").getByText("₹2,20,000"),
+  ).toBeVisible();
+
+  await page.getByRole("radio", { name: /Pay Later/ }).check();
   await expect(
     page.getByRole("heading", { name: "Pay later breakdown" }),
   ).toBeVisible();
@@ -244,8 +271,10 @@ test("adult guests, room sharing and payment breakdown are visible before bookin
     page.locator(".package-payment-breakdown").getByText("₹1,76,000"),
   ).toBeVisible();
 
-  await page.getByLabel("Adult guests").selectOption("4");
-  await expect(page.getByRole("radio", { name: /Quad sharing/ })).toBeChecked();
+  await page.getByRole("radio", { name: /Quad sharing/ }).check();
+  await expect(page.locator('output[aria-label="Adult guests"]')).toHaveText(
+    "4",
+  );
   await expect(page.getByText("₹3,60,000").first()).toBeVisible();
   await expect(page.getByText("₹72,000").first()).toBeVisible();
 
@@ -310,6 +339,7 @@ test("package details remain usable on mobile, at 200 percent text and reduced m
   await expect(
     page.getByRole("heading", { name: "Available Travel Dates" }),
   ).toBeVisible();
+  await expect(page.getByText("Infants (0–2 years)")).toBeVisible();
   await expect(page.getByText("₹44,000").first()).toBeVisible();
   await expect(
     page.getByRole("link", { name: /Book now/ }).first(),

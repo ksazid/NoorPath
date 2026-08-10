@@ -1,0 +1,68 @@
+{
+  "id": "VS-36",
+  "title": "Package Details Design Correction",
+  "slug": "package-details-design-correction",
+  "outcome": "Prospective customers receive the corrected NoorPath Package presentation with explicit adult, child and infant guest categories plus three truthful payment choices: Pay Full, Milestone and Pay Later.",
+  "actor": "Unauthenticated prospective customers evaluating a published NoorPath Umrah departure before booking.",
+  "dependsOn": ["VS-35", "VS-32"],
+  "modules": [
+    "Pricing quote calculation interprets the selected payment mode without a database migration.",
+    "The web application preserves server-authoritative travel-date, occupancy and base payment-plan data.",
+    "Operator package configuration remains the source of package inclusion and exclusion values.",
+    "Approved NoorPath Package references and design-system/MASTER.md remain visual authority."
+  ],
+  "routes": [
+    "Public discovery -> /packages/{departureId} -> redesigned Package Details.",
+    "Package Details -> available same-origin sibling date -> /packages/{siblingDepartureId}.",
+    "Package Details -> Guests -> adult plus/minus where the exact supported occupancy exists; child/infant rows visible but unavailable.",
+    "Package Details -> Room Sharing -> existing authoritative financial preview.",
+    "Package Details -> Pay Full, Milestone or Pay Later -> authoritative payment commitment.",
+    "Package Details -> Book now -> existing /packages/{departureId}/plan flow with occupancy and paymentMode preserved."
+  ],
+  "acceptance": [
+    "Package Details follows the approved NoorPath Package visual language with readable hierarchy and calm density.",
+    "Guests visibly includes Adults, Children 2-11 With Bed, Children 2-4 Without Bed and Infants 0-2 Without Bed.",
+    "Child and infant controls remain disabled until authoritative operator eligibility and pricing configuration exists.",
+    "Adult guest count remains synchronized with supported saleable occupancy without client-side price invention.",
+    "Same-origin travel-date navigation and sold-out semantics remain unchanged.",
+    "Package, Travel Kit, Umrah Kit and Not Included items use the operator package icon vocabulary.",
+    "Pay Full, Milestone and Pay Later show correct pay-today/remaining values, carry through Book now, and create the matching authoritative quote schedule.",
+    "Desktop, mobile, keyboard, focus, target-size, axe, 200-percent-text, reduced-motion and no-horizontal-overflow checks pass.",
+    "Product Owner visually accepts screenshots for the exact final SHA before merge."
+  ],
+  "exclusions": [
+    "Child/infant pricing, eligibility, inventory consumption or operator configuration.",
+    "Database migrations, Inventory model changes, Booking schema changes or payment-provider changes.",
+    "New airline or supplier integrations, detailed itinerary persistence or invented commercial facts.",
+    "Production deployment before explicit authorization."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "component",
+    "migration",
+    "security",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "keyboard",
+    "focus",
+    "target-size",
+    "responsive-reflow",
+    "rendered-regression",
+    "design-token-consistency",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "apps/web/e2e/package-details.spec.ts"
+  },
+  "specPath": "docs/slices/VS-36-PACKAGE-DETAILS-DESIGN-CORRECTION.md",
+  "checklistPath": "docs/slices/VS-36-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-36-NAVIGATION-VERIFICATION.md"
+}

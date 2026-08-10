@@ -4,12 +4,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { Icon, PublicHeader } from "../../public-ui";
+import { Icon, PublicFooter, PublicHeader } from "../../public-ui";
+import {
+  PackageContentIcon,
+  type PackageContentIconName,
+} from "./PackageContentIcon";
 import "./package-conversion.css";
 
 type ConfirmationState = "confirmed" | "pending";
 type Occupancy = "double" | "triple" | "quad";
-type PaymentMode = "milestone" | "pay-later";
+type PaymentMode = "pay-full" | "milestone" | "pay-later";
 type ContentGroup = "package" | "travel-kit" | "umrah-kit" | "excluded";
 
 type StayDetails = {
@@ -78,48 +82,51 @@ type DetailState =
   | { kind: "not-found" }
   | { kind: "error"; correlationId?: string };
 
-const contentMeta: Record<
-  string,
-  { group: ContentGroup; icon: string; label?: string }
-> = {
-  "Return flights": { group: "package", icon: "airplane-tilt" },
+type ContentMetadata = {
+  group: ContentGroup;
+  icon: PackageContentIconName;
+  label?: string;
+};
+
+const contentMeta: Record<string, ContentMetadata> = {
+  "Return flights": { group: "package", icon: "plane" },
   "Visa included": {
     group: "package",
-    icon: "file-text",
+    icon: "visa",
     label: "Umrah visa included",
   },
-  "Visa support": { group: "package", icon: "file-text" },
-  "Makkah accommodation": { group: "package", icon: "building" },
-  "Madinah accommodation": { group: "package", icon: "building" },
-  "Breakfast, lunch and dinner": { group: "package", icon: "receipt" },
-  Breakfast: { group: "package", icon: "receipt" },
+  "Visa support": { group: "package", icon: "visa" },
+  "Makkah accommodation": { group: "package", icon: "hotel" },
+  "Madinah accommodation": { group: "package", icon: "mosque" },
+  "Breakfast, lunch and dinner": { group: "package", icon: "meal" },
+  Breakfast: { group: "package", icon: "meal" },
   "Intercity travel": { group: "package", icon: "bus" },
-  "Ziyarat transport": { group: "package", icon: "map-trifold" },
-  "Umrah guidance": { group: "package", icon: "user-circle" },
-  "Luggage tag": { group: "travel-kit", icon: "certificate" },
+  "Ziyarat transport": { group: "package", icon: "mosque" },
+  "Umrah guidance": { group: "package", icon: "guide" },
+  "Luggage tag": { group: "travel-kit", icon: "baggage" },
   "Neck pouch / document wallet": {
     group: "travel-kit",
-    icon: "file-text",
+    icon: "wallet",
     label: "Document wallet",
   },
-  "ID card": { group: "travel-kit", icon: "certificate" },
-  "SIM / eSIM guidance": { group: "travel-kit", icon: "file-text" },
-  "Emergency contact card": { group: "travel-kit", icon: "file-text" },
+  "ID card": { group: "travel-kit", icon: "custom" },
+  "SIM / eSIM guidance": { group: "travel-kit", icon: "custom" },
+  "Emergency contact card": { group: "travel-kit", icon: "custom" },
   "Ihram for men / prayer essentials option": {
     group: "umrah-kit",
-    icon: "user-circle",
+    icon: "custom",
     label: "Ihram / prayer essentials",
   },
-  "Drawstring bag": { group: "umrah-kit", icon: "certificate" },
-  "Unscented toiletries": { group: "umrah-kit", icon: "drop" },
-  "Pocket Dua guide": { group: "umrah-kit", icon: "book-open-text" },
-  "Zamzam handling guidance": { group: "umrah-kit", icon: "drop" },
-  "Personal expenses": { group: "excluded", icon: "receipt" },
-  "Optional excursions": { group: "excluded", icon: "map-trifold" },
-  "Travel insurance unless stated": { group: "excluded", icon: "shield-check" },
-  "Extra baggage": { group: "excluded", icon: "certificate" },
+  "Drawstring bag": { group: "umrah-kit", icon: "bag" },
+  "Unscented toiletries": { group: "umrah-kit", icon: "custom" },
+  "Pocket Dua guide": { group: "umrah-kit", icon: "book" },
+  "Zamzam handling guidance": { group: "umrah-kit", icon: "water" },
+  "Personal expenses": { group: "excluded", icon: "wallet" },
+  "Optional excursions": { group: "excluded", icon: "custom" },
+  "Travel insurance unless stated": { group: "excluded", icon: "shield" },
+  "Extra baggage": { group: "excluded", icon: "baggage" },
   "Room upgrade": { group: "excluded", icon: "bed" },
-  Laundry: { group: "excluded", icon: "file-text" },
+  Laundry: { group: "excluded", icon: "laundry" },
 };
 
 export default function PackageDetailsPage() {
@@ -232,10 +239,7 @@ function PackageExperience({ details }: { details: PackageDetails }) {
         </div>
 
         <section className="package-conversion-about">
-          <div>
-            <p className="package-section-kicker">Package overview</p>
-            <h2>About this package</h2>
-          </div>
+          <h2>About this package</h2>
           <p>{details.summary}</p>
           <p>
             Published pricing, current room availability and payment commitments
@@ -244,6 +248,7 @@ function PackageExperience({ details }: { details: PackageDetails }) {
         </section>
       </main>
 
+      <PublicFooter />
       <StickyBookingBar
         details={details}
         selected={selected}
@@ -264,6 +269,7 @@ function TravelDates({ details }: { details: PackageDetails }) {
           status: "available" as const,
         },
       ];
+
   return (
     <section
       className="package-travel-dates"
@@ -271,14 +277,10 @@ function TravelDates({ details }: { details: PackageDetails }) {
     >
       <div className="package-travel-dates-heading">
         <div>
-          <p className="package-section-kicker">
-            More dates from {details.origin}
-          </p>
           <h2 id="travel-dates-title">Available Travel Dates</h2>
+          <p>Other published departures from {details.origin}</p>
         </div>
-        <span>
-          {dates.length} published departure{dates.length === 1 ? "" : "s"}
-        </span>
+        <span>{dates.length} dates</span>
       </div>
       <div
         className="package-date-scroller"
@@ -291,15 +293,14 @@ function TravelDates({ details }: { details: PackageDetails }) {
             <>
               <span className="package-date-card-topline">
                 <Icon name="airplane-tilt" />
-                <small>
-                  {current ? "Selected departure" : "Published departure"}
-                </small>
+                <small>{current ? "Selected" : details.origin}</small>
                 {soldOut ? <em>Sold out</em> : null}
               </span>
               <strong>{formatDate(option.departureDate)}</strong>
               <span>{details.origin} → Jeddah</span>
             </>
           );
+
           return soldOut && !current ? (
             <article
               className="package-date-card sold-out"
@@ -333,7 +334,7 @@ function Gallery({ selected }: { selected: OccupancyDetail }) {
           alt="Masjid al-Haram and the Kaaba in Makkah"
           fill
           priority
-          sizes="(max-width: 800px) 62vw, 26vw"
+          sizes="(max-width: 800px) 62vw, 28vw"
         />
       </div>
       <div className="package-conversion-image package-conversion-image-secondary">
@@ -341,12 +342,12 @@ function Gallery({ selected }: { selected: OccupancyDetail }) {
           src="/assets/madinah-reference.svg"
           alt="Al-Masjid an-Nabawi in Madinah"
           fill
-          sizes="(max-width: 800px) 38vw, 15vw"
+          sizes="(max-width: 800px) 38vw, 14vw"
         />
       </div>
       <span className="package-availability-badge">
-        Available now
-        <strong>{selected.availableQuantity} room places</strong>
+        Available seats
+        <strong>{selected.availableQuantity}</strong>
       </span>
     </div>
   );
@@ -360,6 +361,7 @@ function OperatorSummary({ details }: { details: PackageDetails }) {
       </p>
       <h1 id="package-title">{details.operator.displayName}</h1>
       <p className="package-detail-name">{details.packageName}</p>
+
       <div className="package-journey-chips" aria-label="Journey summary">
         <span>
           <Icon name="airplane-tilt" /> {details.origin}
@@ -371,6 +373,7 @@ function OperatorSummary({ details }: { details: PackageDetails }) {
           <Icon name="calendar-blank" /> {formatDate(details.departureDate)}
         </span>
       </div>
+
       <Stay city="Makkah" stay={details.makkah} />
       <Stay city="Madinah" stay={details.madinah} />
     </section>
@@ -415,44 +418,37 @@ function BookingCard({
     financials.remaining > 0 &&
     financials.instalments.length > 0 &&
     financials.finalDueDate !== null;
+  const effectivePaymentMode: PaymentMode = hasFuturePlan
+    ? paymentMode
+    : "pay-full";
+  const visibleFinancials = paymentPreview(financials, effectivePaymentMode);
+
   return (
     <aside
       className="package-booking-card"
       aria-label="Booking and payment summary"
     >
-      <p className="package-section-kicker">Book with clarity</p>
-      <h2>Payment summary</h2>
+      <div className="package-booking-heading">
+        <h2>Plan your booking</h2>
+        <p>Review the full commitment before you book.</p>
+      </div>
 
-      <label className="package-guest-select">
-        <span>Guests</span>
-        <select
-          aria-label="Adult guests"
-          value={financials.adultGuests}
-          onChange={(event) => {
-            const guests = Number(event.target.value);
-            const option = details.pricing.occupancies.find(
-              (item) =>
-                item.financials.adultGuests === guests &&
-                item.status === "available",
-            );
-            if (option) onOccupancyChange(option.occupancy);
-          }}
-        >
-          {details.pricing.occupancies.map((item) => (
-            <option
-              key={item.occupancy}
-              value={item.financials.adultGuests}
-              disabled={item.status !== "available"}
-            >
-              {item.financials.adultGuests} Adults
-              {item.status !== "available" ? " — unavailable" : ""}
-            </option>
-          ))}
-        </select>
-      </label>
+      <a className="package-selection-row" href="#travel-dates-title">
+        <span>
+          <strong>Travel date</strong>
+          <small>{formatDate(details.departureDate)}</small>
+        </span>
+        <span className="package-selection-change">Change</span>
+      </a>
+
+      <GuestSelector
+        details={details}
+        selected={selected}
+        onOccupancyChange={onOccupancyChange}
+      />
 
       <fieldset className="package-room-options">
-        <legend>Room sharing</legend>
+        <legend>Room Sharing</legend>
         {details.pricing.occupancies.map((item) => (
           <label
             className={`package-room-option${selected.occupancy === item.occupancy ? " selected" : ""}${item.status !== "available" ? " unavailable" : ""}`}
@@ -475,13 +471,14 @@ function BookingCard({
             </span>
             <strong>
               {formatMoney(item.amount, details.pricing.currency)}
+              <small>/ person</small>
             </strong>
           </label>
         ))}
       </fieldset>
 
       <div className="package-price-breakdown">
-        <h3>Price breakdown</h3>
+        <h3>Price Breakdown</h3>
         <dl>
           <div>
             <dt>
@@ -495,73 +492,231 @@ function BookingCard({
             <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
           </div>
           <div className="due">
-            <dt>Minimum to book today</dt>
-            <dd>{formatMoney(financials.dueNow, details.pricing.currency)}</dd>
+            <dt>Pay today</dt>
+            <dd>
+              {formatMoney(visibleFinancials.dueNow, details.pricing.currency)}
+            </dd>
           </div>
           <div>
             <dt>Remaining</dt>
             <dd>
-              {formatMoney(financials.remaining, details.pricing.currency)}
+              {formatMoney(
+                visibleFinancials.remaining,
+                details.pricing.currency,
+              )}
             </dd>
           </div>
         </dl>
       </div>
 
-      {hasFuturePlan ? (
-        <>
-          <fieldset className="package-payment-mode">
-            <legend>How would you like to view the remaining payment?</legend>
-            <label className={paymentMode === "milestone" ? "selected" : ""}>
-              <input
-                type="radio"
-                name="payment-mode"
-                checked={paymentMode === "milestone"}
-                onChange={() => onPaymentModeChange("milestone")}
-              />
-              <span>
-                <strong>Milestone plan</strong>
-                <small>See every published payment date.</small>
-              </span>
-            </label>
-            <label className={paymentMode === "pay-later" ? "selected" : ""}>
-              <input
-                type="radio"
-                name="payment-mode"
-                checked={paymentMode === "pay-later"}
-                onChange={() => onPaymentModeChange("pay-later")}
-              />
-              <span>
-                <strong>Pay later</strong>
-                <small>
-                  See the same remaining balance against the final published
-                  deadline.
-                </small>
-              </span>
-            </label>
-          </fieldset>
-          <PaymentBreakdown
-            financials={financials}
-            currency={details.pricing.currency}
-            mode={paymentMode}
-          />
-        </>
-      ) : (
+      <fieldset className="package-payment-mode">
+        <legend>Payment Options</legend>
+        <div className="package-payment-mode-options">
+          <label
+            className={effectivePaymentMode === "pay-full" ? "selected" : ""}
+          >
+            <input
+              type="radio"
+              name="payment-mode"
+              checked={effectivePaymentMode === "pay-full"}
+              onChange={() => onPaymentModeChange("pay-full")}
+            />
+            <span>
+              <strong>Pay Full</strong>
+              <small>Pay the complete package amount today</small>
+            </span>
+          </label>
+          {hasFuturePlan ? (
+            <>
+              <label
+                className={
+                  effectivePaymentMode === "milestone" ? "selected" : ""
+                }
+              >
+                <input
+                  type="radio"
+                  name="payment-mode"
+                  checked={effectivePaymentMode === "milestone"}
+                  onChange={() => onPaymentModeChange("milestone")}
+                />
+                <span>
+                  <strong>Milestone</strong>
+                  <small>Pay in published stages before departure</small>
+                </span>
+              </label>
+              <label
+                className={
+                  effectivePaymentMode === "pay-later" ? "selected" : ""
+                }
+              >
+                <input
+                  type="radio"
+                  name="payment-mode"
+                  checked={effectivePaymentMode === "pay-later"}
+                  onChange={() => onPaymentModeChange("pay-later")}
+                />
+                <span>
+                  <strong>Pay Later</strong>
+                  <small>
+                    Minimum today, remaining balance by final deadline
+                  </small>
+                </span>
+              </label>
+            </>
+          ) : null}
+        </div>
+      </fieldset>
+      <PaymentBreakdown
+        financials={financials}
+        currency={details.pricing.currency}
+        mode={effectivePaymentMode}
+      />
+      {!hasFuturePlan ? (
         <p className="package-full-payment">
-          <Icon name="receipt" /> Full payment applies to this departure.
+          <Icon name="receipt" /> This departure is published as full payment
+          only.
         </p>
-      )}
+      ) : null}
 
       <p className="package-payment-note">
-        The authoritative quote and availability are rechecked before a place is
-        reserved.
+        Price and availability are rechecked before a place is reserved.
       </p>
       <Link
         className="package-book-now"
-        href={bookingHref(details.departureId, selected.occupancy, paymentMode)}
+        href={bookingHref(
+          details.departureId,
+          selected.occupancy,
+          effectivePaymentMode,
+        )}
       >
         Book now <span aria-hidden="true">›</span>
       </Link>
     </aside>
+  );
+}
+
+function GuestSelector({
+  details,
+  selected,
+  onOccupancyChange,
+}: {
+  details: PackageDetails;
+  selected: OccupancyDetail;
+  onOccupancyChange: (value: Occupancy) => void;
+}) {
+  const [open, setOpen] = useState(true);
+  const adults = selected.financials.adultGuests;
+  const previous = occupancyForGuests(details, adults - 1);
+  const next = occupancyForGuests(details, adults + 1);
+
+  return (
+    <section className={`package-guest-picker${open ? " open" : ""}`}>
+      <button
+        className="package-guest-summary"
+        type="button"
+        aria-expanded={open}
+        aria-controls="package-guest-options"
+        onClick={() => setOpen((value) => !value)}
+      >
+        <span>
+          <strong>Guests</strong>
+          <small>{adults} Guests</small>
+        </span>
+        <span className="package-chevron" aria-hidden="true" />
+      </button>
+
+      {open ? (
+        <div className="package-guest-options" id="package-guest-options">
+          <GuestRow
+            label="Adults"
+            detail="Current adult pricing"
+            count={adults}
+            countLabel="Adult guests"
+            decrementDisabled={!previous}
+            incrementDisabled={!next}
+            onDecrement={() =>
+              previous && onOccupancyChange(previous.occupancy)
+            }
+            onIncrement={() => next && onOccupancyChange(next.occupancy)}
+          />
+          <GuestRow
+            label="Children (2–11 years)"
+            detail="With Bed · Pricing not enabled yet"
+            count={0}
+            countLabel="Children with bed"
+            disabled
+          />
+          <GuestRow
+            label="Children (2–4 years)"
+            detail="Without Bed · Pricing not enabled yet"
+            count={0}
+            countLabel="Children without bed"
+            disabled
+          />
+          <GuestRow
+            label="Infants (0–2 years)"
+            detail="Without Bed · Pricing not enabled yet"
+            count={0}
+            countLabel="Infants"
+            disabled
+          />
+          <p className="package-guest-note">
+            Child and infant online pricing will activate only when the operator
+            publishes those rates.
+          </p>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function GuestRow({
+  label,
+  detail,
+  count,
+  countLabel,
+  disabled = false,
+  decrementDisabled = false,
+  incrementDisabled = false,
+  onDecrement,
+  onIncrement,
+}: {
+  label: string;
+  detail: string;
+  count: number;
+  countLabel: string;
+  disabled?: boolean;
+  decrementDisabled?: boolean;
+  incrementDisabled?: boolean;
+  onDecrement?: () => void;
+  onIncrement?: () => void;
+}) {
+  return (
+    <div className={`package-guest-row${disabled ? " unavailable" : ""}`}>
+      <span className="package-guest-copy">
+        <strong>{label}</strong>
+        <small>{detail}</small>
+      </span>
+      <span className="package-stepper">
+        <button
+          type="button"
+          aria-label={`Decrease ${countLabel.toLowerCase()}`}
+          disabled={disabled || decrementDisabled}
+          onClick={onDecrement}
+        >
+          −
+        </button>
+        <output aria-label={countLabel}>{count}</output>
+        <button
+          type="button"
+          aria-label={`Increase ${countLabel.toLowerCase()}`}
+          disabled={disabled || incrementDisabled}
+          onClick={onIncrement}
+        >
+          +
+        </button>
+      </span>
+    </div>
   );
 }
 
@@ -574,19 +729,25 @@ function PaymentBreakdown({
   currency: string;
   mode: PaymentMode;
 }) {
+  const visibleFinancials = paymentPreview(financials, mode);
+
   return (
     <section className="package-payment-breakdown" aria-live="polite">
       <h3>
-        {mode === "milestone"
-          ? "Milestone payment breakdown"
-          : "Pay later breakdown"}
+        {mode === "pay-full"
+          ? "Pay full breakdown"
+          : mode === "milestone"
+            ? "Milestone payment breakdown"
+            : "Pay later breakdown"}
       </h3>
       <ol>
         <li>
           <span aria-hidden="true" />
           <div>
-            <strong>{formatMoney(financials.dueNow, currency)}</strong>
-            <small>Book your place</small>
+            <strong>{formatMoney(visibleFinancials.dueNow, currency)}</strong>
+            <small>
+              {mode === "pay-full" ? "Full package payment" : "Book your place"}
+            </small>
           </div>
           <time>Today</time>
         </li>
@@ -605,11 +766,13 @@ function PaymentBreakdown({
               <time dateTime={item.dueDate}>{formatDate(item.dueDate)}</time>
             </li>
           ))
-        ) : financials.finalDueDate ? (
+        ) : mode === "pay-later" && financials.finalDueDate ? (
           <li>
             <span aria-hidden="true" />
             <div>
-              <strong>{formatMoney(financials.remaining, currency)}</strong>
+              <strong>
+                {formatMoney(visibleFinancials.remaining, currency)}
+              </strong>
               <small>Remaining balance</small>
             </div>
             <time dateTime={financials.finalDueDate}>
@@ -625,10 +788,10 @@ function PaymentBreakdown({
 function Journey({ details }: { details: PackageDetails }) {
   const makkahEnd = Math.max(details.makkah.nights, 1);
   const madinahStart = makkahEnd + 1;
+
   return (
     <section className="package-conversion-journey">
-      <p className="package-section-kicker">Your journey</p>
-      <h2>Journey &amp; travel</h2>
+      <h2>Your itinerary</h2>
       <ol>
         <JourneyItem
           label="Day 1"
@@ -731,6 +894,7 @@ function ContentGrid({
   hideWhenEmpty?: boolean;
 }) {
   if (hideWhenEmpty && items.length === 0) return null;
+
   return (
     <section className="package-content-grid">
       <h2>{title}</h2>
@@ -741,7 +905,7 @@ function ContentGrid({
             return (
               <li key={item}>
                 <span className="package-content-icon">
-                  <Icon name={meta.icon} />
+                  <PackageContentIcon name={meta.icon} />
                 </span>
                 <span>{meta.label ?? item}</span>
               </li>
@@ -758,10 +922,10 @@ function ContentGrid({
 function TrustAndTerms({ details }: { details: PackageDetails }) {
   const confirmed = factLabels(details, "confirmed");
   const pending = factLabels(details, "pending");
+
   return (
     <div className="package-conversion-status">
       <section className="package-fact-status">
-        <p className="package-section-kicker">What is known today</p>
         <h2>Confirmed &amp; pending</h2>
         <div>
           <ul>
@@ -780,8 +944,8 @@ function TrustAndTerms({ details }: { details: PackageDetails }) {
           </ul>
         </div>
       </section>
+
       <section className="package-cancellation-summary">
-        <p className="package-section-kicker">Before you book</p>
         <h2>Cancellation summary</h2>
         <dl>
           <div>
@@ -802,7 +966,7 @@ function TrustAndTerms({ details }: { details: PackageDetails }) {
           </div>
         </dl>
         <a href="mailto:support@noorpath.example">
-          Ask about payment & refund terms ›
+          Ask about payment &amp; refund terms ›
         </a>
       </section>
     </div>
@@ -818,6 +982,18 @@ function StickyBookingBar({
   selected: OccupancyDetail;
   paymentMode: PaymentMode;
 }) {
+  const hasFuturePlan =
+    selected.financials.remaining > 0 &&
+    selected.financials.instalments.length > 0 &&
+    selected.financials.finalDueDate !== null;
+  const effectivePaymentMode: PaymentMode = hasFuturePlan
+    ? paymentMode
+    : "pay-full";
+  const visibleFinancials = paymentPreview(
+    selected.financials,
+    effectivePaymentMode,
+  );
+
   return (
     <aside className="package-conversion-sticky" aria-label="Booking summary">
       <div>
@@ -828,23 +1004,24 @@ function StickyBookingBar({
           </strong>
         </span>
         <span>
-          <small>Minimum today</small>
+          <small>Pay today</small>
           <strong className="due">
-            {formatMoney(selected.financials.dueNow, details.pricing.currency)}
+            {formatMoney(visibleFinancials.dueNow, details.pricing.currency)}
           </strong>
         </span>
         <span className="remaining">
           <small>Remaining</small>
           <strong>
-            {formatMoney(
-              selected.financials.remaining,
-              details.pricing.currency,
-            )}
+            {formatMoney(visibleFinancials.remaining, details.pricing.currency)}
           </strong>
         </span>
       </div>
       <Link
-        href={bookingHref(details.departureId, selected.occupancy, paymentMode)}
+        href={bookingHref(
+          details.departureId,
+          selected.occupancy,
+          effectivePaymentMode,
+        )}
       >
         Book now <span aria-hidden="true">›</span>
       </Link>
@@ -852,11 +1029,21 @@ function StickyBookingBar({
   );
 }
 
-function contentMetadata(item: string, fallback: ContentGroup) {
+function occupancyForGuests(details: PackageDetails, guests: number) {
+  return details.pricing.occupancies.find(
+    (item) =>
+      item.financials.adultGuests === guests && item.status === "available",
+  );
+}
+
+function contentMetadata(
+  item: string,
+  fallback: ContentGroup,
+): ContentMetadata {
   if (item.startsWith("Intercity travel by ")) {
-    return { group: "package" as const, icon: "bus" };
+    return { group: "package", icon: "bus" };
   }
-  return contentMeta[item] ?? { group: fallback, icon: "file-text" };
+  return contentMeta[item] ?? { group: fallback, icon: "custom" };
 }
 
 function contentItems(items: string[], group: ContentGroup) {
@@ -887,6 +1074,37 @@ function factLabels(details: PackageDetails, state: ConfirmationState) {
       facts.push("Umrah guidance included");
   }
   return facts;
+}
+
+function paymentPreview(
+  financials: FinancialPreview,
+  mode: PaymentMode,
+): FinancialPreview {
+  if (mode === "pay-full") {
+    return {
+      ...financials,
+      dueNow: financials.total,
+      remaining: 0,
+      instalments: [],
+    };
+  }
+
+  if (mode === "pay-later" && financials.remaining > 0) {
+    return {
+      ...financials,
+      instalments: financials.finalDueDate
+        ? [
+            {
+              sequence: 1,
+              dueDate: financials.finalDueDate,
+              amount: financials.remaining,
+            },
+          ]
+        : [],
+    };
+  }
+
+  return financials;
 }
 
 function bookingHref(

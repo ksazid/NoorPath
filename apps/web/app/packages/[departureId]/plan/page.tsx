@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { Icon, PublicFooter, PublicHeader } from "../../../public-ui";
 
 type Occupancy = "double" | "triple" | "quad";
+type PaymentMode = "pay-full" | "milestone" | "pay-later";
 type HoldStatus = "active" | "released" | "expired";
 
 type OccupancyDetail = {
@@ -143,6 +144,10 @@ function isOccupancy(value: string | null): value is Occupancy {
   return value === "double" || value === "triple" || value === "quad";
 }
 
+function isPaymentMode(value: string | null): value is PaymentMode {
+  return value === "pay-full" || value === "milestone" || value === "pay-later";
+}
+
 function requestHeaders(
   json = false,
   additional: Record<string, string> = {},
@@ -190,6 +195,7 @@ export default function PlanJourneyPage() {
     kind: "loading",
   });
   const [occupancy, setOccupancy] = useState<Occupancy | null>(null);
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>("milestone");
   const [selectedTravellerIds, setSelectedTravellerIds] = useState<string[]>(
     [],
   );
@@ -302,9 +308,14 @@ export default function PlanJourneyPage() {
       }
       const details = (await response.json()) as PackageDetails;
       setPackageState({ kind: "loaded", details });
-      const requestedOccupancy = new URLSearchParams(
-        window.location.search,
-      ).get("occupancy");
+      const searchParams = new URLSearchParams(window.location.search);
+      const requestedOccupancy = searchParams.get("occupancy");
+      const requestedPaymentMode = searchParams.get("paymentMode");
+      setPaymentMode(
+        isPaymentMode(requestedPaymentMode)
+          ? requestedPaymentMode
+          : "milestone",
+      );
       const requestedAvailable = isOccupancy(requestedOccupancy)
         ? details.pricing.occupancies.find(
             (item) =>
@@ -484,6 +495,7 @@ export default function PlanJourneyPage() {
           body: JSON.stringify({
             occupancy,
             travellerIds: selectedTravellerIds,
+            paymentMode,
           }),
         },
       );

@@ -44,6 +44,38 @@ public sealed class PaymentPlanPolicyTests
     }
 
     [Fact]
+    public void Calculate_pay_full_makes_the_entire_total_due_now()
+    {
+        var result = QuoteScheduleCalculator.Calculate(
+            180_000m,
+            new DateOnly(2027, 8, 14),
+            new DateTimeOffset(2027, 1, 10, 10, 0, 0, TimeSpan.Zero),
+            new PaymentPlanDefinition(20m, 5, 30),
+            QuotePaymentMode.PayFull);
+
+        Assert.Equal(180_000m, result.DueNow);
+        Assert.Equal(0m, result.Remaining);
+        Assert.Empty(result.Instalments);
+    }
+
+    [Fact]
+    public void Calculate_pay_later_keeps_the_deposit_and_moves_balance_to_final_deadline()
+    {
+        var result = QuoteScheduleCalculator.Calculate(
+            180_000m,
+            new DateOnly(2027, 8, 14),
+            new DateTimeOffset(2027, 1, 10, 10, 0, 0, TimeSpan.Zero),
+            new PaymentPlanDefinition(20m, 5, 30),
+            QuotePaymentMode.PayLater);
+
+        Assert.Equal(36_000m, result.DueNow);
+        Assert.Equal(144_000m, result.Remaining);
+        var instalment = Assert.Single(result.Instalments);
+        Assert.Equal(new DateOnly(2027, 7, 15), instalment.DueDate);
+        Assert.Equal(144_000m, instalment.Amount);
+    }
+
+    [Fact]
     public void Calculate_falls_back_to_full_amount_when_final_deadline_has_arrived()
     {
         var result = QuoteScheduleCalculator.Calculate(

@@ -123,6 +123,9 @@ public static class TravellerQuoteEndpoints
         if (!Enum.TryParse<PricingOccupancy>(request.Occupancy, true, out var occupancy))
             return QuoteValidation("occupancy", "Choose double, triple or quad sharing.");
 
+        if (!TryPaymentMode(request.PaymentMode, out var paymentMode))
+            return QuoteValidation("paymentMode", "Choose pay full, milestone or pay later.");
+
         var travellerIds = request.TravellerIds?.ToArray() ?? [];
         var requiredTravellerCount = TravellerCountFor(occupancy);
         if (travellerIds.Length != requiredTravellerCount)
@@ -232,7 +235,8 @@ public static class TravellerQuoteEndpoints
             total,
             candidate.DepartureDate,
             now,
-            priceVersion.PaymentPlan);
+            priceVersion.PaymentPlan,
+            paymentMode);
 
         var quote = new QuoteRecord
         {
@@ -365,6 +369,21 @@ public static class TravellerQuoteEndpoints
     private static string OccupancyKey(PricingOccupancy occupancy) =>
         occupancy.ToString().ToLowerInvariant();
 
+    private static bool TryPaymentMode(string? value, out QuotePaymentMode paymentMode)
+    {
+        var normalized = string.IsNullOrWhiteSpace(value)
+            ? "milestone"
+            : value.Trim().ToLowerInvariant();
+        paymentMode = normalized switch
+        {
+            "pay-full" => QuotePaymentMode.PayFull,
+            "milestone" => QuotePaymentMode.Milestone,
+            "pay-later" => QuotePaymentMode.PayLater,
+            _ => default
+        };
+        return normalized is "pay-full" or "milestone" or "pay-later";
+    }
+
     private static IResult QuoteValidation(string field, string message) =>
         Results.ValidationProblem(
             new Dictionary<string, string[]> { [field] = [message] },
@@ -399,4 +418,5 @@ public sealed record CreateTravellerRequest(string? FullName, string? DateOfBirt
 
 public sealed record CreateQuoteRequest(
     string? Occupancy,
-    IReadOnlyList<Guid>? TravellerIds);
+    IReadOnlyList<Guid>? TravellerIds,
+    string? PaymentMode = null);
