@@ -165,8 +165,12 @@ test("package details show travel dates, journey and operator-authored content",
   await expect(
     page.getByRole("heading", { name: "Noor International Tours & Travels" }),
   ).toBeVisible();
-  await expect(page.getByText("Pullman ZamZam Makkah")).toBeVisible();
-  await expect(page.getByText("Anwar Al Madinah Mövenpick")).toBeVisible();
+  await expect(
+    page.getByText("Pullman ZamZam Makkah", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Anwar Al Madinah Mövenpick", { exact: true }),
+  ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Journey & travel" }),
   ).toBeVisible();
