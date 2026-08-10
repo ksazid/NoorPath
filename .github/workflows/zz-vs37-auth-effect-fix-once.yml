@@ -1,0 +1,56 @@
+name: VS-37 Auth Sheet Lifecycle One-shot
+
+on:
+  push:
+    branches:
+      - agent/vs37-package-details-booking-auth-design
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/vs37-package-details-booking-auth-design
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Fix OTP sheet lifecycle
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("apps/web/app/packages/[departureId]/page.tsx")
+          text = path.read_text()
+          old_call = '''      <BookingAuthSheet\n        open={bookingOpen}\n        onClose={() => setBookingOpen(false)}\n        details={details}\n        selected={selected}\n        paymentMode={paymentMode}\n      />'''
+          new_call = '''      {bookingOpen ? (\n        <BookingAuthSheet\n          onClose={() => setBookingOpen(false)}\n          details={details}\n          selected={selected}\n          paymentMode={paymentMode}\n        />\n      ) : null}'''
+          if old_call not in text:
+              raise SystemExit('BookingAuthSheet call not found')
+          text = text.replace(old_call, new_call, 1)
+          old_sig = '''function BookingAuthSheet({\n  open,\n  onClose,\n  details,\n  selected,\n  paymentMode,\n}: {\n  open: boolean;\n  onClose: () => void;'''
+          new_sig = '''function BookingAuthSheet({\n  onClose,\n  details,\n  selected,\n  paymentMode,\n}: {\n  onClose: () => void;'''
+          if old_sig not in text:
+              raise SystemExit('BookingAuthSheet signature not found')
+          text = text.replace(old_sig, new_sig, 1)
+          old_effect = '''  useEffect(() => {\n    if (!open) return;\n    setStage("phone");\n    setPhone("");\n    setOtp("");\n    setTravellers([""]);\n    const previousOverflow = document.body.style.overflow;\n    document.body.style.overflow = "hidden";\n    window.setTimeout(() => phoneRef.current?.focus(), 0);\n    const onKeyDown = (event: KeyboardEvent) => {\n      if (event.key === "Escape") onClose();\n    };\n    window.addEventListener("keydown", onKeyDown);\n    return () => {\n      document.body.style.overflow = previousOverflow;\n      window.removeEventListener("keydown", onKeyDown);\n    };\n  }, [open, onClose]);\n\n  if (!open) return null;'''
+          new_effect = '''  useEffect(() => {\n    const previousOverflow = document.body.style.overflow;\n    document.body.style.overflow = "hidden";\n    const focusTimer = window.setTimeout(() => phoneRef.current?.focus(), 0);\n    const onKeyDown = (event: KeyboardEvent) => {\n      if (event.key === "Escape") onClose();\n    };\n    window.addEventListener("keydown", onKeyDown);\n    return () => {\n      window.clearTimeout(focusTimer);\n      document.body.style.overflow = previousOverflow;\n      window.removeEventListener("keydown", onKeyDown);\n    };\n  }, [onClose]);'''
+          if old_effect not in text:
+              raise SystemExit('BookingAuthSheet effect block not found')
+          text = text.replace(old_effect, new_effect, 1)
+          path.write_text(text)
+          PY
+      - run: pnpm --dir apps/web exec prettier --write 'app/packages/[departureId]/page.tsx'
+      - name: Commit lifecycle fix
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/web/app/packages/'[departureId]'/page.tsx
+          git commit -m 'VS-37 fix OTP sheet lifecycle'
+          git push origin HEAD:agent/vs37-package-details-booking-auth-design
