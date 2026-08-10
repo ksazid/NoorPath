@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { type ReactNode, useEffect, useState } from "react";
+import { cloneElement, type ReactElement, useEffect, useState } from "react";
 import styles from "./TravelFactsEditor.module.css";
 
 type ConfirmationState = "pending" | "confirmed";
@@ -82,21 +82,25 @@ function Field({
   label: string;
   error?: string;
   hint?: string;
-  children: ReactNode;
+  children: ReactElement<{ "aria-describedby"?: string }>;
 }) {
+  const descriptionId = error || hint ? `${id}-description` : undefined;
+  const control = descriptionId
+    ? cloneElement(children, { "aria-describedby": descriptionId })
+    : children;
+
   return (
-    <label
-      className={`${styles.field} ${error ? styles.fieldError : ""}`}
-      htmlFor={id}
-    >
-      <span>{label}</span>
-      {children}
+    <div className={`${styles.field} ${error ? styles.fieldError : ""}`}>
+      <label htmlFor={id}>{label}</label>
+      {control}
       {error ? (
-        <small className={styles.errorText}>{error}</small>
+        <small id={descriptionId} className={styles.errorText}>
+          {error}
+        </small>
       ) : (
-        hint && <small>{hint}</small>
+        hint && <small id={descriptionId}>{hint}</small>
       )}
-    </label>
+    </div>
   );
 }
 
