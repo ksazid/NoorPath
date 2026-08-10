@@ -1,4 +1,5 @@
 using NoorPath.Catalogue;
+using Xunit;
 
 namespace NoorPath.Catalogue.Tests;
 
