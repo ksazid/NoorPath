@@ -1455,12 +1455,12 @@
 }
 
 .package-payment-mode-options {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr;
 }
 
 .package-payment-mode label {
-  align-content: start;
-  min-height: 104px;
+  align-content: center;
+  min-height: 72px;
 }
 
 .package-price-breakdown {
