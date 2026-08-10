@@ -87,9 +87,7 @@ export function PackageContentIcon({ name }: { name: PackageContentIconName }) {
         <path {...common} d="M17 14c2-2 4 0 4 2a2 2 0 0 1-4 0c0-1 .5-1.5 1-2" />
       </>
     ),
-    wallet: (
-      <path {...common} d="M4 6h15v14H4zM4 9h17v7h-5a2 2 0 0 1 0-4h5" />
-    ),
+    wallet: <path {...common} d="M4 6h15v14H4zM4 9h17v7h-5a2 2 0 0 1 0-4h5" />,
     shield: (
       <>
         <path {...common} d="M12 3 19 6v6c0 5-3 8-7 10-4-2-7-5-7-10V6z" />

@@ -171,7 +171,9 @@ test("package details show travel dates, journey and operator-authored content",
   await expect(
     page.getByText("Anwar Al Madinah Mövenpick", { exact: true }),
   ).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Your itinerary" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Your itinerary" }),
+  ).toBeVisible();
   await expect(page.getByText("Makkah stay", { exact: true })).toBeVisible();
   await expect(
     page.getByText("Intercity travel", { exact: true }),

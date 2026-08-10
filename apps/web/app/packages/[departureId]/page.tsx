@@ -493,7 +493,9 @@ function BookingCard({
           </div>
           <div>
             <dt>Remaining</dt>
-            <dd>{formatMoney(financials.remaining, details.pricing.currency)}</dd>
+            <dd>
+              {formatMoney(financials.remaining, details.pricing.currency)}
+            </dd>
           </div>
         </dl>
       </div>
@@ -593,7 +595,9 @@ function GuestSelector({
             countLabel="Adult guests"
             decrementDisabled={!previous}
             incrementDisabled={!next}
-            onDecrement={() => previous && onOccupancyChange(previous.occupancy)}
+            onDecrement={() =>
+              previous && onOccupancyChange(previous.occupancy)
+            }
             onIncrement={() => next && onOccupancyChange(next.occupancy)}
           />
           <GuestRow
@@ -972,7 +976,10 @@ function occupancyForGuests(details: PackageDetails, guests: number) {
   );
 }
 
-function contentMetadata(item: string, fallback: ContentGroup): ContentMetadata {
+function contentMetadata(
+  item: string,
+  fallback: ContentGroup,
+): ContentMetadata {
   if (item.startsWith("Intercity travel by ")) {
     return { group: "package", icon: "bus" };
   }
