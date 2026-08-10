@@ -1,0 +1,1339 @@
+name: VS-37 Implementation One-shot
+
+on:
+  push:
+    branches:
+      - agent/vs37-package-booking-composition
+
+permissions:
+  contents: write
+
+jobs:
+  implement:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/vs37-package-booking-composition
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Apply VS-37
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json, re
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text()
+              if old not in text:
+                  raise SystemExit(f"Expected block not found in {path}: {old[:120]!r}")
+              p.write_text(text.replace(old, new, 1))
+
+          def replace_section(path, start, end, new):
+              p = Path(path)
+              text = p.read_text()
+              a = text.index(start)
+              b = text.index(end, a)
+              p.write_text(text[:a] + new.rstrip() + "\n\n" + text[b:])
+
+          page = "apps/web/app/packages/[departureId]/page.tsx"
+          replace_once(
+              page,
+              'import { useCallback, useEffect, useState } from "react";',
+              'import { useCallback, useEffect, useRef, useState } from "react";'
+          )
+
+          package_experience = r'''function PackageExperience({ details }: { details: PackageDetails }) {
+            const firstAvailable = details.pricing.occupancies.find(
+              (item) => item.status === "available",
+            );
+            const [occupancy, setOccupancy] = useState<Occupancy>(
+              firstAvailable?.occupancy ?? "double",
+            );
+            const [paymentMode, setPaymentMode] = useState<PaymentMode>("pay-full");
+            const selected =
+              details.pricing.occupancies.find(
+                (item) => item.occupancy === occupancy && item.status === "available",
+              ) ?? firstAvailable;
+
+            if (!selected) {
+              return (
+                <main className="package-main" id="main-content">
+                  <PackageUnavailable />
+                </main>
+              );
+            }
+
+            return (
+              <>
+                <main className="package-main package-conversion-main" id="main-content">
+                  <nav className="package-breadcrumbs" aria-label="Breadcrumb">
+                    <Link href="/">Home</Link>
+                    <span aria-hidden="true">›</span>
+                    <Link href="/#packages">Umrah Packages</Link>
+                    <span aria-hidden="true">›</span>
+                    <span>{details.packageName}</span>
+                  </nav>
+
+                  <section className="package-purchase-layout" aria-labelledby="package-title">
+                    <div className="package-story-hero">
+                      <Gallery selected={selected} />
+                      <OperatorSummary details={details} />
+                    </div>
+
+                    <BookingCard
+                      details={details}
+                      selected={selected}
+                      paymentMode={paymentMode}
+                      onOccupancyChange={setOccupancy}
+                      onPaymentModeChange={setPaymentMode}
+                    />
+
+                    <Journey details={details} />
+                    <PackageContent details={details} />
+                    <TrustAndTerms details={details} />
+
+                    <section className="package-conversion-about">
+                      <h2>About this package</h2>
+                      <p>{details.summary}</p>
+                      <p>
+                        Published pricing, current room availability and payment commitments
+                        are visible before you start booking.
+                      </p>
+                    </section>
+                  </section>
+                </main>
+
+                <PublicFooter />
+                <StickyBookingBar
+                  details={details}
+                  selected={selected}
+                  paymentMode={paymentMode}
+                />
+              </>
+            );
+          }'''
+          replace_section(page, "function PackageExperience", "function TravelDates", package_experience)
+
+          travel_dates = r'''function TravelDates({ details }: { details: PackageDetails }) {
+            const scrollerRef = useRef<HTMLDivElement>(null);
+            const dates = details.travelDates?.length
+              ? details.travelDates
+              : [
+                  {
+                    departureId: details.departureId,
+                    departureDate: details.departureDate,
+                    returnDate: details.returnDate,
+                    status: "available" as const,
+                  },
+                ];
+
+            const moveDates = (direction: -1 | 1) => {
+              scrollerRef.current?.scrollBy({ left: direction * 196, behavior: "auto" });
+            };
+
+            return (
+              <section
+                className="package-travel-dates package-travel-dates-inline"
+                aria-labelledby="travel-dates-title"
+              >
+                <div className="package-travel-dates-heading">
+                  <div>
+                    <h3 id="travel-dates-title">Available Travel Dates</h3>
+                    <p>Published departures from {details.origin}</p>
+                  </div>
+                  <div className="package-date-nav" aria-label="Travel date controls">
+                    <button type="button" aria-label="Previous travel dates" onClick={() => moveDates(-1)}>
+                      <Icon name="caret-down" />
+                    </button>
+                    <button type="button" aria-label="Next travel dates" onClick={() => moveDates(1)}>
+                      <Icon name="caret-down" />
+                    </button>
+                  </div>
+                </div>
+                <div
+                  className="package-date-scroller"
+                  ref={scrollerRef}
+                  aria-label={`Published ${details.origin} travel dates`}
+                >
+                  {dates.map((option) => {
+                    const current = option.departureId === details.departureId;
+                    const soldOut = option.status === "sold-out";
+                    const content = (
+                      <>
+                        <span className="package-date-card-topline">
+                          <Icon name="airplane-tilt" />
+                          <small>{current ? "Selected" : details.origin}</small>
+                          {soldOut ? <em>Sold out</em> : null}
+                        </span>
+                        <strong>{formatDate(option.departureDate)}</strong>
+                        <span>{formatDate(option.returnDate)} return</span>
+                      </>
+                    );
+
+                    return soldOut && !current ? (
+                      <article
+                        className="package-date-card sold-out"
+                        aria-label={`${formatDate(option.departureDate)} sold out`}
+                        key={option.departureId}
+                      >
+                        {content}
+                      </article>
+                    ) : (
+                      <Link
+                        className={`package-date-card${current ? " current" : ""}`}
+                        aria-current={current ? "page" : undefined}
+                        href={`/packages/${option.departureId}`}
+                        key={option.departureId}
+                      >
+                        {content}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          }'''
+          replace_section(page, "function TravelDates", "function Gallery", travel_dates)
+
+          booking_card = r'''function BookingCard({
+            details,
+            selected,
+            paymentMode,
+            onOccupancyChange,
+            onPaymentModeChange,
+          }: {
+            details: PackageDetails;
+            selected: OccupancyDetail;
+            paymentMode: PaymentMode;
+            onOccupancyChange: (value: Occupancy) => void;
+            onPaymentModeChange: (value: PaymentMode) => void;
+          }) {
+            const financials = selected.financials;
+            const hasFuturePlan =
+              financials.remaining > 0 &&
+              financials.instalments.length > 0 &&
+              financials.finalDueDate !== null;
+            const effectivePaymentMode: PaymentMode = hasFuturePlan
+              ? paymentMode
+              : "pay-full";
+            const visibleFinancials = paymentPreview(financials, effectivePaymentMode);
+            const zeroDiscount = formatMoney(0, details.pricing.currency);
+
+            return (
+              <aside
+                className="package-booking-card"
+                aria-label="Booking and payment summary"
+              >
+                <div className="package-booking-heading">
+                  <h2>Plan your booking</h2>
+                  <p>Choose the journey details and review the full price before Book now.</p>
+                </div>
+
+                <TravelDates details={details} />
+
+                <GuestSelector
+                  details={details}
+                  selected={selected}
+                  onOccupancyChange={onOccupancyChange}
+                />
+
+                <fieldset className="package-room-options">
+                  <legend>Room Sharing</legend>
+                  {details.pricing.occupancies.map((item) => (
+                    <label
+                      className={`package-room-option${selected.occupancy === item.occupancy ? " selected" : ""}${item.status !== "available" ? " unavailable" : ""}`}
+                      key={item.occupancy}
+                    >
+                      <input
+                        type="radio"
+                        name="package-occupancy"
+                        checked={selected.occupancy === item.occupancy}
+                        disabled={item.status !== "available"}
+                        onChange={() => onOccupancyChange(item.occupancy)}
+                      />
+                      <span>
+                        <strong>{occupancyLabel(item.occupancy)}</strong>
+                        <small>
+                          {item.status === "available"
+                            ? `${item.availableQuantity} available`
+                            : "Currently unavailable"}
+                        </small>
+                      </span>
+                      <strong>
+                        {formatMoney(item.amount, details.pricing.currency)}
+                        <small>/ person</small>
+                      </strong>
+                    </label>
+                  ))}
+                </fieldset>
+
+                <fieldset className="package-payment-mode">
+                  <legend>Payment Options</legend>
+                  <div className="package-payment-mode-options">
+                    <label
+                      className={effectivePaymentMode === "pay-full" ? "selected" : ""}
+                    >
+                      <input
+                        type="radio"
+                        name="payment-mode"
+                        checked={effectivePaymentMode === "pay-full"}
+                        onChange={() => onPaymentModeChange("pay-full")}
+                      />
+                      <span>
+                        <strong>Pay Full</strong>
+                        <small>Pay the complete package amount today</small>
+                      </span>
+                    </label>
+                    {hasFuturePlan ? (
+                      <>
+                        <label
+                          className={
+                            effectivePaymentMode === "milestone" ? "selected" : ""
+                          }
+                        >
+                          <input
+                            type="radio"
+                            name="payment-mode"
+                            checked={effectivePaymentMode === "milestone"}
+                            onChange={() => onPaymentModeChange("milestone")}
+                          />
+                          <span>
+                            <strong>Milestone</strong>
+                            <small>Pay in published stages before departure</small>
+                          </span>
+                        </label>
+                        <label
+                          className={
+                            effectivePaymentMode === "pay-later" ? "selected" : ""
+                          }
+                        >
+                          <input
+                            type="radio"
+                            name="payment-mode"
+                            checked={effectivePaymentMode === "pay-later"}
+                            onChange={() => onPaymentModeChange("pay-later")}
+                          />
+                          <span>
+                            <strong>Pay Later</strong>
+                            <small>Minimum today, remaining balance by final deadline</small>
+                          </span>
+                        </label>
+                      </>
+                    ) : null}
+                  </div>
+                </fieldset>
+
+                <PaymentBreakdown
+                  financials={financials}
+                  currency={details.pricing.currency}
+                  mode={effectivePaymentMode}
+                />
+
+                <section className="package-price-breakdown" aria-labelledby="price-breakdown-title">
+                  <h3 id="price-breakdown-title">Price Breakdown</h3>
+                  <dl>
+                    <div>
+                      <dt>Airline</dt>
+                      <dd className="package-price-pending">To be confirmed</dd>
+                    </div>
+                    <div>
+                      <dt>Departure Route</dt>
+                      <dd>{details.travel.routeSummary}</dd>
+                    </div>
+                    <div>
+                      <dt>Return Route</dt>
+                      <dd>To be confirmed · {formatDate(details.returnDate)}</dd>
+                    </div>
+                    <div className="package-price-unit">
+                      <dt>
+                        {formatMoney(selected.amount, details.pricing.currency)} × {financials.adultGuests}
+                        <small>({occupancyLabel(selected.occupancy)}, {financials.adultGuests} adults)</small>
+                      </dt>
+                      <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
+                    </div>
+                    <div>
+                      <dt>Total Price Before Discount</dt>
+                      <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
+                    </div>
+                    <div className="package-discount-row">
+                      <dt>
+                        Discount
+                        <small>No published discount</small>
+                      </dt>
+                      <dd><span>0%</span> {zeroDiscount}</dd>
+                    </div>
+                    <div>
+                      <dt>Total Price After Discount</dt>
+                      <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
+                    </div>
+                    <div>
+                      <dt>Service Provider</dt>
+                      <dd>{details.operator.displayName}</dd>
+                    </div>
+                    <div>
+                      <dt>Powered &amp; Supported by</dt>
+                      <dd>NoorPath</dd>
+                    </div>
+                    <div className="package-payment-commitment-row">
+                      <dt>Pay today · {paymentModeLabel(effectivePaymentMode)}</dt>
+                      <dd>{formatMoney(visibleFinancials.dueNow, details.pricing.currency)}</dd>
+                    </div>
+                    <div className="package-payment-commitment-row">
+                      <dt>Remaining</dt>
+                      <dd>{formatMoney(visibleFinancials.remaining, details.pricing.currency)}</dd>
+                    </div>
+                    <div className="package-grand-total">
+                      <dt>TOTAL</dt>
+                      <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
+                    </div>
+                  </dl>
+                  <p className="package-tax-note">
+                    Any applicable taxes or statutory charges will be shown before payment.
+                  </p>
+                </section>
+
+                {!hasFuturePlan ? (
+                  <p className="package-full-payment">
+                    <Icon name="receipt" /> This departure is published as full payment only.
+                  </p>
+                ) : null}
+
+                <p className="package-payment-note">
+                  Price and availability are rechecked before a place is reserved.
+                </p>
+                <Link
+                  className="package-book-now"
+                  href={bookingHref(
+                    details.departureId,
+                    selected.occupancy,
+                    effectivePaymentMode,
+                  )}
+                >
+                  Book now <span aria-hidden="true">›</span>
+                </Link>
+              </aside>
+            );
+          }'''
+          replace_section(page, "function BookingCard", "function GuestSelector", booking_card)
+
+          replace_once(
+              page,
+              '''function occupancyLabel(occupancy: Occupancy) {''',
+              '''function paymentModeLabel(mode: PaymentMode) {
+                return mode === "pay-full"
+                  ? "Pay Full"
+                  : mode === "milestone"
+                    ? "Milestone"
+                    : "Pay Later";
+              }
+
+              function occupancyLabel(occupancy: Occupancy) {'''
+          )
+
+          css = Path("apps/web/app/packages/[departureId]/package-conversion.css")
+          css.write_text(css.read_text() + r'''
+
+          /* VS-37: purchase-decision composition */
+          .package-purchase-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.55fr) minmax(360px, 0.76fr);
+            grid-template-areas:
+              "hero booking"
+              "journey booking"
+              "content booking"
+              "status booking"
+              "about booking";
+            gap: 24px 30px;
+            align-items: start;
+          }
+
+          .package-story-hero {
+            grid-area: hero;
+            display: grid;
+            grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+            gap: 24px;
+            align-items: stretch;
+          }
+
+          .package-story-hero .package-conversion-gallery {
+            min-height: 430px;
+          }
+
+          .package-story-hero .package-conversion-operator {
+            padding-block: 10px;
+          }
+
+          .package-purchase-layout > .package-booking-card {
+            grid-area: booking;
+          }
+
+          .package-purchase-layout > .package-conversion-journey {
+            grid-area: journey;
+          }
+
+          .package-purchase-layout > .package-conversion-features {
+            grid-area: content;
+          }
+
+          .package-purchase-layout > .package-conversion-status {
+            grid-area: status;
+          }
+
+          .package-purchase-layout > .package-conversion-about {
+            grid-area: about;
+            margin-top: 0;
+          }
+
+          .package-purchase-layout .package-conversion-features,
+          .package-purchase-layout .package-conversion-status {
+            gap: 16px;
+          }
+
+          .package-purchase-layout .package-content-grid ul {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+          }
+
+          .package-booking-card {
+            box-shadow: 0 12px 30px rgb(52 39 23 / 6%);
+          }
+
+          .package-booking-card .package-travel-dates {
+            margin: 0 0 18px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid var(--public-line);
+          }
+
+          .package-booking-card .package-travel-dates-heading {
+            align-items: center;
+            margin-bottom: 10px;
+          }
+
+          .package-booking-card .package-travel-dates-heading h3 {
+            margin: 0;
+            color: var(--public-ink);
+            font-size: 0.9375rem;
+            font-weight: 700;
+          }
+
+          .package-booking-card .package-travel-dates-heading p {
+            margin: 3px 0 0;
+            color: var(--public-muted);
+            font-size: 0.75rem;
+            line-height: 1.4;
+          }
+
+          .package-date-nav {
+            display: flex;
+            gap: 8px;
+          }
+
+          .package-date-nav button {
+            display: grid;
+            width: 44px;
+            height: 44px;
+            place-items: center;
+            padding: 0;
+            border: 1px solid var(--public-line);
+            border-radius: 50%;
+            background: var(--package-surface);
+            color: var(--public-ink);
+            cursor: pointer;
+            transition:
+              border-color 140ms var(--package-ease-out),
+              transform 120ms var(--package-ease-out);
+          }
+
+          .package-date-nav .public-icon {
+            width: 18px;
+            height: 18px;
+          }
+
+          .package-date-nav button:first-child .public-icon {
+            transform: rotate(90deg);
+          }
+
+          .package-date-nav button:last-child .public-icon {
+            transform: rotate(-90deg);
+          }
+
+          .package-booking-card .package-date-scroller {
+            gap: 8px;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+          }
+
+          .package-booking-card .package-date-scroller::-webkit-scrollbar {
+            display: none;
+          }
+
+          .package-booking-card .package-date-card {
+            min-width: 178px;
+            min-height: 98px;
+            flex-basis: 178px;
+            padding: 12px 13px;
+          }
+
+          .package-payment-mode-options {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
+
+          .package-payment-mode label {
+            align-content: start;
+            min-height: 104px;
+          }
+
+          .package-price-breakdown {
+            margin-top: 20px;
+            padding-top: 20px;
+          }
+
+          .package-price-breakdown h3 {
+            margin-bottom: 14px;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 1.35rem;
+            font-weight: 500;
+          }
+
+          .package-price-breakdown dl {
+            gap: 0;
+          }
+
+          .package-price-breakdown dl > div {
+            align-items: start;
+            min-height: 46px;
+            padding: 10px 0;
+            border-bottom: 1px solid color-mix(in srgb, var(--public-line) 72%, transparent);
+            font-size: 0.8125rem;
+          }
+
+          .package-price-breakdown dt {
+            min-width: 0;
+          }
+
+          .package-price-breakdown dt small {
+            display: block;
+            margin-top: 3px;
+            color: var(--public-muted);
+            font-size: 0.6875rem;
+            font-weight: 400;
+          }
+
+          .package-price-breakdown dd {
+            max-width: 58%;
+            overflow-wrap: anywhere;
+          }
+
+          .package-price-pending {
+            color: var(--public-muted) !important;
+            font-weight: 600 !important;
+          }
+
+          .package-price-unit {
+            padding-block: 13px !important;
+          }
+
+          .package-discount-row dd,
+          .package-discount-row dd span {
+            color: var(--public-green-deep);
+          }
+
+          .package-discount-row dd span {
+            margin-right: 6px;
+            font-weight: 800;
+          }
+
+          .package-payment-commitment-row {
+            background: color-mix(in srgb, var(--package-success-soft) 60%, transparent);
+          }
+
+          .package-payment-commitment-row dt,
+          .package-payment-commitment-row dd {
+            color: var(--public-green-deep);
+            font-weight: 700;
+          }
+
+          .package-grand-total {
+            min-height: 62px !important;
+            align-items: center !important;
+            margin-top: 6px;
+            padding-top: 16px !important;
+            border-top: 1px solid var(--public-ink);
+            border-bottom: 0 !important;
+            color: var(--public-ink) !important;
+          }
+
+          .package-grand-total dt {
+            font-size: 1rem;
+            font-weight: 800;
+          }
+
+          .package-grand-total dd {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 1.55rem;
+            font-weight: 700;
+          }
+
+          .package-tax-note {
+            margin: 10px 0 0;
+            color: var(--public-muted);
+            font-size: 0.75rem;
+            line-height: 1.5;
+            text-align: center;
+          }
+
+          .package-date-nav button:focus-visible {
+            outline: 3px solid var(--public-gold);
+            outline-offset: 3px;
+          }
+
+          .package-date-nav button:active {
+            transform: scale(0.97);
+          }
+
+          @media (hover: hover) {
+            .package-date-nav button:hover {
+              border-color: var(--public-green);
+            }
+          }
+
+          @media (max-width: 1120px) {
+            .package-purchase-layout {
+              grid-template-columns: minmax(0, 1.3fr) minmax(340px, 0.8fr);
+              gap: 22px;
+            }
+
+            .package-story-hero {
+              grid-template-columns: 1fr;
+            }
+
+            .package-story-hero .package-conversion-gallery {
+              min-height: 380px;
+            }
+          }
+
+          @media (max-width: 900px) {
+            .package-purchase-layout {
+              grid-template-columns: 1fr;
+              grid-template-areas:
+                "hero"
+                "booking"
+                "journey"
+                "content"
+                "status"
+                "about";
+              gap: 18px;
+            }
+
+            .package-story-hero {
+              gap: 14px;
+            }
+
+            .package-story-hero .package-conversion-gallery {
+              min-height: 330px;
+            }
+
+            .package-payment-mode-options {
+              grid-template-columns: 1fr;
+            }
+
+            .package-payment-mode label {
+              min-height: 72px;
+            }
+
+            .package-purchase-layout .package-content-grid ul {
+              grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+          }
+
+          @media (max-width: 520px) {
+            .package-booking-card {
+              padding: 16px;
+            }
+
+            .package-booking-card .package-travel-dates-heading {
+              gap: 10px;
+            }
+
+            .package-booking-card .package-travel-dates-heading p {
+              font-size: 0.8125rem;
+            }
+
+            .package-booking-card .package-date-card {
+              min-width: 168px;
+              flex-basis: 168px;
+            }
+
+            .package-purchase-layout .package-content-grid ul {
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .package-price-breakdown dl > div {
+              gap: 12px;
+              font-size: 0.875rem;
+            }
+
+            .package-price-breakdown dd {
+              max-width: 54%;
+            }
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .package-date-nav button {
+              transition-duration: 0.01ms;
+            }
+          }
+          ''')
+
+          plan = "apps/web/app/packages/[departureId]/plan/page.tsx"
+          replace_once(plan, 'const [paymentMode, setPaymentMode] = useState<PaymentMode>("milestone");', 'const [paymentMode, setPaymentMode] = useState<PaymentMode>("pay-full");')
+          replace_once(plan, '          : "milestone",', '          : "pay-full",')
+          replace_once(
+              plan,
+              '  const [savingTraveller, setSavingTraveller] = useState(false);',
+              '  const [savingTraveller, setSavingTraveller] = useState(false);\n  const [showTravellerForm, setShowTravellerForm] = useState(false);'
+          )
+          replace_once(
+              plan,
+              '      setDateOfBirth("");\n      if (',
+              '      setDateOfBirth("");\n      setShowTravellerForm(false);\n      if ('
+          )
+
+          plan_text = Path(plan).read_text()
+          plan_text = plan_text.replace(
+              '''                                <span>\n                                  <strong>{traveller.fullName}</strong>\n                                  <small>\n                                    Born {formatDate(traveller.dateOfBirth)}\n                                  </small>\n                                </span>''',
+              '''                                <span>\n                                  <strong>{traveller.fullName}</strong>\n                                </span>'''
+          )
+          form_pattern = re.compile(r'''\n\s*<form\n\s*className="traveller-add-form"\n\s*onSubmit=\{addTraveller\}\n\s*>.*?</form>''', re.S)
+          form_replacement = r'''
+
+                      <button
+                        className="traveller-add-toggle"
+                        type="button"
+                        disabled={selectionLocked}
+                        aria-expanded={showTravellerForm}
+                        onClick={() => setShowTravellerForm((value) => !value)}
+                      >
+                        <span aria-hidden="true">+</span> Add traveller
+                      </button>
+
+                      {showTravellerForm ? (
+                        <form className="traveller-add-form" onSubmit={addTraveller}>
+                          <div className="traveller-add-heading">
+                            <strong>Add an adult traveller</strong>
+                            <small>
+                              Start with their name. Date of birth confirms adult eligibility before saving.
+                            </small>
+                          </div>
+                          {travellerErrors.form ? (
+                            <p className="field-error" role="alert">
+                              {travellerErrors.form}
+                            </p>
+                          ) : null}
+                          <label>
+                            <span>Full name</span>
+                            <input
+                              type="text"
+                              autoComplete="name"
+                              value={fullName}
+                              disabled={selectionLocked}
+                              onChange={(event) => setFullName(event.target.value)}
+                              aria-invalid={Boolean(travellerErrors.fullName)}
+                              aria-describedby={travellerErrors.fullName ? "traveller-name-error" : undefined}
+                            />
+                            {travellerErrors.fullName ? (
+                              <small className="field-error" id="traveller-name-error">
+                                {travellerErrors.fullName}
+                              </small>
+                            ) : null}
+                          </label>
+                          <label>
+                            <span>Date of birth</span>
+                            <input
+                              type="date"
+                              value={dateOfBirth}
+                              disabled={selectionLocked}
+                              onChange={(event) => setDateOfBirth(event.target.value)}
+                              aria-invalid={Boolean(travellerErrors.dateOfBirth)}
+                              aria-describedby={travellerErrors.dateOfBirth ? "traveller-dob-error" : undefined}
+                            />
+                            {travellerErrors.dateOfBirth ? (
+                              <small className="field-error" id="traveller-dob-error">
+                                {travellerErrors.dateOfBirth}
+                              </small>
+                            ) : null}
+                          </label>
+                          <div className="traveller-add-actions">
+                            <button type="submit" disabled={savingTraveller || selectionLocked}>
+                              {savingTraveller ? "Adding traveller…" : "Save traveller"}
+                            </button>
+                            <button
+                              type="button"
+                              className="traveller-add-cancel"
+                              onClick={() => setShowTravellerForm(false)}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      ) : null}'''
+          plan_text, count = form_pattern.subn(form_replacement, plan_text, count=1)
+          if count != 1:
+              raise SystemExit(f"Traveller form replacement count: {count}")
+          Path(plan).write_text(plan_text)
+
+          phone_sign_in = r'''function SignInNotice({ action = "create your quote" }: { action?: string }) {
+            const [mobile, setMobile] = useState("");
+            const [showCodePreview, setShowCodePreview] = useState(false);
+
+            const previewOtp = (event: FormEvent<HTMLFormElement>) => {
+              event.preventDefault();
+              setShowCodePreview(true);
+            };
+
+            return (
+              <section className="plan-phone-auth" aria-labelledby="phone-auth-title">
+                <div className="plan-phone-auth-heading">
+                  <Icon name="user-circle" />
+                  <span>
+                    <strong id="phone-auth-title">Login or sign up with phone OTP</strong>
+                    <small>
+                      Continue securely to add travellers and {action}. No password is required.
+                    </small>
+                  </span>
+                </div>
+
+                <form className="plan-phone-auth-form" onSubmit={previewOtp}>
+                  <label htmlFor="booking-mobile-number">Mobile number</label>
+                  <div className="plan-phone-field">
+                    <span aria-hidden="true">+91</span>
+                    <input
+                      id="booking-mobile-number"
+                      type="tel"
+                      inputMode="numeric"
+                      autoComplete="tel-national"
+                      pattern="[0-9]{10}"
+                      maxLength={10}
+                      placeholder="10-digit mobile number"
+                      value={mobile}
+                      onChange={(event) => setMobile(event.target.value.replace(/\\D/g, ""))}
+                      required
+                    />
+                  </div>
+                  <button type="submit">Send Code</button>
+                </form>
+
+                {showCodePreview ? (
+                  <div className="plan-otp-preview" role="status">
+                    <label htmlFor="booking-otp-code">Verification code</label>
+                    <input id="booking-otp-code" inputMode="numeric" placeholder="6-digit code" disabled />
+                    <button type="button" disabled>Verify &amp; continue</button>
+                    <p>
+                      OTP setup preview only — no code was sent. Delivery activates when the SMS provider is configured.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="plan-phone-auth-note">
+                    Phone OTP delivery is being configured. Your package selections stay on this page.
+                  </p>
+                )}
+              </section>
+            );
+          }'''
+          replace_section(plan, "function SignInNotice", "function PlanLoading", phone_sign_in)
+
+          plan_css = Path("apps/web/app/plan.css")
+          plan_css.write_text(plan_css.read_text() + r'''
+
+          /* VS-37: phone OTP preview and progressive traveller entry */
+          .traveller-choice {
+            grid-template-columns: auto 38px 1fr;
+          }
+
+          .traveller-choice > span:last-child {
+            align-content: center;
+          }
+
+          .traveller-add-toggle {
+            display: inline-flex;
+            min-height: 44px;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 14px;
+            padding: 0 16px;
+            border: 1px solid var(--public-green);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--public-green-deep);
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.8125rem;
+            font-weight: 700;
+          }
+
+          .traveller-add-toggle > span {
+            font-size: 1.25rem;
+            line-height: 1;
+          }
+
+          .traveller-add-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+
+          .traveller-add-actions > button {
+            min-width: 116px;
+          }
+
+          .traveller-add-cancel {
+            border-color: var(--public-line) !important;
+            background: var(--public-paper) !important;
+            color: var(--public-ink) !important;
+          }
+
+          .plan-phone-auth {
+            display: grid;
+            gap: 16px;
+            margin-top: 8px;
+            padding: clamp(18px, 3vw, 24px);
+            border: 1px solid var(--public-line);
+            border-radius: 12px;
+            background: var(--public-paper);
+          }
+
+          .plan-phone-auth-heading {
+            display: grid;
+            grid-template-columns: 34px minmax(0, 1fr);
+            gap: 12px;
+            align-items: start;
+          }
+
+          .plan-phone-auth-heading .public-icon {
+            width: 28px;
+            height: 28px;
+          }
+
+          .plan-phone-auth-heading > span {
+            display: grid;
+            gap: 5px;
+          }
+
+          .plan-phone-auth-heading strong {
+            color: var(--public-ink);
+            font-size: 1rem;
+          }
+
+          .plan-phone-auth-heading small,
+          .plan-phone-auth-note,
+          .plan-otp-preview p {
+            color: var(--public-muted);
+            font-size: 0.8125rem;
+            line-height: 1.5;
+          }
+
+          .plan-phone-auth-form {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 8px 10px;
+          }
+
+          .plan-phone-auth-form > label {
+            grid-column: 1 / -1;
+            color: var(--public-ink);
+            font-size: 0.8125rem;
+            font-weight: 700;
+          }
+
+          .plan-phone-field {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            min-height: 48px;
+            align-items: center;
+            overflow: hidden;
+            border: 1px solid var(--public-line);
+            border-radius: 8px;
+            background: #fff;
+          }
+
+          .plan-phone-field > span {
+            padding: 0 12px;
+            border-right: 1px solid var(--public-line);
+            color: var(--public-muted);
+            font-size: 0.9375rem;
+            font-weight: 650;
+          }
+
+          .plan-phone-field input,
+          .plan-otp-preview input {
+            width: 100%;
+            min-height: 46px;
+            box-sizing: border-box;
+            padding: 0 12px;
+            border: 0;
+            background: #fff;
+            color: var(--public-ink);
+            font: inherit;
+            font-size: 1rem;
+          }
+
+          .plan-phone-auth-form > button,
+          .plan-otp-preview > button {
+            min-height: 48px;
+            padding: 0 18px;
+            border: 1px solid var(--public-green);
+            border-radius: 8px;
+            background: var(--public-green);
+            color: #fff;
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.875rem;
+            font-weight: 700;
+          }
+
+          .plan-phone-auth-note {
+            margin: -4px 0 0;
+          }
+
+          .plan-otp-preview {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 8px 10px;
+            padding-top: 14px;
+            border-top: 1px solid var(--public-line);
+          }
+
+          .plan-otp-preview > label,
+          .plan-otp-preview > p {
+            grid-column: 1 / -1;
+          }
+
+          .plan-otp-preview > label {
+            font-size: 0.8125rem;
+            font-weight: 700;
+          }
+
+          .plan-otp-preview input {
+            border: 1px solid var(--public-line);
+            border-radius: 8px;
+          }
+
+          .plan-otp-preview input:disabled,
+          .plan-otp-preview button:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+          }
+
+          .plan-otp-preview p {
+            margin: 0;
+          }
+
+          .traveller-add-toggle:focus-visible,
+          .plan-phone-auth button:focus-visible,
+          .plan-phone-auth input:focus-visible,
+          .traveller-add-cancel:focus-visible {
+            outline: 3px solid var(--public-gold);
+            outline-offset: 3px;
+          }
+
+          @media (hover: hover) and (pointer: fine) {
+            .traveller-add-toggle:hover {
+              border-color: var(--public-green-deep);
+              background: var(--public-ivory);
+            }
+          }
+
+          @media (max-width: 640px) {
+            .plan-phone-auth-form,
+            .plan-otp-preview {
+              grid-template-columns: 1fr;
+            }
+
+            .plan-phone-auth-form > button,
+            .plan-otp-preview > button,
+            .traveller-add-toggle {
+              width: 100%;
+            }
+
+            .plan-otp-preview > label,
+            .plan-otp-preview > p {
+              grid-column: auto;
+            }
+
+            .traveller-add-actions {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+            }
+          }
+          ''')
+
+          # Keep VS-08 milestone tests explicit while customer defaults switch to Pay Full.
+          replace_once(
+              "apps/web/e2e/plan-journey.spec.ts",
+              '  await page.goto(`/packages/${departureId}/plan`);',
+              '  await page.goto(`/packages/${departureId}/plan?paymentMode=milestone`);'
+          )
+
+          package_test = Path("apps/web/e2e/package-details.spec.ts")
+          test_text = package_test.read_text()
+          test_text = test_text.replace(
+              '''  await expect(page.getByRole("radio", { name: /Pay Full/ })).toBeVisible();\n  await expect(page.getByRole("radio", { name: /Milestone/ })).toBeChecked();\n  await expect(page.getByRole("radio", { name: /Pay Later/ })).toBeVisible();\n  await expect(\n    page.getByRole("heading", { name: "Milestone payment breakdown" }),\n  ).toBeVisible();\n  await expect(page.getByText("₹88,000").first()).toBeVisible();\n\n  await page.getByRole("radio", { name: /Pay Full/ }).check();\n  await expect(\n    page.getByRole("heading", { name: "Pay full breakdown" }),\n  ).toBeVisible();\n  await expect(\n    page.locator(".package-payment-breakdown").getByText("₹2,20,000"),\n  ).toBeVisible();''',
+              '''  await expect(page.getByRole("radio", { name: /Pay Full/ })).toBeChecked();\n  await expect(page.getByRole("radio", { name: /Milestone/ })).toBeVisible();\n  await expect(page.getByRole("radio", { name: /Pay Later/ })).toBeVisible();\n  await expect(\n    page.getByRole("heading", { name: "Pay full breakdown" }),\n  ).toBeVisible();\n  await expect(\n    page.locator(".package-payment-breakdown").getByText("₹2,20,000"),\n  ).toBeVisible();\n\n  await expect(page.getByText("Airline", { exact: true })).toBeVisible();\n  await expect(page.getByText("Departure Route", { exact: true })).toBeVisible();\n  await expect(page.getByText("Return Route", { exact: true })).toBeVisible();\n  await expect(page.getByText("Total Price Before Discount")).toBeVisible();\n  await expect(page.getByText("Discount", { exact: true })).toBeVisible();\n  await expect(page.getByText("No published discount")).toBeVisible();\n  await expect(page.getByText("Total Price After Discount")).toBeVisible();\n  await expect(page.getByText("Service Provider")).toBeVisible();\n  await expect(page.getByText("Powered & Supported by")).toBeVisible();\n  await expect(page.getByText("NoorPath", { exact: true }).last()).toBeVisible();\n\n  await page.getByRole("radio", { name: /Milestone/ }).check();\n  await expect(\n    page.getByRole("heading", { name: "Milestone payment breakdown" }),\n  ).toBeVisible();\n  await expect(page.getByText("₹88,000").first()).toBeVisible();'''
+          )
+          test_text = test_text.replace(
+              '''    new RegExp(\n      `/packages/${departureId}/plan\\\\?occupancy=quad&paymentMode=pay-later`,\n    ),''',
+              '''    new RegExp(\n      `/packages/${departureId}/plan\\\\?occupancy=quad&paymentMode=pay-later`,\n    ),'''
+          )
+          insert_before = 'test("package detail exposes safe unavailable and retry states"'
+          otp_test = r'''test("Book now preserves Pay Full by default and shows the phone OTP design boundary", async ({
+            page,
+          }) => {
+            await page.route("**/api/v1/travellers", (route) =>
+              route.fulfill({ status: 401, json: { title: "Sign in required" } }),
+            );
+            await page.goto(`/packages/${departureId}`);
+
+            await expect(page.getByRole("radio", { name: /Pay Full/ })).toBeChecked();
+            await expect(page.getByRole("button", { name: "Previous travel dates" })).toBeVisible();
+            await expect(page.getByRole("button", { name: "Next travel dates" })).toBeVisible();
+
+            const bookNow = page.locator(".package-book-now");
+            await expect(bookNow).toHaveAttribute(
+              "href",
+              new RegExp(`/packages/${departureId}/plan\\?occupancy=double&paymentMode=pay-full`),
+            );
+            await bookNow.click();
+            await expect(page).toHaveURL(
+              new RegExp(`/packages/${departureId}/plan\\?occupancy=double&paymentMode=pay-full`),
+            );
+            await expect(
+              page.getByRole("heading", { name: "Build your Umrah plan" }),
+            ).toBeVisible();
+            await expect(page.getByText("Login or sign up with phone OTP")).toBeVisible();
+            await page.getByLabel("Mobile number").fill("9876543210");
+            await page.getByRole("button", { name: "Send Code" }).click();
+            await expect(page.getByText(/no code was sent/i)).toBeVisible();
+            await expect(page.getByLabel("Verification code")).toBeDisabled();
+            await expectNoA11yViolations(page);
+          });
+
+          '''
+          if insert_before not in test_text:
+              raise SystemExit("Package details test insertion point missing")
+          test_text = test_text.replace(insert_before, otp_test + insert_before, 1)
+          package_test.write_text(test_text)
+
+          # Add authenticated traveller progressive-entry coverage to existing plan test file.
+          plan_test = Path("apps/web/e2e/plan-journey.spec.ts")
+          plan_test_text = plan_test.read_text()
+          marker = 'test("VS-08 renders the authoritative quote and active inventory hold accessibly"'
+          traveller_test = r'''test("authenticated traveller step shows names first and adds travellers progressively", async ({
+            page,
+          }) => {
+            await mockPlanApis(page);
+            await page.goto(`/packages/${departureId}/plan?paymentMode=milestone`);
+
+            await expect(page.getByText("Amina Khan", { exact: true })).toBeVisible();
+            await expect(page.getByText("Born 17 May 1994")).toHaveCount(0);
+            const addTraveller = page.getByRole("button", { name: "Add traveller" });
+            await expect(addTraveller).toBeVisible();
+            await addTraveller.click();
+            await expect(page.getByLabel("Full name")).toBeVisible();
+            await expect(page.getByLabel("Date of birth")).toBeVisible();
+            await expect(page.getByText(/Date of birth confirms adult eligibility/)).toBeVisible();
+            await expect(page.getByRole("button", { name: "Cancel" })).toBeVisible();
+            await expectNoA11yViolations(page);
+          });
+
+          '''
+          if marker not in plan_test_text:
+              raise SystemExit("Plan test insertion point missing")
+          plan_test.write_text(plan_test_text.replace(marker, traveller_test + marker, 1))
+
+          # Slice documentation and manifest.
+          Path("docs/slices/VS-37-PACKAGE-BOOKING-COMPOSITION.md").write_text('''# VS-37 — Package Booking Composition & OTP Preview\n\n## Status\nCorrective customer-flow slice after Product Owner review of VS-36. Keep unmerged until rendered visual review and exact-head Product Owner acceptance.\n\n## Outcome\nPackage Details becomes one continuous purchase-decision dossier: image and operator facts lead, itinerary and operator-authored package content follow directly below, while one compact booking rail contains in-place travel dates, guests, room sharing, three payment choices, transparent price breakdown and Book now. Book now leads to a truthful phone-OTP preview until the SMS provider is configured, then authenticated customers can reveal Add traveller and enter traveller details progressively.\n\n## Design workflow used\n- Design Taste Frontend for the Package surface composition.\n- UI UX Pro Max for reading order, date navigation, form semantics, touch targets and responsive reflow.\n- Impeccable layout/context + craft-floor for grouping, rhythm and drift control.\n- Emil Design Engineering for short press/state feedback only.\n- Ponytail full mode for minimum-change implementation.\n\nApproved NoorPath Landing/Package references and `design-system/MASTER.md` remain visual authority.\n\n## Scope\n- Remove the detached top travel-date region and replace the booking card's static Travel date row with Available Travel Dates.\n- Add previous/next controls plus the existing swipe/scroll rail, keeping same-origin, selected and sold-out semantics.\n- Recompose desktop into a story column plus booking rail with Your itinerary and Package includes immediately below the hero/operator block.\n- Make Pay Full the default while preserving explicit Milestone and Pay Later selection.\n- Show a detailed pre-booking price breakdown including airline/route disclosure, unit price, before-discount total, discount placeholder, after-discount total, service provider, NoorPath support, pay-today/remaining commitment, total and statutory-charge note.\n- Never invent discounts or airline facts: unpublished discount is zero and airline/return routing remain explicitly to be confirmed.\n- On unauthenticated Book now flow show the intended phone OTP form without transmitting the phone number or pretending a code was sent before provider configuration.\n- After authenticated traveller load, show traveller names and reveal the existing authoritative name + DOB form only after Add traveller is pressed.\n\n## Acceptance criteria\n- [ ] No detached empty gap remains between the page lead and booking content.\n- [ ] Available Travel Dates occupies the booking rail's travel-date position and has 44px previous/next controls.\n- [ ] Same-origin sibling navigation, sold-out state and browser back still work.\n- [ ] On desktop, itinerary and package content appear directly below image/operator facts while booking controls remain in the right rail.\n- [ ] Pay Full is selected when no payment mode was explicitly supplied and its Book now link carries `paymentMode=pay-full`.\n- [ ] Milestone and Pay Later continue to show the governed payment commitment.\n- [ ] Price Breakdown is visible before Book now and never fabricates discounts, airline or taxes.\n- [ ] Unauthenticated Book now shows phone OTP design, and the preview explicitly states that no code was sent while SMS is unconfigured.\n- [ ] Authenticated traveller cards prioritize names; Add traveller progressively reveals the existing eligibility fields.\n- [ ] Desktop, mobile, keyboard, focus, target-size, axe, 200-percent-text, reduced-motion and no-horizontal-overflow checks pass.\n- [ ] Product Owner visually accepts exact-head screenshots before merge.\n\n## Explicit exclusions\n- Real SMS/OTP delivery or provider configuration.\n- Discount/promotion persistence or calculation.\n- Airline/supplier integration.\n- Child/infant pricing or booking.\n- Traveller schema relaxation or removal of adult eligibility validation.\n- Database migrations.\n- Deployment before explicit authorization.\n\n## Merge rule\nDo not merge until exact-head CI, Rendered Slice Review and Navigation Reachability pass, no unresolved review thread remains, and Product Owner acceptance is recorded for the final SHA. Deployment remains separately authorized.\n''')
+
+          Path("docs/slices/VS-37-IMPLEMENTATION-CHECKLIST.md").write_text('''# VS-37 Implementation Checklist\n\n- [x] Read governance, MASTER and required design skills before UI edits.\n- [x] Run Impeccable context and pre-change layout scan.\n- [x] Move Available Travel Dates into booking rail and add previous/next controls.\n- [x] Recompose hero/operator → itinerary/includes reading order and remove three-column gap.\n- [x] Default Pay Full while preserving Milestone and Pay Later.\n- [x] Add truthful full Price Breakdown before Book now.\n- [x] Add design-only phone OTP boundary with explicit no-code-sent state.\n- [x] Add progressive Add traveller reveal while preserving DOB eligibility validation.\n- [x] Update rendered/navigation tests.\n- [ ] Run formatter and Impeccable final detector.\n- [ ] Exact-head CI.\n- [ ] Exact-head Rendered Slice Review.\n- [ ] Exact-head Navigation Reachability.\n- [ ] Product Owner screenshot acceptance.\n- [ ] Merge Gate.\n''')
+
+          Path("docs/slices/VS-37-NAVIGATION-VERIFICATION.md").write_text('''# VS-37 Navigation Verification\n\n| Journey | Runnable evidence | Expected result |\n| --- | --- | --- |\n| Package → sibling available date | `apps/web/e2e/package-details.spec.ts` — `available same-origin dates navigate and browser back returns safely` | Available sibling opens; browser back restores selected departure. |\n| Package → date rail controls | `apps/web/e2e/package-details.spec.ts` — `Book now preserves Pay Full by default and shows the phone OTP design boundary` | Previous/Next controls are reachable 44px controls in the in-place rail. |\n| Package → Book now | `apps/web/e2e/package-details.spec.ts` — `Book now preserves Pay Full by default and shows the phone OTP design boundary` | Occupancy and default `paymentMode=pay-full` reach planner. |\n| Book now unauthenticated → phone OTP preview | same test | Phone field + Send Code visible; no-code-sent status appears; no SMS request is fabricated. |\n| Authenticated planner → Add traveller | `apps/web/e2e/plan-journey.spec.ts` — `authenticated traveller step shows names first and adds travellers progressively` | Traveller names visible; Add traveller reveals name + DOB eligibility form. |\n''')
+
+          Path("docs/design/VS-37-DESIGN-NOTES.md").write_text('''# VS-37 Design Notes\n\n## Design read\nPackage Details is a purchase-decision dossier. The main column tells the journey story continuously; the booking rail handles choices and commercial disclosure.\n\n## Spatial thesis\n- Lead: package imagery + verified operator/stay facts.\n- Immediately below: itinerary, inclusions/exclusions, status/terms and package narrative.\n- Support rail: available dates → guests → room → payment mode → payment schedule → full price breakdown → Book now.\n- Mobile: hero first, booking rail second, then itinerary/content; the sticky bottom summary keeps the primary action continuously reachable.\n\n## Truth boundaries\n- Airline is `To be confirmed` until supplier data exists.\n- Discount UI is structurally present but explicitly `0% / ₹0` with `No published discount` until governed discount data exists.\n- Tax copy promises disclosure before payment, not a fabricated tax amount.\n- OTP form is a preview while SMS is not configured and never claims a code was sent.\n\n## Interaction\n- Date navigation offers visible previous/next buttons plus native horizontal scrolling.\n- No decorative motion. Press feedback stays short and reduced-motion safe.\n- Add traveller uses progressive disclosure to keep the authenticated step name-first without weakening adult eligibility validation.\n''')
+
+          manifest = {
+            "id": "VS-37",
+            "title": "Package Booking Composition & OTP Preview",
+            "slug": "package-booking-composition",
+            "outcome": "Customers review one continuous Package dossier with in-place travel dates, Pay Full by default, transparent commercial breakdown, a truthful phone-OTP preview and progressive traveller entry.",
+            "actor": "Prospective customer evaluating and starting a published NoorPath booking.",
+            "dependsOn": ["VS-36", "VS-29"],
+            "modules": [
+              "Web Package Details composition reuses existing public departure, pricing and operator projections.",
+              "Planner authentication boundary remains server-authoritative; VS-37 adds only a non-sending phone OTP preview while SMS is unconfigured.",
+              "Traveller persistence and adult eligibility remain unchanged; UI only changes progressive disclosure.",
+              "Approved NoorPath Package references and design-system/MASTER.md remain visual authority."
+            ],
+            "routes": [
+              "Public discovery -> /packages/{departureId} -> recomposed Package Details.",
+              "Package Details Available Travel Dates -> sibling /packages/{departureId}.",
+              "Package Details -> Pay Full(default), Milestone or Pay Later -> matching pre-booking commitment.",
+              "Package Details -> Book now -> /packages/{departureId}/plan with occupancy and paymentMode preserved.",
+              "Planner unauthenticated -> phone OTP design preview; no network delivery while provider is absent.",
+              "Planner authenticated -> Add traveller -> existing authoritative traveller creation."
+            ],
+            "acceptance": [
+              "Available Travel Dates replaces the detached travel-date treatment and supports visible previous/next navigation.",
+              "Itinerary and package content follow image/operator facts without the previous three-column gap.",
+              "Pay Full is the default and all three payment modes preserve truthful commitment values.",
+              "Price Breakdown appears before Book now and shows explicit zero/unpublished discount and unconfirmed airline where authoritative data is absent.",
+              "Book now unauthenticated shows phone OTP design without claiming or sending a code before provider setup.",
+              "Authenticated traveller cards show names first and Add traveller progressively reveals the eligibility form.",
+              "Desktop, mobile, keyboard, focus, target-size, axe, 200-percent-text, reduced-motion and no-horizontal-overflow checks pass.",
+              "Product Owner visually accepts screenshots for the exact final SHA before merge."
+            ],
+            "exclusions": [
+              "Real SMS/OTP provider configuration or delivery.",
+              "Discount/promotion domain logic or persistence.",
+              "Airline/supplier integration or invented route data.",
+              "Child/infant pricing, traveller schema changes or database migrations.",
+              "Production deployment before explicit authorization."
+            ],
+            "qualityGates": [
+              "slice-governance", "format", "static-analysis", "unit", "integration",
+              "architecture", "component", "migration", "security", "journey-linking",
+              "navigation-reachability", "telemetry", "accessibility", "keyboard", "focus",
+              "target-size", "responsive-reflow", "rendered-regression", "design-token-consistency",
+              "product-owner"
+            ],
+            "rendered": {"enabled": True, "testFile": "apps/web/e2e/package-details.spec.ts"},
+            "specPath": "docs/slices/VS-37-PACKAGE-BOOKING-COMPOSITION.md",
+            "checklistPath": "docs/slices/VS-37-IMPLEMENTATION-CHECKLIST.md",
+            "navigationPath": "docs/slices/VS-37-NAVIGATION-VERIFICATION.md"
+          }
+          Path("delivery/slices/VS-37.json").write_text(json.dumps(manifest, indent=2) + "\n")
+          PY
+      - name: Format changed files
+        run: |
+          pnpm --dir apps/web exec prettier --write \
+            'app/packages/[departureId]/page.tsx' \
+            'app/packages/[departureId]/package-conversion.css' \
+            'app/packages/[departureId]/plan/page.tsx' \
+            'app/plan.css' \
+            'e2e/package-details.spec.ts' \
+            'e2e/plan-journey.spec.ts' \
+            '../../delivery/slices/VS-37.json'
+      - name: Final Impeccable detector
+        run: node .agents/skills/impeccable/scripts/detect.mjs --json 'apps/web/app/packages/[departureId]/page.tsx' 'apps/web/app/packages/[departureId]/package-conversion.css' 'apps/web/app/packages/[departureId]/plan/page.tsx' 'apps/web/app/plan.css'
+      - name: Commit implementation
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/web/app/packages/'[departureId]'/page.tsx apps/web/app/packages/'[departureId]'/package-conversion.css apps/web/app/packages/'[departureId]'/plan/page.tsx apps/web/app/plan.css apps/web/e2e/package-details.spec.ts apps/web/e2e/plan-journey.spec.ts docs/slices/VS-37-PACKAGE-BOOKING-COMPOSITION.md docs/slices/VS-37-IMPLEMENTATION-CHECKLIST.md docs/slices/VS-37-NAVIGATION-VERIFICATION.md docs/design/VS-37-DESIGN-NOTES.md delivery/slices/VS-37.json
+          git commit -m 'VS-37 recompose package booking journey'
+          git push origin HEAD:agent/vs37-package-booking-composition
