@@ -1,0 +1,68 @@
+{
+  "id": "VS-37",
+  "title": "Package Booking Composition & OTP Preview",
+  "slug": "package-booking-composition",
+  "outcome": "Customers review one continuous Package dossier with in-place travel dates, Pay Full by default, transparent commercial breakdown, a truthful phone-OTP preview and progressive traveller entry.",
+  "actor": "Prospective customer evaluating and starting a published NoorPath booking.",
+  "dependsOn": ["VS-36", "VS-29"],
+  "modules": [
+    "Web Package Details composition reuses existing public departure, pricing and operator projections.",
+    "Planner authentication boundary remains server-authoritative; VS-37 adds only a non-sending phone OTP preview while SMS is unconfigured.",
+    "Traveller persistence and adult eligibility remain unchanged; UI only changes progressive disclosure.",
+    "Approved NoorPath Package references and design-system/MASTER.md remain visual authority."
+  ],
+  "routes": [
+    "Public discovery -> /packages/{departureId} -> recomposed Package Details.",
+    "Package Details Available Travel Dates -> sibling /packages/{departureId}.",
+    "Package Details -> Pay Full(default), Milestone or Pay Later -> matching pre-booking commitment.",
+    "Package Details -> Book now -> /packages/{departureId}/plan with occupancy and paymentMode preserved.",
+    "Planner unauthenticated -> phone OTP design preview; no network delivery while provider is absent.",
+    "Planner authenticated -> Add traveller -> existing authoritative traveller creation."
+  ],
+  "acceptance": [
+    "Available Travel Dates replaces the detached travel-date treatment and supports visible previous/next navigation.",
+    "Itinerary and package content follow image/operator facts without the previous three-column gap.",
+    "Pay Full is the default and all three payment modes preserve truthful commitment values.",
+    "Price Breakdown appears before Book now and shows explicit zero/unpublished discount and unconfirmed airline where authoritative data is absent.",
+    "Book now unauthenticated shows phone OTP design without claiming or sending a code before provider setup.",
+    "Authenticated traveller cards show names first and Add traveller progressively reveals the eligibility form.",
+    "Desktop, mobile, keyboard, focus, target-size, axe, 200-percent-text, reduced-motion and no-horizontal-overflow checks pass.",
+    "Product Owner visually accepts screenshots for the exact final SHA before merge."
+  ],
+  "exclusions": [
+    "Real SMS/OTP provider configuration or delivery.",
+    "Discount/promotion domain logic or persistence.",
+    "Airline/supplier integration or invented route data.",
+    "Child/infant pricing, traveller schema changes or database migrations.",
+    "Production deployment before explicit authorization."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "component",
+    "migration",
+    "security",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "keyboard",
+    "focus",
+    "target-size",
+    "responsive-reflow",
+    "rendered-regression",
+    "design-token-consistency",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "apps/web/e2e/package-details.spec.ts"
+  },
+  "specPath": "docs/slices/VS-37-PACKAGE-BOOKING-COMPOSITION.md",
+  "checklistPath": "docs/slices/VS-37-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-37-NAVIGATION-VERIFICATION.md"
+}

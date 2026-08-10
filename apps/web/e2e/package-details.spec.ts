@@ -245,23 +245,38 @@ test("guest categories, room sharing and payment breakdown are visible before bo
     page.getByRole("radio", { name: /Double sharing/ }),
   ).toBeChecked();
   await expect(page.getByText("₹2,20,000").first()).toBeVisible();
-  await expect(page.getByText("₹44,000").first()).toBeVisible();
-  await expect(page.getByText("₹1,76,000").first()).toBeVisible();
-  await expect(page.getByRole("radio", { name: /Pay Full/ })).toBeVisible();
-  await expect(page.getByRole("radio", { name: /Milestone/ })).toBeChecked();
+  await expect(page.getByRole("radio", { name: /Pay Full/ })).toBeChecked();
+  await expect(page.getByRole("radio", { name: /Milestone/ })).toBeVisible();
   await expect(page.getByRole("radio", { name: /Pay Later/ })).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Milestone payment breakdown" }),
-  ).toBeVisible();
-  await expect(page.getByText("₹88,000").first()).toBeVisible();
-
-  await page.getByRole("radio", { name: /Pay Full/ }).check();
   await expect(
     page.getByRole("heading", { name: "Pay full breakdown" }),
   ).toBeVisible();
   await expect(
     page.locator(".package-payment-breakdown").getByText("₹2,20,000"),
   ).toBeVisible();
+
+  await expect(page.getByText("Airline", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Departure Route", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Return Route", { exact: true })).toBeVisible();
+  await expect(page.getByText("Total Price Before Discount")).toBeVisible();
+  const discountRow = page.locator(".package-discount-row");
+  await expect(discountRow).toContainText("Discount");
+  await expect(discountRow).toContainText("No published discount");
+  await expect(discountRow).toContainText("0%");
+  await expect(page.getByText("Total Price After Discount")).toBeVisible();
+  await expect(page.getByText("Service Provider")).toBeVisible();
+  await expect(page.getByText("Powered & Supported by")).toBeVisible();
+  await expect(
+    page.getByText("NoorPath", { exact: true }).last(),
+  ).toBeVisible();
+
+  await page.getByRole("radio", { name: /Milestone/ }).check();
+  await expect(
+    page.getByRole("heading", { name: "Milestone payment breakdown" }),
+  ).toBeVisible();
+  await expect(page.getByText("₹88,000").first()).toBeVisible();
 
   await page.getByRole("radio", { name: /Pay Later/ }).check();
   await expect(
@@ -286,6 +301,46 @@ test("guest categories, room sharing and payment breakdown are visible before bo
       `/packages/${departureId}/plan\\?occupancy=quad&paymentMode=pay-later`,
     ),
   );
+  await expectNoA11yViolations(page);
+});
+
+test("Book now preserves Pay Full by default and shows the phone OTP design boundary", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/travellers", (route) =>
+    route.fulfill({ status: 401, json: { title: "Sign in required" } }),
+  );
+  await page.goto(`/packages/${departureId}`);
+
+  await expect(page.getByRole("radio", { name: /Pay Full/ })).toBeChecked();
+  await expect(
+    page.getByRole("button", { name: "Previous travel dates" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Next travel dates" }),
+  ).toBeVisible();
+
+  const bookNow = page.locator(".package-book-now");
+  await expect(bookNow).toHaveAttribute(
+    "href",
+    new RegExp(
+      `/packages/${departureId}/plan\\?occupancy=double&paymentMode=pay-full`,
+    ),
+  );
+  await bookNow.click();
+  await expect(page).toHaveURL(
+    new RegExp(
+      `/packages/${departureId}/plan\\?occupancy=double&paymentMode=pay-full`,
+    ),
+  );
+  await expect(
+    page.getByRole("heading", { name: "Build your Umrah plan" }),
+  ).toBeVisible();
+  await expect(page.getByText("Login or sign up with phone OTP")).toBeVisible();
+  await page.getByLabel("Mobile number").fill("9876543210");
+  await page.getByRole("button", { name: "Send Code" }).click();
+  await expect(page.getByText(/no code was sent/i)).toBeVisible();
+  await expect(page.getByLabel("Verification code")).toBeDisabled();
   await expectNoA11yViolations(page);
 });
 
@@ -340,7 +395,10 @@ test("package details remain usable on mobile, at 200 percent text and reduced m
     page.getByRole("heading", { name: "Available Travel Dates" }),
   ).toBeVisible();
   await expect(page.getByText("Infants (0–2 years)")).toBeVisible();
-  await expect(page.getByText("₹44,000").first()).toBeVisible();
+  await expect(page.getByRole("radio", { name: /Pay Full/ })).toBeChecked();
+  await expect(
+    page.locator(".package-payment-breakdown").getByText("₹2,20,000"),
+  ).toBeVisible();
   await expect(
     page.getByRole("link", { name: /Book now/ }).first(),
   ).toBeVisible();

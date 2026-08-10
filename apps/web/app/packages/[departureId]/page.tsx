@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon, PublicFooter, PublicHeader } from "../../public-ui";
 import {
   PackageContentIcon,
@@ -190,7 +190,7 @@ function PackageExperience({ details }: { details: PackageDetails }) {
   const [occupancy, setOccupancy] = useState<Occupancy>(
     firstAvailable?.occupancy ?? "double",
   );
-  const [paymentMode, setPaymentMode] = useState<PaymentMode>("milestone");
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>("pay-full");
   const selected =
     details.pricing.occupancies.find(
       (item) => item.occupancy === occupancy && item.status === "available",
@@ -215,14 +215,15 @@ function PackageExperience({ details }: { details: PackageDetails }) {
           <span>{details.packageName}</span>
         </nav>
 
-        <TravelDates details={details} />
-
         <section
-          className="package-conversion-overview"
+          className="package-purchase-layout"
           aria-labelledby="package-title"
         >
-          <Gallery selected={selected} />
-          <OperatorSummary details={details} />
+          <div className="package-story-hero">
+            <Gallery selected={selected} />
+            <OperatorSummary details={details} />
+          </div>
+
           <BookingCard
             details={details}
             selected={selected}
@@ -230,21 +231,19 @@ function PackageExperience({ details }: { details: PackageDetails }) {
             onOccupancyChange={setOccupancy}
             onPaymentModeChange={setPaymentMode}
           />
-        </section>
 
-        <div className="package-conversion-content">
           <Journey details={details} />
           <PackageContent details={details} />
           <TrustAndTerms details={details} />
-        </div>
 
-        <section className="package-conversion-about">
-          <h2>About this package</h2>
-          <p>{details.summary}</p>
-          <p>
-            Published pricing, current room availability and payment commitments
-            are visible before you start booking.
-          </p>
+          <section className="package-conversion-about">
+            <h2>About this package</h2>
+            <p>{details.summary}</p>
+            <p>
+              Published pricing, current room availability and payment
+              commitments are visible before you start booking.
+            </p>
+          </section>
         </section>
       </main>
 
@@ -259,6 +258,7 @@ function PackageExperience({ details }: { details: PackageDetails }) {
 }
 
 function TravelDates({ details }: { details: PackageDetails }) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
   const dates = details.travelDates?.length
     ? details.travelDates
     : [
@@ -270,20 +270,40 @@ function TravelDates({ details }: { details: PackageDetails }) {
         },
       ];
 
+  const moveDates = (direction: -1 | 1) => {
+    scrollerRef.current?.scrollBy({ left: direction * 196, behavior: "auto" });
+  };
+
   return (
     <section
-      className="package-travel-dates"
+      className="package-travel-dates package-travel-dates-inline"
       aria-labelledby="travel-dates-title"
     >
       <div className="package-travel-dates-heading">
         <div>
-          <h2 id="travel-dates-title">Available Travel Dates</h2>
-          <p>Other published departures from {details.origin}</p>
+          <h3 id="travel-dates-title">Available Travel Dates</h3>
+          <p>Published departures from {details.origin}</p>
         </div>
-        <span>{dates.length} dates</span>
+        <div className="package-date-nav" aria-label="Travel date controls">
+          <button
+            type="button"
+            aria-label="Previous travel dates"
+            onClick={() => moveDates(-1)}
+          >
+            <Icon name="caret-down" />
+          </button>
+          <button
+            type="button"
+            aria-label="Next travel dates"
+            onClick={() => moveDates(1)}
+          >
+            <Icon name="caret-down" />
+          </button>
+        </div>
       </div>
       <div
         className="package-date-scroller"
+        ref={scrollerRef}
         aria-label={`Published ${details.origin} travel dates`}
       >
         {dates.map((option) => {
@@ -297,7 +317,7 @@ function TravelDates({ details }: { details: PackageDetails }) {
                 {soldOut ? <em>Sold out</em> : null}
               </span>
               <strong>{formatDate(option.departureDate)}</strong>
-              <span>{details.origin} → Jeddah</span>
+              <span>{formatDate(option.returnDate)} return</span>
             </>
           );
 
@@ -422,6 +442,7 @@ function BookingCard({
     ? paymentMode
     : "pay-full";
   const visibleFinancials = paymentPreview(financials, effectivePaymentMode);
+  const zeroDiscount = formatMoney(0, details.pricing.currency);
 
   return (
     <aside
@@ -430,16 +451,12 @@ function BookingCard({
     >
       <div className="package-booking-heading">
         <h2>Plan your booking</h2>
-        <p>Review the full commitment before you book.</p>
+        <p>
+          Choose the journey details and review the full price before Book now.
+        </p>
       </div>
 
-      <a className="package-selection-row" href="#travel-dates-title">
-        <span>
-          <strong>Travel date</strong>
-          <small>{formatDate(details.departureDate)}</small>
-        </span>
-        <span className="package-selection-change">Change</span>
-      </a>
+      <TravelDates details={details} />
 
       <GuestSelector
         details={details}
@@ -476,38 +493,6 @@ function BookingCard({
           </label>
         ))}
       </fieldset>
-
-      <div className="package-price-breakdown">
-        <h3>Price Breakdown</h3>
-        <dl>
-          <div>
-            <dt>
-              Adult · {formatMoney(selected.amount, details.pricing.currency)} ×{" "}
-              {financials.adultGuests}
-            </dt>
-            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
-          </div>
-          <div className="total">
-            <dt>Total package</dt>
-            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
-          </div>
-          <div className="due">
-            <dt>Pay today</dt>
-            <dd>
-              {formatMoney(visibleFinancials.dueNow, details.pricing.currency)}
-            </dd>
-          </div>
-          <div>
-            <dt>Remaining</dt>
-            <dd>
-              {formatMoney(
-                visibleFinancials.remaining,
-                details.pricing.currency,
-              )}
-            </dd>
-          </div>
-        </dl>
-      </div>
 
       <fieldset className="package-payment-mode">
         <legend>Payment Options</legend>
@@ -566,11 +551,93 @@ function BookingCard({
           ) : null}
         </div>
       </fieldset>
+
       <PaymentBreakdown
         financials={financials}
         currency={details.pricing.currency}
         mode={effectivePaymentMode}
       />
+
+      <section
+        className="package-price-breakdown"
+        aria-labelledby="price-breakdown-title"
+      >
+        <h3 id="price-breakdown-title">Price Breakdown</h3>
+        <dl>
+          <div>
+            <dt>Airline</dt>
+            <dd className="package-price-pending">To be confirmed</dd>
+          </div>
+          <div>
+            <dt>Departure Route</dt>
+            <dd>{details.travel.routeSummary}</dd>
+          </div>
+          <div>
+            <dt>Return Route</dt>
+            <dd>To be confirmed · {formatDate(details.returnDate)}</dd>
+          </div>
+          <div className="package-price-unit">
+            <dt>
+              {formatMoney(selected.amount, details.pricing.currency)} ×{" "}
+              {financials.adultGuests}
+              <small>
+                ({occupancyLabel(selected.occupancy)}, {financials.adultGuests}{" "}
+                adults)
+              </small>
+            </dt>
+            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
+          </div>
+          <div>
+            <dt>Total Price Before Discount</dt>
+            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
+          </div>
+          <div className="package-discount-row">
+            <dt>
+              Discount
+              <small>No published discount</small>
+            </dt>
+            <dd>
+              <span>0%</span> {zeroDiscount}
+            </dd>
+          </div>
+          <div>
+            <dt>Total Price After Discount</dt>
+            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
+          </div>
+          <div>
+            <dt>Service Provider</dt>
+            <dd>{details.operator.displayName}</dd>
+          </div>
+          <div>
+            <dt>Powered &amp; Supported by</dt>
+            <dd>NoorPath</dd>
+          </div>
+          <div className="package-payment-commitment-row">
+            <dt>Pay today · {paymentModeLabel(effectivePaymentMode)}</dt>
+            <dd>
+              {formatMoney(visibleFinancials.dueNow, details.pricing.currency)}
+            </dd>
+          </div>
+          <div className="package-payment-commitment-row">
+            <dt>Remaining</dt>
+            <dd>
+              {formatMoney(
+                visibleFinancials.remaining,
+                details.pricing.currency,
+              )}
+            </dd>
+          </div>
+          <div className="package-grand-total">
+            <dt>TOTAL</dt>
+            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
+          </div>
+        </dl>
+        <p className="package-tax-note">
+          Any applicable taxes or statutory charges will be shown before
+          payment.
+        </p>
+      </section>
+
       {!hasFuturePlan ? (
         <p className="package-full-payment">
           <Icon name="receipt" /> This departure is published as full payment
@@ -1114,6 +1181,14 @@ function bookingHref(
 ) {
   const query = new URLSearchParams({ occupancy, paymentMode });
   return `/packages/${departureId}/plan?${query.toString()}`;
+}
+
+function paymentModeLabel(mode: PaymentMode) {
+  return mode === "pay-full"
+    ? "Pay Full"
+    : mode === "milestone"
+      ? "Milestone"
+      : "Pay Later";
 }
 
 function occupancyLabel(occupancy: Occupancy) {

@@ -193,7 +193,7 @@
 
 .package-conversion-image-secondary {
   inset: 0 0 0 68%;
-  border-left: 3px solid var(--package-surface);
+  border-left: 1px solid var(--public-line);
 }
 
 .package-availability-badge {
@@ -1311,5 +1311,356 @@
 
   .package-guest-options {
     animation: none;
+  }
+}
+
+/* VS-37: purchase-decision composition */
+.package-purchase-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(360px, 0.76fr);
+  grid-template-areas:
+    "hero booking"
+    "journey booking"
+    "content booking"
+    "status booking"
+    "about booking";
+  gap: 24px 30px;
+  align-items: start;
+}
+
+.package-story-hero {
+  grid-area: hero;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.package-story-hero .package-conversion-gallery {
+  min-height: 430px;
+}
+
+.package-story-hero .package-conversion-operator {
+  padding-block: 10px;
+}
+
+.package-purchase-layout > .package-booking-card {
+  grid-area: booking;
+}
+
+.package-purchase-layout > .package-conversion-journey {
+  grid-area: journey;
+}
+
+.package-purchase-layout > .package-conversion-features {
+  grid-area: content;
+}
+
+.package-purchase-layout > .package-conversion-status {
+  grid-area: status;
+}
+
+.package-purchase-layout > .package-conversion-about {
+  grid-area: about;
+  margin-top: 0;
+}
+
+.package-purchase-layout .package-conversion-features,
+.package-purchase-layout .package-conversion-status {
+  gap: 16px;
+}
+
+.package-purchase-layout .package-content-grid ul {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.package-booking-card {
+  box-shadow: 0 12px 30px rgb(52 39 23 / 6%);
+}
+
+.package-booking-card .package-travel-dates {
+  margin: 0 0 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--public-line);
+}
+
+.package-booking-card .package-travel-dates-heading {
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.package-booking-card .package-travel-dates-heading h3 {
+  margin: 0;
+  color: var(--public-ink);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.package-booking-card .package-travel-dates-heading p {
+  margin: 3px 0 0;
+  color: var(--public-muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.package-date-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.package-date-nav button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--public-line);
+  border-radius: 50%;
+  background: var(--package-surface);
+  color: var(--public-ink);
+  cursor: pointer;
+  transition:
+    border-color 140ms var(--package-ease-out),
+    transform 120ms var(--package-ease-out);
+}
+
+.package-date-nav .public-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.package-date-nav button:first-child .public-icon {
+  transform: rotate(90deg);
+}
+
+.package-date-nav button:last-child .public-icon {
+  transform: rotate(-90deg);
+}
+
+.package-booking-card .package-date-scroller {
+  gap: 8px;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.package-booking-card .package-date-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.package-booking-card .package-date-card {
+  min-width: 178px;
+  min-height: 98px;
+  flex-basis: 178px;
+  padding: 12px 13px;
+}
+
+.package-payment-mode-options {
+  grid-template-columns: 1fr;
+}
+
+.package-payment-mode label {
+  align-content: center;
+  min-height: 72px;
+}
+
+.package-price-breakdown {
+  margin-top: 20px;
+  padding-top: 20px;
+}
+
+.package-price-breakdown h3 {
+  margin-bottom: 14px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.35rem;
+  font-weight: 500;
+}
+
+.package-price-breakdown dl {
+  gap: 0;
+}
+
+.package-price-breakdown dl > div {
+  align-items: start;
+  min-height: 46px;
+  padding: 10px 0;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--public-line) 72%, transparent);
+  font-size: 0.8125rem;
+}
+
+.package-price-breakdown dt {
+  min-width: 0;
+}
+
+.package-price-breakdown dt small {
+  display: block;
+  margin-top: 3px;
+  color: var(--public-muted);
+  font-size: 0.6875rem;
+  font-weight: 400;
+}
+
+.package-price-breakdown dd {
+  max-width: 58%;
+  overflow-wrap: anywhere;
+}
+
+.package-price-pending {
+  color: var(--public-muted) !important;
+  font-weight: 600 !important;
+}
+
+.package-price-unit {
+  padding-block: 13px !important;
+}
+
+.package-discount-row dd,
+.package-discount-row dd span {
+  color: var(--public-green-deep);
+}
+
+.package-discount-row dd span {
+  margin-right: 6px;
+  font-weight: 800;
+}
+
+.package-payment-commitment-row {
+  background: color-mix(in srgb, var(--package-success-soft) 60%, transparent);
+}
+
+.package-payment-commitment-row dt,
+.package-payment-commitment-row dd {
+  color: var(--public-green-deep);
+  font-weight: 700;
+}
+
+.package-grand-total {
+  min-height: 62px !important;
+  align-items: center !important;
+  margin-top: 6px;
+  padding-top: 16px !important;
+  border-top: 1px solid var(--public-ink);
+  border-bottom: 0 !important;
+  color: var(--public-ink) !important;
+}
+
+.package-grand-total dt {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.package-grand-total dd {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.55rem;
+  font-weight: 700;
+}
+
+.package-tax-note {
+  margin: 10px 0 0;
+  color: var(--public-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.package-date-nav button:focus-visible {
+  outline: 3px solid var(--public-gold);
+  outline-offset: 3px;
+}
+
+.package-date-nav button:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) {
+  .package-date-nav button:hover {
+    border-color: var(--public-green);
+  }
+}
+
+@media (max-width: 1120px) {
+  .package-purchase-layout {
+    grid-template-columns: minmax(0, 1.3fr) minmax(340px, 0.8fr);
+    gap: 22px;
+  }
+
+  .package-story-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .package-story-hero .package-conversion-gallery {
+    min-height: 380px;
+  }
+}
+
+@media (max-width: 900px) {
+  .package-purchase-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "hero"
+      "booking"
+      "journey"
+      "content"
+      "status"
+      "about";
+    gap: 18px;
+  }
+
+  .package-story-hero {
+    gap: 14px;
+  }
+
+  .package-story-hero .package-conversion-gallery {
+    min-height: 330px;
+  }
+
+  .package-payment-mode-options {
+    grid-template-columns: 1fr;
+  }
+
+  .package-payment-mode label {
+    min-height: 72px;
+  }
+
+  .package-purchase-layout .package-content-grid ul {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .package-booking-card {
+    padding: 16px;
+  }
+
+  .package-booking-card .package-travel-dates-heading {
+    gap: 10px;
+  }
+
+  .package-booking-card .package-travel-dates-heading p {
+    font-size: 0.8125rem;
+  }
+
+  .package-booking-card .package-date-card {
+    min-width: 168px;
+    flex-basis: 168px;
+  }
+
+  .package-purchase-layout .package-content-grid ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .package-price-breakdown dl > div {
+    gap: 12px;
+    font-size: 0.875rem;
+  }
+
+  .package-price-breakdown dd {
+    max-width: 54%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .package-date-nav button {
+    transition-duration: 0.01ms;
   }
 }
