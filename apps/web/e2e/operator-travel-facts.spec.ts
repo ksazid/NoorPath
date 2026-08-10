@@ -50,13 +50,19 @@ test("operator authors confirmed airline and airport facts", async ({ page }) =>
   await expect(page.getByText("No flight facts recorded yet")).toBeVisible();
 
   await page.getByRole("button", { name: "Add flight leg" }).click();
-  await page.getByLabel("Airline name").fill("Saudia");
-  await page.getByLabel("Airline code").fill("SV");
-  await page.getByLabel("Flight number").fill("SV759");
-  await page.getByLabel("Departure airport").fill("Chhatrapati Shivaji Maharaj International Airport");
-  await page.getByLabel("Departure airport code").fill("BOM");
-  await page.getByLabel("Arrival airport").fill("King Abdulaziz International Airport");
-  await page.getByLabel("Arrival airport code").fill("JED");
+  await page.getByLabel("Airline name", { exact: true }).fill("Saudia");
+  await page.getByLabel("Airline code", { exact: true }).fill("SV");
+  await page.getByLabel("Flight number", { exact: true }).fill("SV759");
+  await page
+    .getByLabel("Departure airport", { exact: true })
+    .fill("Chhatrapati Shivaji Maharaj International Airport");
+  await page
+    .getByLabel("Departure airport code", { exact: true })
+    .fill("BOM");
+  await page
+    .getByLabel("Arrival airport", { exact: true })
+    .fill("King Abdulaziz International Airport");
+  await page.getByLabel("Arrival airport code", { exact: true }).fill("JED");
   await page.getByLabel("Flight fact status").selectOption("confirmed");
   await page.getByRole("button", { name: "Save travel facts" }).click();
 
@@ -80,7 +86,9 @@ test("operator authors confirmed airline and airport facts", async ({ page }) =>
   await expectNoHorizontalOverflow(page);
 });
 
-test("operator can truthfully retain a partial pending flight leg", async ({ page }) => {
+test("operator can truthfully retain a partial pending flight leg", async ({
+  page,
+}) => {
   await page.route(
     `**/api/v1/operator/departures/${departureId}/travel-facts`,
     async (route) => {
@@ -113,8 +121,9 @@ test("operator can truthfully retain a partial pending flight leg", async ({ pag
   await expect(page.getByLabel("Flight fact status")).toHaveValue("pending");
   await expect(page.getByLabel("Flight number")).toHaveValue("");
   await expect(
-    page.getByText("External airline or airport lookup is not configured in this slice", {
-      exact: false,
-    }),
+    page.getByText(
+      "External airline or airport lookup is not configured in this slice",
+      { exact: false },
+    ),
   ).toBeVisible();
 });
