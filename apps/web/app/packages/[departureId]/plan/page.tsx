@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useId, useState } from "react";
 import { useParams } from "next/navigation";
 import { Icon, PublicFooter, PublicHeader } from "../../../public-ui";
 
@@ -1308,6 +1308,10 @@ function HoldCountdown({ expiresAtUtc }: { expiresAtUtc: string }) {
 }
 
 function SignInNotice({ action = "create your quote" }: { action?: string }) {
+  const id = useId();
+  const headingId = `${id}-phone-auth-title`;
+  const mobileId = `${id}-mobile-number`;
+  const otpId = `${id}-otp-code`;
   const [mobile, setMobile] = useState("");
   const [showCodePreview, setShowCodePreview] = useState(false);
 
@@ -1317,11 +1321,11 @@ function SignInNotice({ action = "create your quote" }: { action?: string }) {
   };
 
   return (
-    <section className="plan-phone-auth" aria-labelledby="phone-auth-title">
+    <section className="plan-phone-auth" aria-labelledby={headingId}>
       <div className="plan-phone-auth-heading">
         <Icon name="user-circle" />
         <span>
-          <strong id="phone-auth-title">Login or sign up with phone OTP</strong>
+          <strong id={headingId}>Login or sign up with phone OTP</strong>
           <small>
             Continue securely to add travellers and {action}. No password is
             required.
@@ -1330,11 +1334,11 @@ function SignInNotice({ action = "create your quote" }: { action?: string }) {
       </div>
 
       <form className="plan-phone-auth-form" onSubmit={previewOtp}>
-        <label htmlFor="booking-mobile-number">Mobile number</label>
+        <label htmlFor={mobileId}>Mobile number</label>
         <div className="plan-phone-field">
           <span aria-hidden="true">+91</span>
           <input
-            id="booking-mobile-number"
+            id={mobileId}
             type="tel"
             inputMode="numeric"
             autoComplete="tel-national"
@@ -1343,7 +1347,7 @@ function SignInNotice({ action = "create your quote" }: { action?: string }) {
             placeholder="10-digit mobile number"
             value={mobile}
             onChange={(event) =>
-              setMobile(event.target.value.replace(/\\D/g, ""))
+              setMobile(event.target.value.replace(/\D/g, ""))
             }
             required
           />
@@ -1353,9 +1357,9 @@ function SignInNotice({ action = "create your quote" }: { action?: string }) {
 
       {showCodePreview ? (
         <div className="plan-otp-preview" role="status">
-          <label htmlFor="booking-otp-code">Verification code</label>
+          <label htmlFor={otpId}>Verification code</label>
           <input
-            id="booking-otp-code"
+            id={otpId}
             inputMode="numeric"
             placeholder="6-digit code"
             disabled

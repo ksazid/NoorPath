@@ -9,7 +9,7 @@
 - [x] Add design-only phone OTP boundary with explicit no-code-sent state.
 - [x] Add progressive Add traveller reveal while preserving DOB eligibility validation.
 - [x] Update rendered/navigation tests.
-- [ ] Run formatter and Impeccable final detector.
+- [x] Run formatter and Impeccable final detector.
 - [ ] Exact-head CI.
 - [ ] Exact-head Rendered Slice Review.
 - [ ] Exact-head Navigation Reachability.
