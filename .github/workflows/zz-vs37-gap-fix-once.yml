@@ -1,0 +1,61 @@
+name: VS-37 Layout Gap One-shot
+
+on:
+  push:
+    branches:
+      - agent/vs37-package-details-booking-auth-design
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/vs37-package-details-booking-auth-design
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Keep secondary package facts in the primary story column
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("apps/web/app/packages/[departureId]/page.tsx")
+          text = path.read_text()
+          old = '''            <div className="package-conversion-content">\n              <Journey details={details} />\n              <PackageContent details={details} />\n            </div>\n          </div>\n          <BookingCard\n            details={details}\n            selected={selected}\n            paymentMode={paymentMode}\n            onOccupancyChange={setOccupancy}\n            onPaymentModeChange={setPaymentMode}\n            onBookNow={() => setBookingOpen(true)}\n          />\n        </section>\n\n        <div className="package-conversion-secondary">\n          <TrustAndTerms details={details} />\n          <section className="package-conversion-about">\n            <h2>About this package</h2>\n            <p>{details.summary}</p>\n            <p>\n              Published pricing, current room availability and payment commitments\n              are visible before you start booking.\n            </p>\n          </section>\n        </div>'''
+          new = '''            <div className="package-conversion-content">\n              <Journey details={details} />\n              <PackageContent details={details} />\n            </div>\n            <div className="package-conversion-secondary">\n              <TrustAndTerms details={details} />\n              <section className="package-conversion-about">\n                <h2>About this package</h2>\n                <p>{details.summary}</p>\n                <p>\n                  Published pricing, current room availability and payment commitments\n                  are visible before you start booking.\n                </p>\n              </section>\n            </div>\n          </div>\n          <BookingCard\n            details={details}\n            selected={selected}\n            paymentMode={paymentMode}\n            onOccupancyChange={setOccupancy}\n            onPaymentModeChange={setPaymentMode}\n            onBookNow={() => setBookingOpen(true)}\n          />\n        </section>'''
+          if old not in text:
+              raise SystemExit('Package secondary layout block not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
+      - name: Tighten left-column continuation
+        shell: bash
+        run: |
+          cat >> apps/web/app/packages/'[departureId]'/package-conversion.css <<'CSS'
+
+/* VS-37 rendered-review correction: secondary facts continue in the left story. */
+.package-conversion-primary > .package-conversion-secondary {
+  margin-top: 22px;
+}
+
+.package-conversion-primary > .package-conversion-secondary .package-conversion-trust,
+.package-conversion-primary > .package-conversion-secondary .package-conversion-about {
+  width: 100%;
+  box-sizing: border-box;
+}
+CSS
+      - run: pnpm --dir apps/web exec prettier --write 'app/packages/[departureId]/page.tsx' 'app/packages/[departureId]/package-conversion.css'
+      - name: Commit layout correction
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/web/app/packages/'[departureId]'/page.tsx apps/web/app/packages/'[departureId]'/package-conversion.css
+          git commit -m 'VS-37 remove package details content gap'
+          git push origin HEAD:agent/vs37-package-details-booking-auth-design
