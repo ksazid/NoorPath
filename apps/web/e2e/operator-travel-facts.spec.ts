@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import {
   expectMinimumTargets,
   expectNoA11yViolations,
@@ -6,9 +6,22 @@ import {
 } from "./helpers";
 
 const departureId = "40000000-0000-0000-0000-000000000138";
+const operatorAccess = {
+  accountId: "operator-member-a",
+  displayName: "Yusuf Ali",
+  operator: { id: "operator-a", displayName: "Noor Travel" },
+  permissions: ["operator.admin.access"],
+};
+
+async function mockOperatorShell(page: Page) {
+  await page.route("**/api/v1/operator/access", (route) =>
+    route.fulfill({ status: 200, json: operatorAccess }),
+  );
+}
 
 test("operator authors confirmed airline and airport facts", async ({ page }) => {
   let submitted: Record<string, unknown> | null = null;
+  await mockOperatorShell(page);
 
   await page.route(
     `**/api/v1/operator/departures/${departureId}/travel-facts`,
@@ -89,6 +102,7 @@ test("operator authors confirmed airline and airport facts", async ({ page }) =>
 test("operator can truthfully retain a partial pending flight leg", async ({
   page,
 }) => {
+  await mockOperatorShell(page);
   await page.route(
     `**/api/v1/operator/departures/${departureId}/travel-facts`,
     async (route) => {
