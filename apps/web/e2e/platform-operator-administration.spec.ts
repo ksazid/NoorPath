@@ -223,20 +223,28 @@ async function arrangePublicationApi(page: import("@playwright/test").Page) {
 }
 
 async function openPlatformAdminMenu(page: import("@playwright/test").Page) {
-  const sidebar = page.locator(".np-platform-admin-shell .np-staff-sidebar");
-  if (await sidebar.isVisible()) {
-    return sidebar.getByRole("navigation", {
-      name: "Platform administration navigation",
-    });
+  const width = page.viewportSize()?.width ?? 1280;
+  if (width > 900) {
+    const navigation = page
+      .locator(".np-platform-admin-shell .np-staff-sidebar")
+      .getByRole("navigation", {
+        name: "Platform administration navigation",
+      });
+    await expect(navigation).toBeVisible();
+    return navigation;
   }
 
   const menu = page.locator(".np-platform-admin-shell .np-staff-menu");
+  const summary = menu.getByText("Platform Admin menu", { exact: true });
+  await expect(summary).toBeVisible();
   if (!(await menu.getAttribute("open"))) {
-    await menu.getByText("Platform Admin menu", { exact: true }).click();
+    await summary.click();
   }
-  return menu.getByRole("navigation", {
+  const navigation = menu.getByRole("navigation", {
     name: "Platform administration navigation",
   });
+  await expect(navigation).toBeVisible();
+  return navigation;
 }
 
 test("platform administrator can approve an operator from the command centre", async ({
@@ -246,7 +254,11 @@ test("platform administrator can approve an operator from the command centre", a
   await page.goto("/admin");
 
   await expect(
-    page.getByRole("heading", { level: 1, name: "Platform operations" }),
+    page.getByRole("heading", {
+      level: 1,
+      name: "Platform operations",
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(
     page.getByRole("img", { name: "NoorPath" }).first(),
@@ -327,7 +339,11 @@ test("platform administrator keeps the shared shell through publication review",
   await navigation.getByRole("link", { name: "Publication reviews" }).click();
   await expect(page).toHaveURL(/\/platform\/publications$/);
   await expect(
-    page.getByRole("heading", { level: 1, name: "Publication reviews" }),
+    page.getByRole("heading", {
+      level: 1,
+      name: "Publication reviews",
+      exact: true,
+    }),
   ).toBeVisible();
 
   navigation = await openPlatformAdminMenu(page);
@@ -343,7 +359,11 @@ test("platform administrator keeps the shared shell through publication review",
     new RegExp(`/platform/publications/${publicationDepartureId}$`),
   );
   await expect(
-    page.getByRole("heading", { level: 1, name: "Review publication" }),
+    page.getByRole("heading", {
+      level: 1,
+      name: "Review publication",
+      exact: true,
+    }),
   ).toBeVisible();
 
   navigation = await openPlatformAdminMenu(page);
@@ -363,7 +383,11 @@ test("platform administration reflows at mobile width", async ({ page }) => {
   await page.goto("/admin");
 
   await expect(
-    page.getByRole("heading", { name: "Platform operations" }),
+    page.getByRole("heading", {
+      level: 1,
+      name: "Platform operations",
+      exact: true,
+    }),
   ).toBeVisible();
   const menu = page.locator(".np-platform-admin-shell .np-staff-menu");
   await expect(
