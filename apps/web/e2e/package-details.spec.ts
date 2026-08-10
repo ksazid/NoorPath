@@ -261,8 +261,10 @@ test("guest categories, room sharing and payment breakdown are visible before bo
   ).toBeVisible();
   await expect(page.getByText("Return Route", { exact: true })).toBeVisible();
   await expect(page.getByText("Total Price Before Discount")).toBeVisible();
-  await expect(page.getByText("Discount", { exact: true })).toBeVisible();
-  await expect(page.getByText("No published discount")).toBeVisible();
+  const discountRow = page.locator(".package-discount-row");
+  await expect(discountRow).toContainText("Discount");
+  await expect(discountRow).toContainText("No published discount");
+  await expect(discountRow).toContainText("0%");
   await expect(page.getByText("Total Price After Discount")).toBeVisible();
   await expect(page.getByText("Service Provider")).toBeVisible();
   await expect(page.getByText("Powered & Supported by")).toBeVisible();
