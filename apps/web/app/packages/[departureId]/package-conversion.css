@@ -193,7 +193,7 @@
 
 .package-conversion-image-secondary {
   inset: 0 0 0 68%;
-  border-left: 3px solid var(--package-surface);
+  border-left: 1px solid var(--public-line);
 }
 
 .package-availability-badge {

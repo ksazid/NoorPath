@@ -423,7 +423,7 @@
 
 .plan-quote-error {
   padding: 10px 11px;
-  border-left: 3px solid var(--public-gold);
+  border: 1px solid var(--public-line);
   background: var(--public-ivory);
   color: var(--public-ink);
 }
