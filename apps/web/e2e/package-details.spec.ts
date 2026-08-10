@@ -180,7 +180,9 @@ test("package details show travel dates, journey and operator-authored content",
   ).toBeVisible();
   await expect(page.getByText("Madinah stay", { exact: true })).toBeVisible();
 
-  const packageItems = page.locator(".package-content-grid li > span:last-child");
+  const packageItems = page.locator(
+    ".package-content-grid li > span:last-child",
+  );
   await expect(
     packageItems.filter({ hasText: /^Umrah visa included$/ }),
   ).toBeVisible();
@@ -204,9 +206,7 @@ test("available same-origin dates navigate and browser back returns safely", asy
   await page.getByRole("link", { name: /07 Sep(?:t)? 2026/ }).click();
   await expect(page).toHaveURL(`/packages/${siblingDepartureId}`);
   await expect(
-    page
-      .locator(".package-date-card.current")
-      .getByText(/07 Sep(?:t)? 2026/),
+    page.locator(".package-date-card.current").getByText(/07 Sep(?:t)? 2026/),
   ).toBeVisible();
 
   await page.goBack();
