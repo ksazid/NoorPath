@@ -1,20 +1,20 @@
 # VS-35 — Package Details Conversion UX Implementation Checklist
 
 ## Development mode
-- [ ] Keep the PR Draft while implementation is changing.
-- [ ] Do not apply the `certify` label until implementation and source review are complete.
-- [ ] Do not merge or deploy without exact-head governance gates and explicit Product Owner authorization.
+- [x] Keep the PR Draft while implementation is changing.
+- [x] Do not apply the `certify` label until implementation and source review are complete.
+- [x] Do not merge or deploy without exact-head governance gates and explicit Product Owner authorization.
 
 ## Product completeness
-- [ ] Same-origin date scroller shows current, available and sold-out departures truthfully.
-- [ ] Adult guest and room-sharing controls use only supported current occupancy rules.
-- [ ] Payment summary uses server-authoritative immutable published pricing and payment-plan facts.
-- [ ] Milestone and Pay Later views reconcile to the same total, due-now, remaining and final deadline.
-- [ ] Journey is generated only from stored departure, stay and travel facts.
-- [ ] Standard inclusions/exclusions use NoorPath semantic icons and package/travel-kit/Umrah-kit grouping.
-- [ ] Confirmed/pending and cancellation/payment disclosures remain factual.
-- [ ] Book now preserves occupancy/payment-mode selection into the existing planner.
-- [ ] Child/infant pricing/configuration, detailed itinerary persistence and auth-flow rewrite remain excluded.
+- [x] Same-origin date scroller shows current, available and sold-out departures truthfully.
+- [x] Adult guest and room-sharing controls use only supported current occupancy rules.
+- [x] Payment summary uses server-authoritative immutable published pricing and payment-plan facts.
+- [x] Milestone and Pay Later views reconcile to the same total, due-now, remaining and final deadline.
+- [x] Journey is generated only from stored departure, stay and travel facts.
+- [x] Standard inclusions/exclusions use NoorPath semantic icons and package/travel-kit/Umrah-kit grouping.
+- [x] Confirmed/pending and cancellation/payment disclosures remain factual.
+- [x] Book now preserves occupancy/payment-mode selection into the existing planner.
+- [x] Child/infant pricing/configuration, detailed itinerary persistence and auth-flow rewrite remain excluded.
 
 ## Certification gates
 - [ ] Slice governance.
