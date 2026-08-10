@@ -78,7 +78,9 @@
 .np-platform-admin-legacy-embed > .account-shell > .account-sidebar,
 .np-platform-admin-legacy-embed > .admin-shell > .admin-sidebar,
 .np-platform-admin-legacy-embed > .publication-queue-page > .skip-link,
-.np-platform-admin-legacy-embed > .publication-queue-page > .publication-queue-header,
+.np-platform-admin-legacy-embed
+  > .publication-queue-page
+  > .publication-queue-header,
 .np-platform-admin-legacy-embed > .composer-state-page > .brand {
   display: none;
 }
@@ -104,13 +106,19 @@
   margin-inline: auto;
 }
 
-.np-platform-admin-legacy-embed .platform-admin-content #overview > .auth-eyebrow,
+.np-platform-admin-legacy-embed
+  .platform-admin-content
+  #overview
+  > .auth-eyebrow,
 .np-platform-admin-legacy-embed .platform-admin-content #overview > h1,
 .np-platform-admin-legacy-embed .platform-admin-content #overview > p {
   display: none;
 }
 
-.np-platform-admin-legacy-embed .platform-admin-content #overview .platform-metrics {
+.np-platform-admin-legacy-embed
+  .platform-admin-content
+  #overview
+  .platform-metrics {
   margin-top: 0;
 }
 
@@ -118,7 +126,9 @@
   background: transparent;
 }
 
-.np-platform-admin-legacy-embed > .publication-queue-page > .publication-queue-content {
+.np-platform-admin-legacy-embed
+  > .publication-queue-page
+  > .publication-queue-content {
   width: 100%;
   margin: 0;
   padding: 0;

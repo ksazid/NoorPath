@@ -239,7 +239,8 @@ export default function PlatformAdminWorkspaceShell({
     );
   }
 
-  const displayName = state.access.displayName?.trim() || "Platform administrator";
+  const displayName =
+    state.access.displayName?.trim() || "Platform administrator";
   const contentClass = ["np-staff-content", contentClassName]
     .filter(Boolean)
     .join(" ");
@@ -279,11 +280,19 @@ export default function PlatformAdminWorkspaceShell({
       </details>
       <div className="np-platform-admin-content-column">
         {contentOwnsLandmark ? (
-          <div className={contentClass} id="platform-admin-content" tabIndex={-1}>
+          <div
+            className={contentClass}
+            id="platform-admin-content"
+            tabIndex={-1}
+          >
             {pageContent}
           </div>
         ) : (
-          <main className={contentClass} id="platform-admin-content" tabIndex={-1}>
+          <main
+            className={contentClass}
+            id="platform-admin-content"
+            tabIndex={-1}
+          >
             {pageContent}
           </main>
         )}

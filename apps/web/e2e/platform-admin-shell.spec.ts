@@ -91,7 +91,11 @@ test("platform admin shell denies unauthorized identities before rendering admin
     }),
   ).toBeVisible();
   await expect(
-    page.getByRole("navigation", { name: "Platform administration navigation" }),
+    page.getByRole("navigation", {
+      name: "Platform administration navigation",
+    }),
   ).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Return to account" })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Return to account" }),
+  ).toBeVisible();
 });

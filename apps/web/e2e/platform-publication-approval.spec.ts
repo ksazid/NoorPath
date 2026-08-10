@@ -78,9 +78,7 @@ async function arrangePublicationDetail(page: import("@playwright/test").Page) {
           },
           inventory: {
             version: 2,
-            pools: [
-              { occupancy: "quad", capacity: 20, availableQuantity: 14 },
-            ],
+            pools: [{ occupancy: "quad", capacity: 20, availableQuantity: 14 }],
           },
         }),
       }),
@@ -226,7 +224,9 @@ test("platform administration navigation remains usable at mobile width", async 
   await page.goto("/platform/publications");
 
   const menu = page.locator(".np-platform-admin-shell .np-staff-menu");
-  await expect(menu.getByText("Platform Admin menu", { exact: true })).toBeVisible();
+  await expect(
+    menu.getByText("Platform Admin menu", { exact: true }),
+  ).toBeVisible();
   await menu.getByText("Platform Admin menu", { exact: true }).click();
   await expect(
     menu.getByRole("link", { name: "Publication reviews" }),
