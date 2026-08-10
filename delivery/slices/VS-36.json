@@ -4,10 +4,7 @@
   "slug": "package-details-design-correction",
   "outcome": "Prospective customers receive the corrected NoorPath Package presentation with explicit adult, child and infant guest categories plus three truthful payment choices: Pay Full, Milestone and Pay Later.",
   "actor": "Unauthenticated prospective customers evaluating a published NoorPath Umrah departure before booking.",
-  "dependsOn": [
-    "VS-35",
-    "VS-32"
-  ],
+  "dependsOn": ["VS-35", "VS-32"],
   "modules": [
     "Pricing quote calculation interprets the selected payment mode without a database migration.",
     "The web application preserves server-authoritative travel-date, occupancy and base payment-plan data.",
