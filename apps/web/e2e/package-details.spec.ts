@@ -248,8 +248,21 @@ test("guest categories, room sharing and payment breakdown are visible before bo
   await expect(page.getByText("₹44,000").first()).toBeVisible();
   await expect(page.getByText("₹1,76,000").first()).toBeVisible();
   await expect(page.getByRole("radio", { name: /Pay Full/ })).toBeVisible();
-  await expect(page.getByRole("radio", { name: /Milestone/ })).toBeChecked();
+  await expect(page.getByRole("radio", { name: /Pay Full/ })).toBeChecked();
   await expect(page.getByRole("radio", { name: /Pay Later/ })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Pay full breakdown" }),
+  ).toBeVisible();
+  await expect(
+    page.locator(".package-payment-breakdown").getByText("₹2,20,000"),
+  ).toBeVisible();
+  await expect(page.getByText("Total Price Before Discount")).toBeVisible();
+  await expect(page.getByText("Total Price After Discount")).toBeVisible();
+  await expect(page.getByText("Service Provider")).toBeVisible();
+  await expect(page.getByText("Powered & Supported by")).toBeVisible();
+  await expect(page.getByText("0% · ₹0")).toBeVisible();
+
+  await page.getByRole("radio", { name: /Milestone/ }).check();
   await expect(
     page.getByRole("heading", { name: "Milestone payment breakdown" }),
   ).toBeVisible();
@@ -279,13 +292,45 @@ test("guest categories, room sharing and payment breakdown are visible before bo
   await expect(page.getByText("₹72,000").first()).toBeVisible();
 
   await expect(
-    page.getByRole("link", { name: /Book now/ }).first(),
-  ).toHaveAttribute(
-    "href",
-    new RegExp(
-      `/packages/${departureId}/plan\\?occupancy=quad&paymentMode=pay-later`,
-    ),
-  );
+    page.getByRole("button", { name: /Book now/ }).first(),
+  ).toBeVisible();
+  await expectNoA11yViolations(page);
+});
+
+test("date controls stay hash-free and Book now previews OTP then traveller names", async ({
+  page,
+}) => {
+  await page.goto(`/packages/${departureId}`);
+  await expect(page).not.toHaveURL(/#/);
+
+  await page.getByRole("button", { name: "Next travel dates" }).click();
+  await page.getByRole("button", { name: "Previous travel dates" }).click();
+  await expect(page).not.toHaveURL(/#/);
+
+  await page
+    .getByRole("button", { name: /Book now/ })
+    .first()
+    .click();
+  await expect(page).not.toHaveURL(/#/);
+  await expect(
+    page.getByRole("heading", { name: "Login with mobile OTP" }),
+  ).toBeVisible();
+  await expect(page.getByText(/no SMS is sent yet/i)).toBeVisible();
+
+  await page.getByLabel("Mobile number").fill("9876543210");
+  await page.getByRole("button", { name: "Send code" }).click();
+  await page.getByLabel("6-digit verification code").fill("123456");
+  await page.getByRole("button", { name: "Verify & continue" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Add travellers" }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Traveller 1")).toBeVisible();
+  await page.getByRole("button", { name: "+ Add traveller" }).click();
+  await expect(page.getByLabel("Traveller 2")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "+ Add traveller" }),
+  ).toHaveCount(0);
+  await expect(page).not.toHaveURL(/#/);
   await expectNoA11yViolations(page);
 });
 
@@ -342,7 +387,7 @@ test("package details remain usable on mobile, at 200 percent text and reduced m
   await expect(page.getByText("Infants (0–2 years)")).toBeVisible();
   await expect(page.getByText("₹44,000").first()).toBeVisible();
   await expect(
-    page.getByRole("link", { name: /Book now/ }).first(),
+    page.getByRole("button", { name: /Book now/ }).first(),
   ).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await expectMinimumTargets(page);
