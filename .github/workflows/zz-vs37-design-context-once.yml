@@ -1,0 +1,23 @@
+name: VS-37 Design Context One-shot
+
+on:
+  push:
+    branches:
+      - agent/vs37-package-booking-composition
+
+permissions:
+  contents: read
+
+jobs:
+  context:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - name: Load Impeccable context
+        run: node .agents/skills/impeccable/scripts/context.mjs --target 'apps/web/app/packages/[departureId]/page.tsx'
+      - name: Layout detector
+        run: node .agents/skills/impeccable/scripts/detect.mjs --json --scope layout 'apps/web/app/packages/[departureId]/page.tsx' 'apps/web/app/packages/[departureId]/package-conversion.css'
