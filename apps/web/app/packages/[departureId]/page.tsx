@@ -229,6 +229,17 @@ function PackageExperience({ details }: { details: PackageDetails }) {
               <Journey details={details} />
               <PackageContent details={details} />
             </div>
+            <div className="package-conversion-secondary">
+              <TrustAndTerms details={details} />
+              <section className="package-conversion-about">
+                <h2>About this package</h2>
+                <p>{details.summary}</p>
+                <p>
+                  Published pricing, current room availability and payment
+                  commitments are visible before you start booking.
+                </p>
+              </section>
+            </div>
           </div>
           <BookingCard
             details={details}
@@ -239,18 +250,6 @@ function PackageExperience({ details }: { details: PackageDetails }) {
             onBookNow={() => setBookingOpen(true)}
           />
         </section>
-
-        <div className="package-conversion-secondary">
-          <TrustAndTerms details={details} />
-          <section className="package-conversion-about">
-            <h2>About this package</h2>
-            <p>{details.summary}</p>
-            <p>
-              Published pricing, current room availability and payment
-              commitments are visible before you start booking.
-            </p>
-          </section>
-        </div>
       </main>
 
       <PublicFooter />

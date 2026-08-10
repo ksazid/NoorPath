@@ -1780,3 +1780,18 @@
     transition: none;
   }
 }
+
+/* VS-37 rendered-review correction: secondary facts continue in the left story. */
+.package-conversion-primary > .package-conversion-secondary {
+  margin-top: 22px;
+}
+
+.package-conversion-primary
+  > .package-conversion-secondary
+  .package-conversion-trust,
+.package-conversion-primary
+  > .package-conversion-secondary
+  .package-conversion-about {
+  width: 100%;
+  box-sizing: border-box;
+}
