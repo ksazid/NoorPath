@@ -1,0 +1,73 @@
+{
+  "id": "VS-35",
+  "title": "Package Details Conversion UX",
+  "slug": "package-details-conversion-ux",
+  "outcome": "Prospective customers can compare same-origin departure dates, inspect operator-authored package facts, choose a supported adult room and guest combination, understand the full authoritative payment commitment and continue to booking directly from Package Details without invented commercial or itinerary facts.",
+  "actor": "Unauthenticated prospective customers evaluating a published NoorPath Umrah departure before booking.",
+  "dependsOn": ["VS-07", "VS-29", "VS-32"],
+  "modules": [
+    "Catalogue remains authoritative for published package, stay, route, inclusion and exclusion facts.",
+    "Pricing remains authoritative for immutable occupancy price and snapshotted payment-plan arithmetic.",
+    "Inventory remains authoritative for current room availability and sibling sold-out state.",
+    "Operators remains authoritative for public operator eligibility and identity.",
+    "The web application renders the approved NoorPath Package visual language and never calculates commercial values client-side."
+  ],
+  "routes": [
+    "Public discovery -> /packages/{departureId} -> published Package Details.",
+    "Package Details -> available same-origin sibling date -> /packages/{siblingDepartureId}.",
+    "Package Details -> adult guests and room sharing -> server-authored payment summary.",
+    "Package Details -> Milestone or Pay Later summary -> complete pre-booking breakdown.",
+    "Package Details -> Book now -> existing /packages/{departureId}/plan flow with occupancy and paymentMode preserved."
+  ],
+  "acceptance": [
+    "Same-origin sibling departures are chronological, current date is highlighted and sold-out dates remain visible but disabled.",
+    "Adult guest and room-sharing choices expose only supported current adult occupancy combinations.",
+    "Total, minimum today, remaining and future payment values come from server-authoritative immutable published pricing and payment-plan state.",
+    "Milestone view and Pay Later summary reconcile to the same published commercial commitment and final deadline without inventing a second pricing policy.",
+    "Journey presentation uses only persisted operator departure, stay and travel facts.",
+    "Standard Package, Travel Kit, Umrah Kit and Not Included items use NoorPath semantic icons.",
+    "Confirmed and pending facts plus cancellation and payment disclosures remain factual and visible before booking.",
+    "Book now preserves occupancy and payment-mode selection into the existing planner route.",
+    "Public error, unavailable and retry behaviour remains safe and no private pricing, version or account identifiers leak.",
+    "Desktop, mobile, 200-percent-text and reduced-motion rendered checks pass with keyboard focus, 44px targets, axe and no viewport horizontal overflow.",
+    "Child and infant pricing or configuration, detailed itinerary persistence, authentication-flow changes and production deployment remain out of scope."
+  ],
+  "exclusions": [
+    "Child or infant eligibility, pricing, guest controls or operator configuration.",
+    "Multi-room family allocation beyond existing double, triple and quad adult rules.",
+    "A new Pay Later persistence model or change to existing quote, hold or payment execution semantics.",
+    "Detailed itinerary-step authoring or persistence not present in current Catalogue data.",
+    "Arbitrary custom icon persistence beyond the standard NoorPath content catalogue.",
+    "Customer phone OTP provider activation, Knowledge Pack work, airline or supplier integrations, promotions or discount engine, or production deployment."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "component",
+    "migration",
+    "security",
+    "privacy",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "keyboard",
+    "focus",
+    "target-size",
+    "responsive-reflow",
+    "rendered-regression",
+    "design-token-consistency",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "apps/web/e2e/package-details.spec.ts"
+  },
+  "specPath": "docs/slices/VS-35-PACKAGE-DETAILS-CONVERSION-UX.md",
+  "checklistPath": "docs/slices/VS-35-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-35-NAVIGATION-VERIFICATION.md"
+}
