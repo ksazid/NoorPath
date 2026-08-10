@@ -210,7 +210,10 @@ function PackageExperience({ details }: { details: PackageDetails }) {
 
         <TravelDates details={details} />
 
-        <section className="package-conversion-overview" aria-labelledby="package-title">
+        <section
+          className="package-conversion-overview"
+          aria-labelledby="package-title"
+        >
           <Gallery selected={selected} />
           <OperatorSummary details={details} />
           <BookingCard
@@ -262,15 +265,25 @@ function TravelDates({ details }: { details: PackageDetails }) {
         },
       ];
   return (
-    <section className="package-travel-dates" aria-labelledby="travel-dates-title">
+    <section
+      className="package-travel-dates"
+      aria-labelledby="travel-dates-title"
+    >
       <div className="package-travel-dates-heading">
         <div>
-          <p className="package-section-kicker">More dates from {details.origin}</p>
+          <p className="package-section-kicker">
+            More dates from {details.origin}
+          </p>
           <h2 id="travel-dates-title">Available Travel Dates</h2>
         </div>
-        <span>{dates.length} published departure{dates.length === 1 ? "" : "s"}</span>
+        <span>
+          {dates.length} published departure{dates.length === 1 ? "" : "s"}
+        </span>
       </div>
-      <div className="package-date-scroller" aria-label={`Published ${details.origin} travel dates`}>
+      <div
+        className="package-date-scroller"
+        aria-label={`Published ${details.origin} travel dates`}
+      >
         {dates.map((option) => {
           const current = option.departureId === details.departureId;
           const soldOut = option.status === "sold-out";
@@ -278,7 +291,9 @@ function TravelDates({ details }: { details: PackageDetails }) {
             <>
               <span className="package-date-card-topline">
                 <Icon name="airplane-tilt" />
-                <small>{current ? "Selected departure" : "Published departure"}</small>
+                <small>
+                  {current ? "Selected departure" : "Published departure"}
+                </small>
                 {soldOut ? <em>Sold out</em> : null}
               </span>
               <strong>{formatDate(option.departureDate)}</strong>
@@ -346,9 +361,15 @@ function OperatorSummary({ details }: { details: PackageDetails }) {
       <h1 id="package-title">{details.operator.displayName}</h1>
       <p className="package-detail-name">{details.packageName}</p>
       <div className="package-journey-chips" aria-label="Journey summary">
-        <span><Icon name="airplane-tilt" /> {details.origin}</span>
-        <span><Icon name="clock" /> {details.durationNights} nights</span>
-        <span><Icon name="calendar-blank" /> {formatDate(details.departureDate)}</span>
+        <span>
+          <Icon name="airplane-tilt" /> {details.origin}
+        </span>
+        <span>
+          <Icon name="clock" /> {details.durationNights} nights
+        </span>
+        <span>
+          <Icon name="calendar-blank" /> {formatDate(details.departureDate)}
+        </span>
       </div>
       <Stay city="Makkah" stay={details.makkah} />
       <Stay city="Madinah" stay={details.madinah} />
@@ -356,13 +377,22 @@ function OperatorSummary({ details }: { details: PackageDetails }) {
   );
 }
 
-function Stay({ city, stay }: { city: "Makkah" | "Madinah"; stay: StayDetails }) {
+function Stay({
+  city,
+  stay,
+}: {
+  city: "Makkah" | "Madinah";
+  stay: StayDetails;
+}) {
   return (
     <div className="package-stay-summary">
       <span>{city} Hotel</span>
       <strong>{stay.hotelName}</strong>
       <small>{stay.distanceDisclosure}</small>
-      <p>{stay.nights} nights · {stay.classification} · {confirmationCopy(stay.confirmationState)}</p>
+      <p>
+        {stay.nights} nights · {stay.classification} ·{" "}
+        {confirmationCopy(stay.confirmationState)}
+      </p>
     </div>
   );
 }
@@ -386,7 +416,10 @@ function BookingCard({
     financials.instalments.length > 0 &&
     financials.finalDueDate !== null;
   return (
-    <aside className="package-booking-card" aria-label="Booking and payment summary">
+    <aside
+      className="package-booking-card"
+      aria-label="Booking and payment summary"
+    >
       <p className="package-section-kicker">Book with clarity</p>
       <h2>Payment summary</h2>
 
@@ -411,7 +444,8 @@ function BookingCard({
               value={item.financials.adultGuests}
               disabled={item.status !== "available"}
             >
-              {item.financials.adultGuests} Adults{item.status !== "available" ? " — unavailable" : ""}
+              {item.financials.adultGuests} Adults
+              {item.status !== "available" ? " — unavailable" : ""}
             </option>
           ))}
         </select>
@@ -433,9 +467,15 @@ function BookingCard({
             />
             <span>
               <strong>{occupancyLabel(item.occupancy)}</strong>
-              <small>{item.status === "available" ? `${item.availableQuantity} available` : "Currently unavailable"}</small>
+              <small>
+                {item.status === "available"
+                  ? `${item.availableQuantity} available`
+                  : "Currently unavailable"}
+              </small>
             </span>
-            <strong>{formatMoney(item.amount, details.pricing.currency)}</strong>
+            <strong>
+              {formatMoney(item.amount, details.pricing.currency)}
+            </strong>
           </label>
         ))}
       </fieldset>
@@ -444,12 +484,26 @@ function BookingCard({
         <h3>Price breakdown</h3>
         <dl>
           <div>
-            <dt>Adult · {formatMoney(selected.amount, details.pricing.currency)} × {financials.adultGuests}</dt>
+            <dt>
+              Adult · {formatMoney(selected.amount, details.pricing.currency)} ×{" "}
+              {financials.adultGuests}
+            </dt>
             <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
           </div>
-          <div className="total"><dt>Total package</dt><dd>{formatMoney(financials.total, details.pricing.currency)}</dd></div>
-          <div className="due"><dt>Minimum to book today</dt><dd>{formatMoney(financials.dueNow, details.pricing.currency)}</dd></div>
-          <div><dt>Remaining</dt><dd>{formatMoney(financials.remaining, details.pricing.currency)}</dd></div>
+          <div className="total">
+            <dt>Total package</dt>
+            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
+          </div>
+          <div className="due">
+            <dt>Minimum to book today</dt>
+            <dd>{formatMoney(financials.dueNow, details.pricing.currency)}</dd>
+          </div>
+          <div>
+            <dt>Remaining</dt>
+            <dd>
+              {formatMoney(financials.remaining, details.pricing.currency)}
+            </dd>
+          </div>
         </dl>
       </div>
 
@@ -464,7 +518,10 @@ function BookingCard({
                 checked={paymentMode === "milestone"}
                 onChange={() => onPaymentModeChange("milestone")}
               />
-              <span><strong>Milestone plan</strong><small>See every published payment date.</small></span>
+              <span>
+                <strong>Milestone plan</strong>
+                <small>See every published payment date.</small>
+              </span>
             </label>
             <label className={paymentMode === "pay-later" ? "selected" : ""}>
               <input
@@ -473,17 +530,30 @@ function BookingCard({
                 checked={paymentMode === "pay-later"}
                 onChange={() => onPaymentModeChange("pay-later")}
               />
-              <span><strong>Pay later</strong><small>See the same remaining balance against the final published deadline.</small></span>
+              <span>
+                <strong>Pay later</strong>
+                <small>
+                  See the same remaining balance against the final published
+                  deadline.
+                </small>
+              </span>
             </label>
           </fieldset>
-          <PaymentBreakdown financials={financials} currency={details.pricing.currency} mode={paymentMode} />
+          <PaymentBreakdown
+            financials={financials}
+            currency={details.pricing.currency}
+            mode={paymentMode}
+          />
         </>
       ) : (
-        <p className="package-full-payment"><Icon name="receipt" /> Full payment applies to this departure.</p>
+        <p className="package-full-payment">
+          <Icon name="receipt" /> Full payment applies to this departure.
+        </p>
       )}
 
       <p className="package-payment-note">
-        The authoritative quote and availability are rechecked before a place is reserved.
+        The authoritative quote and availability are rechecked before a place is
+        reserved.
       </p>
       <Link
         className="package-book-now"
@@ -506,31 +576,47 @@ function PaymentBreakdown({
 }) {
   return (
     <section className="package-payment-breakdown" aria-live="polite">
-      <h3>{mode === "milestone" ? "Milestone payment breakdown" : "Pay later breakdown"}</h3>
+      <h3>
+        {mode === "milestone"
+          ? "Milestone payment breakdown"
+          : "Pay later breakdown"}
+      </h3>
       <ol>
         <li>
           <span aria-hidden="true" />
-          <div><strong>{formatMoney(financials.dueNow, currency)}</strong><small>Book your place</small></div>
+          <div>
+            <strong>{formatMoney(financials.dueNow, currency)}</strong>
+            <small>Book your place</small>
+          </div>
           <time>Today</time>
         </li>
-        {mode === "milestone"
-          ? financials.instalments.map((item, index) => (
-              <li key={`${item.sequence}-${item.dueDate}`}>
-                <span aria-hidden="true" />
-                <div>
-                  <strong>{formatMoney(item.amount, currency)}</strong>
-                  <small>{index === financials.instalments.length - 1 ? "Final journey balance" : `Payment milestone ${item.sequence}`}</small>
-                </div>
-                <time dateTime={item.dueDate}>{formatDate(item.dueDate)}</time>
-              </li>
-            ))
-          : financials.finalDueDate ? (
-              <li>
-                <span aria-hidden="true" />
-                <div><strong>{formatMoney(financials.remaining, currency)}</strong><small>Remaining balance</small></div>
-                <time dateTime={financials.finalDueDate}>{formatDate(financials.finalDueDate)}</time>
-              </li>
-            ) : null}
+        {mode === "milestone" ? (
+          financials.instalments.map((item, index) => (
+            <li key={`${item.sequence}-${item.dueDate}`}>
+              <span aria-hidden="true" />
+              <div>
+                <strong>{formatMoney(item.amount, currency)}</strong>
+                <small>
+                  {index === financials.instalments.length - 1
+                    ? "Final journey balance"
+                    : `Payment milestone ${item.sequence}`}
+                </small>
+              </div>
+              <time dateTime={item.dueDate}>{formatDate(item.dueDate)}</time>
+            </li>
+          ))
+        ) : financials.finalDueDate ? (
+          <li>
+            <span aria-hidden="true" />
+            <div>
+              <strong>{formatMoney(financials.remaining, currency)}</strong>
+              <small>Remaining balance</small>
+            </div>
+            <time dateTime={financials.finalDueDate}>
+              {formatDate(financials.finalDueDate)}
+            </time>
+          </li>
+        ) : null}
       </ol>
     </section>
   );
@@ -544,22 +630,62 @@ function Journey({ details }: { details: PackageDetails }) {
       <p className="package-section-kicker">Your journey</p>
       <h2>Journey &amp; travel</h2>
       <ol>
-        <JourneyItem label="Day 1" icon="airplane-tilt" title="Arrival & transfer" copy={`${formatDate(details.departureDate)} · ${details.origin}`} />
-        <JourneyItem label={`Day 1–${makkahEnd}`} icon="building" title="Makkah stay" copy={`${details.makkah.nights} nights · ${details.makkah.hotelName}`} />
-        <JourneyItem label={`Day ${makkahEnd + 1}`} icon="bus" title="Intercity travel" copy={details.travel.details} />
-        <JourneyItem label={`Day ${madinahStart}–${details.durationNights}`} icon="building" title="Madinah stay" copy={`${details.madinah.nights} nights · ${details.madinah.hotelName}`} />
-        <JourneyItem label="Return" icon="airplane-tilt" title="Departure" copy={`${formatDate(details.returnDate)} · ${details.travel.routeSummary}`} />
+        <JourneyItem
+          label="Day 1"
+          icon="airplane-tilt"
+          title="Arrival & transfer"
+          copy={`${formatDate(details.departureDate)} · ${details.origin}`}
+        />
+        <JourneyItem
+          label={`Day 1–${makkahEnd}`}
+          icon="building"
+          title="Makkah stay"
+          copy={`${details.makkah.nights} nights · ${details.makkah.hotelName}`}
+        />
+        <JourneyItem
+          label={`Day ${makkahEnd + 1}`}
+          icon="bus"
+          title="Intercity travel"
+          copy={details.travel.details}
+        />
+        <JourneyItem
+          label={`Day ${madinahStart}–${details.durationNights}`}
+          icon="building"
+          title="Madinah stay"
+          copy={`${details.madinah.nights} nights · ${details.madinah.hotelName}`}
+        />
+        <JourneyItem
+          label="Return"
+          icon="airplane-tilt"
+          title="Departure"
+          copy={`${formatDate(details.returnDate)} · ${details.travel.routeSummary}`}
+        />
       </ol>
     </section>
   );
 }
 
-function JourneyItem({ label, icon, title, copy }: { label: string; icon: string; title: string; copy: string }) {
+function JourneyItem({
+  label,
+  icon,
+  title,
+  copy,
+}: {
+  label: string;
+  icon: string;
+  title: string;
+  copy: string;
+}) {
   return (
     <li>
       <span className="package-journey-day">{label}</span>
-      <span className="package-journey-icon" aria-hidden="true"><Icon name={icon} /></span>
-      <div><strong>{title}</strong><p>{copy}</p></div>
+      <span className="package-journey-icon" aria-hidden="true">
+        <Icon name={icon} />
+      </span>
+      <div>
+        <strong>{title}</strong>
+        <p>{copy}</p>
+      </div>
     </li>
   );
 }
@@ -567,10 +693,28 @@ function JourneyItem({ label, icon, title, copy }: { label: string; icon: string
 function PackageContent({ details }: { details: PackageDetails }) {
   return (
     <div className="package-conversion-features">
-      <ContentGrid title="Package includes" items={contentItems(details.inclusions, "package")} fallback="package" />
-      <ContentGrid title="Travel kit included" items={contentItems(details.inclusions, "travel-kit")} fallback="travel-kit" hideWhenEmpty />
-      <ContentGrid title="Umrah kit included" items={contentItems(details.inclusions, "umrah-kit")} fallback="umrah-kit" hideWhenEmpty />
-      <ContentGrid title="Not included" items={details.exclusions} fallback="excluded" />
+      <ContentGrid
+        title="Package includes"
+        items={contentItems(details.inclusions, "package")}
+        fallback="package"
+      />
+      <ContentGrid
+        title="Travel kit included"
+        items={contentItems(details.inclusions, "travel-kit")}
+        fallback="travel-kit"
+        hideWhenEmpty
+      />
+      <ContentGrid
+        title="Umrah kit included"
+        items={contentItems(details.inclusions, "umrah-kit")}
+        fallback="umrah-kit"
+        hideWhenEmpty
+      />
+      <ContentGrid
+        title="Not included"
+        items={details.exclusions}
+        fallback="excluded"
+      />
     </div>
   );
 }
@@ -596,7 +740,9 @@ function ContentGrid({
             const meta = contentMetadata(item, fallback);
             return (
               <li key={item}>
-                <span className="package-content-icon"><Icon name={meta.icon} /></span>
+                <span className="package-content-icon">
+                  <Icon name={meta.icon} />
+                </span>
                 <span>{meta.label ?? item}</span>
               </li>
             );
@@ -619,10 +765,18 @@ function TrustAndTerms({ details }: { details: PackageDetails }) {
         <h2>Confirmed &amp; pending</h2>
         <div>
           <ul>
-            {confirmed.map((item) => <li key={item}><Icon name="seal-check" /> {item}</li>)}
+            {confirmed.map((item) => (
+              <li key={item}>
+                <Icon name="seal-check" /> {item}
+              </li>
+            ))}
           </ul>
           <ul className="pending">
-            {pending.map((item) => <li key={item}><Icon name="clock" /> {item}</li>)}
+            {pending.map((item) => (
+              <li key={item}>
+                <Icon name="clock" /> {item}
+              </li>
+            ))}
           </ul>
         </div>
       </section>
@@ -630,12 +784,26 @@ function TrustAndTerms({ details }: { details: PackageDetails }) {
         <p className="package-section-kicker">Before you book</p>
         <h2>Cancellation summary</h2>
         <dl>
-          <div><dt>Cancellation policy</dt><dd>Reviewed before payment</dd></div>
-          <div><dt>Refund entitlement</dt><dd>Shown before commitment</dd></div>
-          <div><dt>Payment schedule</dt><dd>Shown before Book now</dd></div>
-          <div><dt>Need clarification?</dt><dd>Human support available</dd></div>
+          <div>
+            <dt>Cancellation policy</dt>
+            <dd>Reviewed before payment</dd>
+          </div>
+          <div>
+            <dt>Refund entitlement</dt>
+            <dd>Shown before commitment</dd>
+          </div>
+          <div>
+            <dt>Payment schedule</dt>
+            <dd>Shown before Book now</dd>
+          </div>
+          <div>
+            <dt>Need clarification?</dt>
+            <dd>Human support available</dd>
+          </div>
         </dl>
-        <a href="mailto:support@noorpath.example">Ask about payment & refund terms ›</a>
+        <a href="mailto:support@noorpath.example">
+          Ask about payment & refund terms ›
+        </a>
       </section>
     </div>
   );
@@ -653,11 +821,33 @@ function StickyBookingBar({
   return (
     <aside className="package-conversion-sticky" aria-label="Booking summary">
       <div>
-        <span><small>Total package</small><strong>{formatMoney(selected.financials.total, details.pricing.currency)}</strong></span>
-        <span><small>Minimum today</small><strong className="due">{formatMoney(selected.financials.dueNow, details.pricing.currency)}</strong></span>
-        <span className="remaining"><small>Remaining</small><strong>{formatMoney(selected.financials.remaining, details.pricing.currency)}</strong></span>
+        <span>
+          <small>Total package</small>
+          <strong>
+            {formatMoney(selected.financials.total, details.pricing.currency)}
+          </strong>
+        </span>
+        <span>
+          <small>Minimum today</small>
+          <strong className="due">
+            {formatMoney(selected.financials.dueNow, details.pricing.currency)}
+          </strong>
+        </span>
+        <span className="remaining">
+          <small>Remaining</small>
+          <strong>
+            {formatMoney(
+              selected.financials.remaining,
+              details.pricing.currency,
+            )}
+          </strong>
+        </span>
       </div>
-      <Link href={bookingHref(details.departureId, selected.occupancy, paymentMode)}>Book now <span aria-hidden="true">›</span></Link>
+      <Link
+        href={bookingHref(details.departureId, selected.occupancy, paymentMode)}
+      >
+        Book now <span aria-hidden="true">›</span>
+      </Link>
     </aside>
   );
 }
@@ -670,30 +860,50 @@ function contentMetadata(item: string, fallback: ContentGroup) {
 }
 
 function contentItems(items: string[], group: ContentGroup) {
-  return items.filter((item) => contentMetadata(item, "package").group === group);
+  return items.filter(
+    (item) => contentMetadata(item, "package").group === group,
+  );
 }
 
 function factLabels(details: PackageDetails, state: ConfirmationState) {
   const facts: string[] = [];
-  if (details.makkah.confirmationState === state) facts.push(`Makkah hotel ${state}`);
-  if (details.madinah.confirmationState === state) facts.push(`Madinah hotel ${state}`);
-  if (details.travel.confirmationState === state) facts.push(`Travel schedule ${state}`);
+  if (details.makkah.confirmationState === state)
+    facts.push(`Makkah hotel ${state}`);
+  if (details.madinah.confirmationState === state)
+    facts.push(`Madinah hotel ${state}`);
+  if (details.travel.confirmationState === state)
+    facts.push(`Travel schedule ${state}`);
   if (state === "confirmed") {
-    if (details.inclusions.includes("Visa included")) facts.push("Umrah visa included");
-    if (details.inclusions.includes("Breakfast, lunch and dinner") || details.inclusions.includes("Breakfast")) facts.push("Meals included");
-    if (details.inclusions.includes("Ziyarat transport")) facts.push("Ziyarat transport included");
-    if (details.inclusions.includes("Umrah guidance")) facts.push("Umrah guidance included");
+    if (details.inclusions.includes("Visa included"))
+      facts.push("Umrah visa included");
+    if (
+      details.inclusions.includes("Breakfast, lunch and dinner") ||
+      details.inclusions.includes("Breakfast")
+    )
+      facts.push("Meals included");
+    if (details.inclusions.includes("Ziyarat transport"))
+      facts.push("Ziyarat transport included");
+    if (details.inclusions.includes("Umrah guidance"))
+      facts.push("Umrah guidance included");
   }
   return facts;
 }
 
-function bookingHref(departureId: string, occupancy: Occupancy, paymentMode: PaymentMode) {
+function bookingHref(
+  departureId: string,
+  occupancy: Occupancy,
+  paymentMode: PaymentMode,
+) {
   const query = new URLSearchParams({ occupancy, paymentMode });
   return `/packages/${departureId}/plan?${query.toString()}`;
 }
 
 function occupancyLabel(occupancy: Occupancy) {
-  return occupancy === "double" ? "Double sharing" : occupancy === "triple" ? "Triple sharing" : "Quad sharing";
+  return occupancy === "double"
+    ? "Double sharing"
+    : occupancy === "triple"
+      ? "Triple sharing"
+      : "Quad sharing";
 }
 
 function confirmationCopy(state: ConfirmationState) {
@@ -720,7 +930,9 @@ function formatMoney(amount: number, currency: string) {
 function PackageLoading() {
   return (
     <section className="package-state-card" role="status" aria-live="polite">
-      <span className="package-state-icon"><Icon name="clock" /></span>
+      <span className="package-state-icon">
+        <Icon name="clock" />
+      </span>
       <h1>Loading package details</h1>
       <p>Checking the latest published journey, pricing and availability.</p>
     </section>
@@ -730,22 +942,37 @@ function PackageLoading() {
 function PackageUnavailable() {
   return (
     <section className="package-state-card" role="status">
-      <span className="package-state-icon"><Icon name="map-trifold" /></span>
+      <span className="package-state-icon">
+        <Icon name="map-trifold" />
+      </span>
       <h1>This package is not currently available.</h1>
-      <p>It may have been withdrawn, sold out, or is no longer eligible for public booking.</p>
+      <p>
+        It may have been withdrawn, sold out, or is no longer eligible for
+        public booking.
+      </p>
       <Link href="/#packages">Browse available packages</Link>
     </section>
   );
 }
 
-function PackageError({ correlationId, onRetry }: { correlationId?: string; onRetry: () => void }) {
+function PackageError({
+  correlationId,
+  onRetry,
+}: {
+  correlationId?: string;
+  onRetry: () => void;
+}) {
   return (
     <section className="package-state-card error" role="alert">
-      <span className="package-state-icon"><Icon name="shield-check" /></span>
+      <span className="package-state-icon">
+        <Icon name="shield-check" />
+      </span>
       <h1>We could not load this package right now.</h1>
       <p>Your booking has not changed. Retry when you are ready.</p>
       {correlationId ? <small>Reference: {correlationId}</small> : null}
-      <button type="button" onClick={onRetry}>Try again</button>
+      <button type="button" onClick={onRetry}>
+        Try again
+      </button>
     </section>
   );
 }

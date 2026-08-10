@@ -105,9 +105,7 @@ const publishedDetail = {
           total: 300000,
           dueNow: 60000,
           remaining: 240000,
-          instalments: [
-            { sequence: 1, dueDate: "2026-08-25", amount: 240000 },
-          ],
+          instalments: [{ sequence: 1, dueDate: "2026-08-25", amount: 240000 }],
           finalDueDate: "2026-08-25",
         },
       },
@@ -171,7 +169,9 @@ test("package details show travel dates, journey and operator-authored content",
     page.getByRole("heading", { name: "Journey & travel" }),
   ).toBeVisible();
   await expect(page.getByText("Makkah stay", { exact: true })).toBeVisible();
-  await expect(page.getByText("Intercity travel", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Intercity travel", { exact: true }),
+  ).toBeVisible();
   await expect(page.getByText("Madinah stay", { exact: true })).toBeVisible();
   await expect(page.getByText("Umrah visa included")).toBeVisible();
   await expect(page.getByText("Document wallet")).toBeVisible();
@@ -227,9 +227,7 @@ test("adult guests, room sharing and payment breakdown are visible before bookin
   ).toBeVisible();
 
   await page.getByLabel("Adult guests").selectOption("4");
-  await expect(
-    page.getByRole("radio", { name: /Quad sharing/ }),
-  ).toBeChecked();
+  await expect(page.getByRole("radio", { name: /Quad sharing/ })).toBeChecked();
   await expect(page.getByText("₹3,60,000").first()).toBeVisible();
   await expect(page.getByText("₹72,000").first()).toBeVisible();
 
@@ -279,7 +277,9 @@ test("package detail exposes safe unavailable and retry states", async ({
   );
   await expect(errorCard).toContainText("detail-test-503");
   await page.getByRole("button", { name: "Try again" }).click();
-  await expect(page.getByText("Browser Verified Journey").first()).toBeVisible();
+  await expect(
+    page.getByText("Browser Verified Journey").first(),
+  ).toBeVisible();
 });
 
 test("package details remain usable on mobile, at 200 percent text and reduced motion", async ({
