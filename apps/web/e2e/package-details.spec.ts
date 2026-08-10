@@ -146,6 +146,13 @@ test.beforeEach(async ({ page }) => {
   );
 });
 
+test.afterEach(async ({ page }, testInfo) => {
+  await testInfo.attach(`rendered-${testInfo.title}`, {
+    body: await page.screenshot({ fullPage: true }),
+    contentType: "image/png",
+  });
+});
+
 test("package details show travel dates, journey and operator-authored content", async ({
   page,
 }) => {
