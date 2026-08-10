@@ -95,7 +95,7 @@ jobs:
           if old not in text:
               raise SystemExit("Expected Field block was not found")
           path.write_text(text.replace(old, new))
-      - run: pnpm exec prettier --write apps/web/app/operator/departures/TravelFactsEditor.tsx
+      - run: pnpm format
       - name: Commit fix
         shell: bash
         run: |
