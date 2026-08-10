@@ -1,0 +1,126 @@
+.package-conversion-page .package-conversion-main {
+  width: min(calc(100% - 48px), 1240px);
+  max-width: calc(100% - 48px);
+  box-sizing: border-box;
+}
+
+.package-conversion-page .package-travel-dates,
+.package-conversion-page .package-date-scroller,
+.package-conversion-page .package-conversion-overview,
+.package-conversion-page .package-conversion-gallery,
+.package-conversion-page .package-conversion-operator,
+.package-conversion-page .package-booking-card,
+.package-conversion-page .package-conversion-content,
+.package-conversion-page .package-conversion-journey,
+.package-conversion-page .package-conversion-features,
+.package-conversion-page .package-content-grid,
+.package-conversion-page .package-conversion-status,
+.package-conversion-page .package-fact-status,
+.package-conversion-page .package-cancellation-summary,
+.package-conversion-page .package-conversion-about {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.package-conversion-page .package-date-scroller {
+  width: 100%;
+}
+
+.package-conversion-page .package-content-grid ul,
+.package-conversion-page .package-content-grid li,
+.package-conversion-page .package-content-grid li > span:last-child,
+.package-conversion-page .package-conversion-journey > ol,
+.package-conversion-page .package-conversion-journey > ol > li,
+.package-conversion-page .package-conversion-journey li > div,
+.package-conversion-page .package-guest-copy,
+.package-conversion-page .package-room-option > span,
+.package-conversion-page .package-payment-mode label span,
+.package-conversion-page .package-price-breakdown dt,
+.package-conversion-page .package-payment-breakdown li > div,
+.package-conversion-page .package-cancellation-summary dt,
+.package-conversion-page .package-cancellation-summary dd {
+  min-width: 0;
+}
+
+.package-conversion-page .package-content-grid li > span:last-child,
+.package-conversion-page .package-conversion-journey li p,
+.package-conversion-page .package-guest-copy strong,
+.package-conversion-page .package-guest-copy small,
+.package-conversion-page .package-room-option span,
+.package-conversion-page .package-payment-mode label span,
+.package-conversion-page .package-price-breakdown dt,
+.package-conversion-page .package-payment-breakdown small,
+.package-conversion-page .package-cancellation-summary dt,
+.package-conversion-page .package-cancellation-summary dd {
+  overflow-wrap: anywhere;
+}
+
+.package-conversion-page .package-conversion-sticky,
+.package-conversion-page .package-conversion-sticky > div,
+.package-conversion-page .package-conversion-sticky > div > span {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 860px) {
+  .package-conversion-page .package-conversion-main {
+    width: min(calc(100% - 28px), 720px);
+    max-width: calc(100% - 28px);
+  }
+}
+
+@media (max-width: 520px) {
+  .package-conversion-page .package-conversion-main {
+    width: calc(100% - 24px);
+    max-width: calc(100% - 24px);
+  }
+
+  .package-conversion-page .package-content-grid ul {
+    grid-template-columns: 1fr;
+  }
+
+  .package-conversion-page .package-content-grid li {
+    min-height: 88px;
+    grid-template-columns: 44px minmax(0, 1fr);
+    place-items: center start;
+    align-content: center;
+    text-align: left;
+  }
+
+  .package-conversion-page .package-conversion-journey > ol > li {
+    grid-template-columns: 48px 36px minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .package-conversion-page
+    .package-conversion-journey
+    > ol
+    > li:not(:last-child)::after {
+    left: 65px;
+  }
+
+  .package-conversion-page .package-guest-row,
+  .package-conversion-page .package-room-option,
+  .package-conversion-page .package-payment-breakdown li {
+    min-width: 0;
+  }
+
+  .package-conversion-page .package-stepper {
+    grid-template-columns: 44px 28px 44px;
+    flex: 0 0 auto;
+  }
+
+  .package-conversion-page .package-room-option {
+    grid-template-columns: auto minmax(0, 1fr) minmax(76px, auto);
+  }
+
+  .package-conversion-page .package-room-option > strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .package-conversion-page .package-conversion-sticky > div > span {
+    overflow-wrap: anywhere;
+  }
+}
