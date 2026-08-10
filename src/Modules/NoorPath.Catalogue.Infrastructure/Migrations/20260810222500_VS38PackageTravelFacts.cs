@@ -1,12 +1,9 @@
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace NoorPath.Catalogue.Infrastructure.Migrations;
 
-[DbContext(typeof(CatalogueDbContext))]
-[Migration("20260810222500_VS38PackageTravelFacts")]
 public partial class VS38PackageTravelFacts : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
