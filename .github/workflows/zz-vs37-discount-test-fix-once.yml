@@ -27,12 +27,8 @@ jobs:
           from pathlib import Path
           p = Path('apps/web/e2e/package-details.spec.ts')
           text = p.read_text()
-          old = '''  await expect(page.getByText("Discount", { exact: true })).toBeVisible();
-  await expect(page.getByText("No published discount")).toBeVisible();'''
-          new = '''  const discountRow = page.locator(".package-discount-row");
-  await expect(discountRow).toContainText("Discount");
-  await expect(discountRow).toContainText("No published discount");
-  await expect(discountRow).toContainText("0%");'''
+          old = '  await expect(page.getByText("Discount", { exact: true })).toBeVisible();\n  await expect(page.getByText("No published discount")).toBeVisible();'
+          new = '  const discountRow = page.locator(".package-discount-row");\n  await expect(discountRow).toContainText("Discount");\n  await expect(discountRow).toContainText("No published discount");\n  await expect(discountRow).toContainText("0%");'
           if old not in text:
               raise SystemExit('Discount assertion block not found')
           p.write_text(text.replace(old, new, 1))
