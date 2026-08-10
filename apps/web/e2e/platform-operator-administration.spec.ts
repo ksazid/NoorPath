@@ -215,9 +215,7 @@ async function arrangePublicationApi(page: import("@playwright/test").Page) {
           },
           inventory: {
             version: 2,
-            pools: [
-              { occupancy: "quad", capacity: 20, availableQuantity: 14 },
-            ],
+            pools: [{ occupancy: "quad", capacity: 20, availableQuantity: 14 }],
           },
         }),
       }),
@@ -250,19 +248,19 @@ test("platform administrator can approve an operator from the command centre", a
   await expect(
     page.getByRole("heading", { level: 1, name: "Platform operations" }),
   ).toBeVisible();
-  await expect(page.getByRole("img", { name: "NoorPath" }).first()).toBeVisible();
+  await expect(
+    page.getByRole("img", { name: "NoorPath" }).first(),
+  ).toBeVisible();
 
   const navigation = await openPlatformAdminMenu(page);
-  await expect(navigation.getByRole("link", { name: "Overview" })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
+  await expect(
+    navigation.getByRole("link", { name: "Overview" }),
+  ).toHaveAttribute("aria-current", "page");
   await navigation.getByRole("link", { name: "Operators" }).click();
   await expect(page).toHaveURL(/\/admin#operators$/);
-  await expect(navigation.getByRole("link", { name: "Operators" })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
+  await expect(
+    navigation.getByRole("link", { name: "Operators" }),
+  ).toHaveAttribute("aria-current", "page");
 
   await expect(
     page.getByText("Pending approval", { exact: true }).first(),
@@ -368,12 +366,13 @@ test("platform administration reflows at mobile width", async ({ page }) => {
     page.getByRole("heading", { name: "Platform operations" }),
   ).toBeVisible();
   const menu = page.locator(".np-platform-admin-shell .np-staff-menu");
-  await expect(menu.getByText("Platform Admin menu", { exact: true })).toBeVisible();
+  await expect(
+    menu.getByText("Platform Admin menu", { exact: true }),
+  ).toBeVisible();
   const navigation = await openPlatformAdminMenu(page);
-  await expect(navigation.getByRole("link", { name: "Overview" })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
+  await expect(
+    navigation.getByRole("link", { name: "Overview" }),
+  ).toHaveAttribute("aria-current", "page");
   await expect(
     page.getByRole("contentinfo").getByText("NoorPath Platform Administration"),
   ).toBeVisible();
