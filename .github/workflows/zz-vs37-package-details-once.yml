@@ -21,6 +21,19 @@ jobs:
           node-version-file: .node-version
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
+      - name: Make replacement text literal
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('.github/scripts/vs37_patch_once.py')
+          text = path.read_text()
+          old = 'updated, count = re.subn(pattern, replacement, text, count=1, flags=re.S)'
+          new = 'updated, count = re.subn(pattern, lambda _match: replacement, text, count=1, flags=re.S)'
+          if old not in text:
+              raise SystemExit('replace_block implementation not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
       - name: Apply VS-37 patch
         run: python .github/scripts/vs37_patch_once.py
       - name: Remove superseded booking href helper
