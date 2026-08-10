@@ -18,7 +18,7 @@
 
 ## Certification gates
 - [ ] Slice governance.
-- [ ] Formatting.
+- [x] Formatting.
 - [ ] Type checking, linting and static analysis.
 - [ ] Unit tests.
 - [ ] Integration and contract tests.
