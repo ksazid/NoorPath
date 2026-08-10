@@ -179,10 +179,20 @@ test("package details show travel dates, journey and operator-authored content",
     page.getByText("Intercity travel", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText("Madinah stay", { exact: true })).toBeVisible();
-  await expect(page.getByText("Umrah visa included")).toBeVisible();
-  await expect(page.getByText("Document wallet")).toBeVisible();
-  await expect(page.getByText("Pocket Dua guide")).toBeVisible();
-  await expect(page.getByText("Personal expenses")).toBeVisible();
+
+  const packageItems = page.locator(".package-content-grid li > span:last-child");
+  await expect(
+    packageItems.filter({ hasText: /^Umrah visa included$/ }),
+  ).toBeVisible();
+  await expect(
+    packageItems.filter({ hasText: /^Document wallet$/ }),
+  ).toBeVisible();
+  await expect(
+    packageItems.filter({ hasText: /^Pocket Dua guide$/ }),
+  ).toBeVisible();
+  await expect(
+    packageItems.filter({ hasText: /^Personal expenses$/ }),
+  ).toBeVisible();
   await expectNoA11yViolations(page);
 });
 
