@@ -6,6 +6,7 @@ import {
 } from "./helpers";
 
 const departureId = "3c9d522a-9481-4b79-9486-64cf997bfe31";
+const siblingDepartureId = "9c84aee0-e094-4cb8-bad0-1173fc34f2f6";
 
 const publishedDetail = {
   departureId,
@@ -68,10 +69,10 @@ const publishedDetail = {
       status: "available",
     },
     {
-      departureId: "9c84aee0-e094-4cb8-bad0-1173fc34f2f6",
+      departureId: siblingDepartureId,
       departureDate: "2026-09-07",
       returnDate: "2026-09-21",
-      status: "sold-out",
+      status: "available",
     },
   ],
   pricing: {
@@ -104,7 +105,9 @@ const publishedDetail = {
           total: 300000,
           dueNow: 60000,
           remaining: 240000,
-          instalments: [{ sequence: 1, dueDate: "2026-08-25", amount: 240000 }],
+          instalments: [
+            { sequence: 1, dueDate: "2026-08-25", amount: 240000 },
+          ],
           finalDueDate: "2026-08-25",
         },
       },
@@ -129,9 +132,19 @@ const publishedDetail = {
   },
 };
 
+const siblingDetail = {
+  ...publishedDetail,
+  departureId: siblingDepartureId,
+  departureDate: "2026-09-07",
+  returnDate: "2026-09-21",
+};
+
 test.beforeEach(async ({ page }) => {
   await page.route(`**/api/v1/departures/${departureId}`, (route) =>
     route.fulfill({ json: publishedDetail }),
+  );
+  await page.route(`**/api/v1/departures/${siblingDepartureId}`, (route) =>
+    route.fulfill({ json: siblingDetail }),
   );
 });
 
@@ -144,15 +157,19 @@ test("package details show travel dates, journey and operator-authored content",
     page.getByRole("heading", { name: "Available Travel Dates" }),
   ).toBeVisible();
   await expect(page.getByText("24 Aug 2026")).toBeVisible();
-  await expect(page.getByText("31 Aug 2026")).toBeVisible();
-  await expect(page.getByText("07 Sep 2026")).toBeVisible();
-  await expect(page.getByText("Sold out")).toHaveCount(2);
+  await expect(
+    page.locator(".package-date-card.current").getByText("31 Aug 2026"),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /07 Sep 2026/ })).toBeVisible();
+  await expect(page.getByText("Sold out")).toHaveCount(1);
   await expect(
     page.getByRole("heading", { name: "Noor International Tours & Travels" }),
   ).toBeVisible();
   await expect(page.getByText("Pullman ZamZam Makkah")).toBeVisible();
   await expect(page.getByText("Anwar Al Madinah Mövenpick")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Journey & travel" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Journey & travel" }),
+  ).toBeVisible();
   await expect(page.getByText("Makkah stay", { exact: true })).toBeVisible();
   await expect(page.getByText("Intercity travel", { exact: true })).toBeVisible();
   await expect(page.getByText("Madinah stay", { exact: true })).toBeVisible();
@@ -163,17 +180,39 @@ test("package details show travel dates, journey and operator-authored content",
   await expectNoA11yViolations(page);
 });
 
+test("available same-origin dates navigate and browser back returns safely", async ({
+  page,
+}) => {
+  await page.goto(`/packages/${departureId}`);
+
+  await page.getByRole("link", { name: /07 Sep 2026/ }).click();
+  await expect(page).toHaveURL(`/packages/${siblingDepartureId}`);
+  await expect(
+    page.locator(".package-date-card.current").getByText("07 Sep 2026"),
+  ).toBeVisible();
+
+  await page.goBack();
+  await expect(page).toHaveURL(`/packages/${departureId}`);
+  await expect(
+    page.locator(".package-date-card.current").getByText("31 Aug 2026"),
+  ).toBeVisible();
+});
+
 test("adult guests, room sharing and payment breakdown are visible before booking", async ({
   page,
 }) => {
   await page.goto(`/packages/${departureId}`);
 
   await expect(page.getByLabel("Adult guests")).toHaveValue("2");
-  await expect(page.getByRole("radio", { name: /Double sharing/ })).toBeChecked();
+  await expect(
+    page.getByRole("radio", { name: /Double sharing/ }),
+  ).toBeChecked();
   await expect(page.getByText("₹2,20,000").first()).toBeVisible();
   await expect(page.getByText("₹44,000").first()).toBeVisible();
   await expect(page.getByText("₹1,76,000").first()).toBeVisible();
-  await expect(page.getByRole("radio", { name: /Milestone plan/ })).toBeChecked();
+  await expect(
+    page.getByRole("radio", { name: /Milestone plan/ }),
+  ).toBeChecked();
   await expect(
     page.getByRole("heading", { name: "Milestone payment breakdown" }),
   ).toBeVisible();
@@ -183,14 +222,20 @@ test("adult guests, room sharing and payment breakdown are visible before bookin
   await expect(
     page.getByRole("heading", { name: "Pay later breakdown" }),
   ).toBeVisible();
-  await expect(page.getByText("₹1,76,000").last()).toBeVisible();
+  await expect(
+    page.locator(".package-payment-breakdown").getByText("₹1,76,000"),
+  ).toBeVisible();
 
   await page.getByLabel("Adult guests").selectOption("4");
-  await expect(page.getByRole("radio", { name: /Quad sharing/ })).toBeChecked();
+  await expect(
+    page.getByRole("radio", { name: /Quad sharing/ }),
+  ).toBeChecked();
   await expect(page.getByText("₹3,60,000").first()).toBeVisible();
   await expect(page.getByText("₹72,000").first()).toBeVisible();
 
-  await expect(page.getByRole("link", { name: /Book now/ }).first()).toHaveAttribute(
+  await expect(
+    page.getByRole("link", { name: /Book now/ }).first(),
+  ).toHaveAttribute(
     "href",
     new RegExp(
       `/packages/${departureId}/plan\\?occupancy=quad&paymentMode=pay-later`,
@@ -199,10 +244,15 @@ test("adult guests, room sharing and payment breakdown are visible before bookin
   await expectNoA11yViolations(page);
 });
 
-test("package detail exposes safe unavailable and retry states", async ({ page }) => {
+test("package detail exposes safe unavailable and retry states", async ({
+  page,
+}) => {
   await page.unroute(`**/api/v1/departures/${departureId}`);
   await page.route(`**/api/v1/departures/${departureId}`, (route) =>
-    route.fulfill({ status: 404, json: { title: "Published package not found" } }),
+    route.fulfill({
+      status: 404,
+      json: { title: "Published package not found" },
+    }),
   );
   await page.goto(`/packages/${departureId}`);
   await expect(page.getByRole("status")).toContainText(
@@ -223,10 +273,11 @@ test("package detail exposes safe unavailable and retry states", async ({ page }
       : route.fulfill({ json: publishedDetail }),
   );
   await page.reload();
-  await expect(page.getByRole("alert")).toContainText(
+  const errorCard = page.locator(".package-state-card.error");
+  await expect(errorCard).toContainText(
     "We could not load this package right now.",
   );
-  await expect(page.getByRole("alert")).toContainText("detail-test-503");
+  await expect(errorCard).toContainText("detail-test-503");
   await page.getByRole("button", { name: "Try again" }).click();
   await expect(page.getByText("Browser Verified Journey").first()).toBeVisible();
 });
@@ -238,9 +289,13 @@ test("package details remain usable on mobile, at 200 percent text and reduced m
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`/packages/${departureId}`);
 
-  await expect(page.getByRole("heading", { name: "Available Travel Dates" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Available Travel Dates" }),
+  ).toBeVisible();
   await expect(page.getByText("₹44,000").first()).toBeVisible();
-  await expect(page.getByRole("link", { name: /Book now/ }).first()).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /Book now/ }).first(),
+  ).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await expectMinimumTargets(page);
   await expectNoA11yViolations(page);
