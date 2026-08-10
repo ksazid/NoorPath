@@ -260,13 +260,14 @@ function PackageExperience({ details }: { details: PackageDetails }) {
         paymentMode={paymentMode}
         onBookNow={() => setBookingOpen(true)}
       />
-      <BookingAuthSheet
-        open={bookingOpen}
-        onClose={() => setBookingOpen(false)}
-        details={details}
-        selected={selected}
-        paymentMode={paymentMode}
-      />
+      {bookingOpen ? (
+        <BookingAuthSheet
+          onClose={() => setBookingOpen(false)}
+          details={details}
+          selected={selected}
+          paymentMode={paymentMode}
+        />
+      ) : null}
     </>
   );
 }
@@ -1090,13 +1091,11 @@ function StickyBookingBar({
 }
 
 function BookingAuthSheet({
-  open,
   onClose,
   details,
   selected,
   paymentMode,
 }: {
-  open: boolean;
   onClose: () => void;
   details: PackageDetails;
   selected: OccupancyDetail;
@@ -1120,25 +1119,19 @@ function BookingAuthSheet({
   );
 
   useEffect(() => {
-    if (!open) return;
-    setStage("phone");
-    setPhone("");
-    setOtp("");
-    setTravellers([""]);
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    window.setTimeout(() => phoneRef.current?.focus(), 0);
+    const focusTimer = window.setTimeout(() => phoneRef.current?.focus(), 0);
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => {
+      window.clearTimeout(focusTimer);
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [open, onClose]);
-
-  if (!open) return null;
+  }, [onClose]);
 
   const maxTravellers = selected.financials.adultGuests;
   const travellerNamesComplete =
