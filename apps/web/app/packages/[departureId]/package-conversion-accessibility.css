@@ -1,0 +1,21 @@
+.package-date-card.sold-out {
+  color: #595651;
+}
+
+.package-date-card.sold-out > span:last-child {
+  color: #66625c;
+}
+
+.package-date-card.sold-out .package-date-card-topline small {
+  color: #5f5b55;
+}
+
+.package-date-card-topline em {
+  color: #7f2626;
+}
+
+.package-conversion-main .package-breadcrumbs a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+}
