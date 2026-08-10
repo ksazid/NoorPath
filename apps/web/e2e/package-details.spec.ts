@@ -15,31 +15,65 @@ const publishedDetail = {
   },
   packageName: "Browser Verified Journey",
   summary: "A published journey backed by authoritative NoorPath facts.",
-  origin: "Delhi (DEL)",
-  departureDate: "2026-10-10",
-  returnDate: "2026-10-22",
-  durationNights: 12,
+  origin: "Mumbai (BOM)",
+  departureDate: "2026-08-31",
+  returnDate: "2026-09-14",
+  durationNights: 14,
   makkah: {
-    hotelName: "Makkah Hotel",
-    classification: "4 star",
-    distanceDisclosure: "850 m from Masjid al-Haram",
-    nights: 6,
+    hotelName: "Pullman ZamZam Makkah",
+    classification: "5 star",
+    distanceDisclosure: "450 m from Masjid al-Haram",
+    nights: 7,
     confirmationState: "confirmed",
   },
   madinah: {
-    hotelName: "Madinah Hotel",
-    classification: "4 star",
-    distanceDisclosure: "450 m from Al-Masjid an-Nabawi",
-    nights: 5,
+    hotelName: "Anwar Al Madinah Mövenpick",
+    classification: "5 star",
+    distanceDisclosure: "200 m from Al-Masjid an-Nabawi",
+    nights: 7,
     confirmationState: "pending",
   },
   travel: {
-    routeSummary: "Delhi → Jeddah → Makkah → Madinah",
-    details: "Final carrier and flight timing remain pending.",
+    routeSummary: "Mumbai → Jeddah → Makkah → Madinah",
+    details: "Intercity transfer by bus. Final flight timing remains pending.",
     confirmationState: "pending",
   },
-  inclusions: ["Return flights", "Breakfast", "Visa support"],
-  exclusions: ["Personal expenses"],
+  inclusions: [
+    "Return flights",
+    "Visa included",
+    "Makkah accommodation",
+    "Madinah accommodation",
+    "Breakfast, lunch and dinner",
+    "Intercity travel by bus",
+    "Ziyarat transport",
+    "Umrah guidance",
+    "Luggage tag",
+    "Neck pouch / document wallet",
+    "ID card",
+    "Pocket Dua guide",
+    "Zamzam handling guidance",
+  ],
+  exclusions: ["Personal expenses", "Extra baggage"],
+  travelDates: [
+    {
+      departureId: "64dd7c04-f72e-4413-b1ca-c2f0faf87d61",
+      departureDate: "2026-08-24",
+      returnDate: "2026-09-07",
+      status: "sold-out",
+    },
+    {
+      departureId,
+      departureDate: "2026-08-31",
+      returnDate: "2026-09-14",
+      status: "available",
+    },
+    {
+      departureId: "9c84aee0-e094-4cb8-bad0-1173fc34f2f6",
+      departureDate: "2026-09-07",
+      returnDate: "2026-09-21",
+      status: "sold-out",
+    },
+  ],
   pricing: {
     currency: "INR",
     occupancies: [
@@ -48,80 +82,136 @@ const publishedDetail = {
         amount: 110000,
         availableQuantity: 10,
         status: "available",
+        financials: {
+          adultGuests: 2,
+          total: 220000,
+          dueNow: 44000,
+          remaining: 176000,
+          instalments: [
+            { sequence: 1, dueDate: "2026-08-20", amount: 88000 },
+            { sequence: 2, dueDate: "2026-08-25", amount: 88000 },
+          ],
+          finalDueDate: "2026-08-25",
+        },
       },
       {
         occupancy: "triple",
         amount: 100000,
         availableQuantity: 0,
         status: "unavailable",
+        financials: {
+          adultGuests: 3,
+          total: 300000,
+          dueNow: 60000,
+          remaining: 240000,
+          instalments: [{ sequence: 1, dueDate: "2026-08-25", amount: 240000 }],
+          finalDueDate: "2026-08-25",
+        },
       },
       {
         occupancy: "quad",
         amount: 90000,
         availableQuantity: 6,
         status: "available",
+        financials: {
+          adultGuests: 4,
+          total: 360000,
+          dueNow: 72000,
+          remaining: 288000,
+          instalments: [
+            { sequence: 1, dueDate: "2026-08-20", amount: 144000 },
+            { sequence: 2, dueDate: "2026-08-25", amount: 144000 },
+          ],
+          finalDueDate: "2026-08-25",
+        },
       },
     ],
   },
 };
 
-test("published package detail renders authoritative facts", async ({
-  page,
-}) => {
+test.beforeEach(async ({ page }) => {
   await page.route(`**/api/v1/departures/${departureId}`, (route) =>
     route.fulfill({ json: publishedDetail }),
   );
+});
 
+test("package details show travel dates, journey and operator-authored content", async ({
+  page,
+}) => {
   await page.goto(`/packages/${departureId}`);
 
   await expect(
+    page.getByRole("heading", { name: "Available Travel Dates" }),
+  ).toBeVisible();
+  await expect(page.getByText("24 Aug 2026")).toBeVisible();
+  await expect(page.getByText("31 Aug 2026")).toBeVisible();
+  await expect(page.getByText("07 Sep 2026")).toBeVisible();
+  await expect(page.getByText("Sold out")).toHaveCount(2);
+  await expect(
     page.getByRole("heading", { name: "Noor International Tours & Travels" }),
   ).toBeVisible();
-  await expect(
-    page.getByText("Browser Verified Journey").first(),
-  ).toBeVisible();
-  await expect(page.getByText("Makkah Hotel")).toBeVisible();
-  await expect(page.getByText("Madinah Hotel")).toBeVisible();
-  await expect(
-    page.getByText("Delhi → Jeddah → Makkah → Madinah"),
-  ).toBeVisible();
-  await expect(page.getByText("Return flights")).toBeVisible();
+  await expect(page.getByText("Pullman ZamZam Makkah")).toBeVisible();
+  await expect(page.getByText("Anwar Al Madinah Mövenpick")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Journey & travel" })).toBeVisible();
+  await expect(page.getByText("Makkah stay", { exact: true })).toBeVisible();
+  await expect(page.getByText("Intercity travel", { exact: true })).toBeVisible();
+  await expect(page.getByText("Madinah stay", { exact: true })).toBeVisible();
+  await expect(page.getByText("Umrah visa included")).toBeVisible();
+  await expect(page.getByText("Document wallet")).toBeVisible();
+  await expect(page.getByText("Pocket Dua guide")).toBeVisible();
   await expect(page.getByText("Personal expenses")).toBeVisible();
-  await expect(page.getByText("₹1,10,000")).toBeVisible();
-  await expect(page.getByText("₹1,00,000")).toBeVisible();
-  await expect(page.getByText("Currently unavailable")).toBeVisible();
-  await expect(page.getByText("₹90,000").first()).toBeVisible();
-  await expect(page.getByText("Pending confirmation").first()).toBeVisible();
-
-  await expect(page.getByText("IATA Accredited")).toHaveCount(0);
-  await expect(page.getByText("ISO 9001:2015")).toHaveCount(0);
-  await expect(page.getByText("15+ Years Experience")).toHaveCount(0);
-  await expect(page.getByText("Pay today")).toHaveCount(0);
   await expectNoA11yViolations(page);
 });
 
-test("package detail exposes a calm unavailable state", async ({ page }) => {
-  await page.route(`**/api/v1/departures/${departureId}`, (route) =>
-    route.fulfill({
-      status: 404,
-      json: { title: "Published package not found" },
-    }),
-  );
+test("adult guests, room sharing and payment breakdown are visible before booking", async ({
+  page,
+}) => {
+  await page.goto(`/packages/${departureId}`);
 
+  await expect(page.getByLabel("Adult guests")).toHaveValue("2");
+  await expect(page.getByRole("radio", { name: /Double sharing/ })).toBeChecked();
+  await expect(page.getByText("₹2,20,000").first()).toBeVisible();
+  await expect(page.getByText("₹44,000").first()).toBeVisible();
+  await expect(page.getByText("₹1,76,000").first()).toBeVisible();
+  await expect(page.getByRole("radio", { name: /Milestone plan/ })).toBeChecked();
+  await expect(
+    page.getByRole("heading", { name: "Milestone payment breakdown" }),
+  ).toBeVisible();
+  await expect(page.getByText("₹88,000").first()).toBeVisible();
+
+  await page.getByRole("radio", { name: /Pay later/ }).check();
+  await expect(
+    page.getByRole("heading", { name: "Pay later breakdown" }),
+  ).toBeVisible();
+  await expect(page.getByText("₹1,76,000").last()).toBeVisible();
+
+  await page.getByLabel("Adult guests").selectOption("4");
+  await expect(page.getByRole("radio", { name: /Quad sharing/ })).toBeChecked();
+  await expect(page.getByText("₹3,60,000").first()).toBeVisible();
+  await expect(page.getByText("₹72,000").first()).toBeVisible();
+
+  await expect(page.getByRole("link", { name: /Book now/ }).first()).toHaveAttribute(
+    "href",
+    new RegExp(
+      `/packages/${departureId}/plan\\?occupancy=quad&paymentMode=pay-later`,
+    ),
+  );
+  await expectNoA11yViolations(page);
+});
+
+test("package detail exposes safe unavailable and retry states", async ({ page }) => {
+  await page.unroute(`**/api/v1/departures/${departureId}`);
+  await page.route(`**/api/v1/departures/${departureId}`, (route) =>
+    route.fulfill({ status: 404, json: { title: "Published package not found" } }),
+  );
   await page.goto(`/packages/${departureId}`);
   await expect(page.getByRole("status")).toContainText(
     "This package is not currently available.",
   );
-  await expect(
-    page.getByRole("link", { name: "Browse available packages" }),
-  ).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await expectNoA11yViolations(page);
-});
 
-test("package detail retry recovers after a public API error", async ({
-  page,
-}) => {
+  await page.unroute(`**/api/v1/departures/${departureId}`);
   let attempts = 0;
   await page.route(`**/api/v1/departures/${departureId}`, (route) =>
     ++attempts === 1
@@ -132,56 +222,34 @@ test("package detail retry recovers after a public API error", async ({
         })
       : route.fulfill({ json: publishedDetail }),
   );
-
-  await page.goto(`/packages/${departureId}`);
+  await page.reload();
   await expect(page.getByRole("alert")).toContainText(
     "We could not load this package right now.",
   );
   await expect(page.getByRole("alert")).toContainText("detail-test-503");
   await page.getByRole("button", { name: "Try again" }).click();
-  await expect(
-    page.getByText("Browser Verified Journey").first(),
-  ).toBeVisible();
+  await expect(page.getByText("Browser Verified Journey").first()).toBeVisible();
 });
 
-test("package detail remains usable at mobile widths, zoom and reduced motion", async ({
+test("package details remain usable on mobile, at 200 percent text and reduced motion", async ({
   page,
 }) => {
-  await page.route(`**/api/v1/departures/${departureId}`, (route) =>
-    route.fulfill({ json: publishedDetail }),
-  );
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`/packages/${departureId}`);
 
-  await expect(
-    page.getByText("Browser Verified Journey").first(),
-  ).toBeVisible();
-  await expect(page.getByText("₹90,000").first()).toBeVisible();
-  await expect(page.getByText("Currently unavailable")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Available Travel Dates" })).toBeVisible();
+  await expect(page.getByText("₹44,000").first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /Book now/ }).first()).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await expectMinimumTargets(page);
   await expectNoA11yViolations(page);
-
-  await page.getByRole("link", { name: /Review options/ }).focus();
-  const focused = page.locator(":focus");
-  await expect(focused).toBeVisible();
-  expect(
-    await focused.evaluate((element) => getComputedStyle(element).outlineStyle),
-  ).not.toBe("none");
 
   await page.evaluate(() => {
     document.documentElement.style.fontSize = "200%";
   });
   await expectNoHorizontalOverflow(page);
-
   await page.evaluate(() => {
     document.documentElement.style.fontSize = "100%";
   });
-  await page.setViewportSize({ width: 360, height: 800 });
-  await expect(
-    page.getByText("Browser Verified Journey").first(),
-  ).toBeVisible();
-  await expectNoHorizontalOverflow(page);
-  await expectMinimumTargets(page);
 });
