@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import styles from "./TravelFactsEditor.module.css";
 
 type ConfirmationState = "pending" | "confirmed";
@@ -82,7 +82,7 @@ function Field({
   label: string;
   error?: string;
   hint?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <label
@@ -100,7 +100,11 @@ function Field({
   );
 }
 
-export function TravelFactsLaunchLink({ departureId }: { departureId: string }) {
+export function TravelFactsLaunchLink({
+  departureId,
+}: {
+  departureId: string;
+}) {
   return (
     <Link
       className={styles.launchLink}
@@ -183,7 +187,9 @@ export default function TravelFactsEditor({
     );
     setErrors((current) => {
       const next = { ...current };
-      Object.keys(patch).forEach((key) => delete next[`legs[${index}].${key}`]);
+      Object.keys(patch).forEach((key) => {
+        delete next[`legs[${index}].${key}`];
+      });
       return next;
     });
     setProblem("");
@@ -219,7 +225,8 @@ export default function TravelFactsEditor({
           body: JSON.stringify({ expectedVersion: version, legs }),
         },
       );
-      const body = (await response.json()) as TravelFactsResponse & ProblemDetails;
+      const body = (await response.json()) as TravelFactsResponse &
+        ProblemDetails;
 
       if (response.status === 401) return setState("unauthenticated");
       if (response.status === 403) return setState("forbidden");
@@ -236,12 +243,17 @@ export default function TravelFactsEditor({
         setProblem(body.detail ?? "Review the highlighted flight facts.");
         setState("ready");
         requestAnimationFrame(() =>
-          document.querySelector<HTMLElement>("[data-travel-facts-errors]")?.focus(),
+          document
+            .querySelector<HTMLElement>("[data-travel-facts-errors]")
+            ?.focus(),
         );
         return;
       }
-      if (!response.ok)
-        throw new Error(body.detail ?? body.title ?? "travel facts save failed");
+      if (!response.ok) {
+        throw new Error(
+          body.detail ?? body.title ?? "travel facts save failed",
+        );
+      }
 
       setLegs(body.legs ?? []);
       setVersion(body.version);
@@ -256,13 +268,18 @@ export default function TravelFactsEditor({
     }
   };
 
-  if (["loading", "unauthenticated", "forbidden", "not-found"].includes(state)) {
+  if (
+    state === "loading" ||
+    state === "unauthenticated" ||
+    state === "forbidden" ||
+    state === "not-found"
+  ) {
     const message = {
       loading: "Loading airline and airport facts…",
       unauthenticated: "Sign in with an operator staff account to continue.",
       forbidden: "Your account does not have operator authoring access.",
       "not-found": "This departure is unavailable or belongs to another operator.",
-    }[state as "loading" | "unauthenticated" | "forbidden" | "not-found"];
+    }[state];
 
     return (
       <div className={styles.notice} role="status" aria-live="polite">
@@ -279,7 +296,10 @@ export default function TravelFactsEditor({
     <div className={styles.workspace}>
       <div className={styles.toolbar}>
         <div className={styles.toolbarLinks}>
-          <Link className={styles.link} href={`/operator/departures/${departureId}`}>
+          <Link
+            className={styles.link}
+            href={`/operator/departures/${departureId}`}
+          >
             Back to package draft
           </Link>
           <Link
@@ -323,7 +343,9 @@ export default function TravelFactsEditor({
           data-travel-facts-errors
         >
           <strong>
-            {state === "conflict" ? "Travel facts changed elsewhere" : "Review travel facts"}
+            {state === "conflict"
+              ? "Travel facts changed elsewhere"
+              : "Review travel facts"}
           </strong>
           <p>
             {problem ||
@@ -342,7 +364,11 @@ export default function TravelFactsEditor({
       )}
 
       {state === "saved" && (
-        <div className={styles.successNotice} role="status" aria-live="polite">
+        <div
+          className={styles.successNotice}
+          role="status"
+          aria-live="polite"
+        >
           <strong>Travel facts saved</strong>
           <p>Fact version {version} is stored with this private package draft.</p>
         </div>
@@ -360,11 +386,17 @@ export default function TravelFactsEditor({
         <div className={styles.legList}>
           {legs.map((leg, index) => {
             const key = `legs[${index}]`;
-            const fieldId = (name: keyof FlightLeg) => `flight-${index}-${name}`;
-            const fieldError = (name: keyof FlightLeg) => errors[`${key}.${name}`];
+            const fieldId = (name: keyof FlightLeg) =>
+              `flight-${index}-${name}`;
+            const fieldError = (name: keyof FlightLeg) =>
+              errors[`${key}.${name}`];
 
             return (
-              <fieldset className={styles.legCard} disabled={locked || busy} key={index}>
+              <fieldset
+                className={styles.legCard}
+                disabled={locked || busy}
+                key={index}
+              >
                 <div className={styles.legHeader}>
                   <div>
                     <h2>Flight leg {index + 1}</h2>
@@ -443,7 +475,9 @@ export default function TravelFactsEditor({
                       value={leg.departureAirportName}
                       placeholder="Airport name"
                       onChange={(event) =>
-                        updateLeg(index, { departureAirportName: event.target.value })
+                        updateLeg(index, {
+                          departureAirportName: event.target.value,
+                        })
                       }
                     />
                   </Field>
@@ -458,7 +492,9 @@ export default function TravelFactsEditor({
                       value={leg.departureAirportCode}
                       placeholder="e.g. BOM"
                       onChange={(event) =>
-                        updateLeg(index, { departureAirportCode: event.target.value })
+                        updateLeg(index, {
+                          departureAirportCode: event.target.value,
+                        })
                       }
                     />
                   </Field>
@@ -473,7 +509,9 @@ export default function TravelFactsEditor({
                       value={leg.arrivalAirportName}
                       placeholder="Airport name"
                       onChange={(event) =>
-                        updateLeg(index, { arrivalAirportName: event.target.value })
+                        updateLeg(index, {
+                          arrivalAirportName: event.target.value,
+                        })
                       }
                     />
                   </Field>
@@ -488,7 +526,9 @@ export default function TravelFactsEditor({
                       value={leg.arrivalAirportCode}
                       placeholder="e.g. JED"
                       onChange={(event) =>
-                        updateLeg(index, { arrivalAirportCode: event.target.value })
+                        updateLeg(index, {
+                          arrivalAirportCode: event.target.value,
+                        })
                       }
                     />
                   </Field>
@@ -506,12 +546,17 @@ export default function TravelFactsEditor({
                       value={leg.confirmationState}
                       onChange={(event) =>
                         updateLeg(index, {
-                          confirmationState: event.target.value as ConfirmationState,
+                          confirmationState: event.target
+                            .value as ConfirmationState,
                         })
                       }
                     >
-                      <option value="pending">Pending — still being verified</option>
-                      <option value="confirmed">Confirmed — operator verified</option>
+                      <option value="pending">
+                        Pending — still being verified
+                      </option>
+                      <option value="confirmed">
+                        Confirmed — operator verified
+                      </option>
                     </select>
                   </Field>
                 </div>
