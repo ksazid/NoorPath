@@ -278,7 +278,8 @@ export default function TravelFactsEditor({
       loading: "Loading airline and airport facts…",
       unauthenticated: "Sign in with an operator staff account to continue.",
       forbidden: "Your account does not have operator authoring access.",
-      "not-found": "This departure is unavailable or belongs to another operator.",
+      "not-found":
+        "This departure is unavailable or belongs to another operator.",
     }[state];
 
     return (
@@ -322,9 +323,9 @@ export default function TravelFactsEditor({
       <div className={styles.notice}>
         <strong>Operator-authored facts only</strong>
         <p>
-          Enter airline, flight and airport facts you can support. External airline
-          or airport lookup is not configured in this slice; leave uncertain facts
-          Pending rather than guessing.
+          Enter airline, flight and airport facts you can support. External
+          airline or airport lookup is not configured in this slice; leave
+          uncertain facts Pending rather than guessing.
         </p>
       </div>
 
@@ -364,13 +365,11 @@ export default function TravelFactsEditor({
       )}
 
       {state === "saved" && (
-        <div
-          className={styles.successNotice}
-          role="status"
-          aria-live="polite"
-        >
+        <div className={styles.successNotice} role="status" aria-live="polite">
           <strong>Travel facts saved</strong>
-          <p>Fact version {version} is stored with this private package draft.</p>
+          <p>
+            Fact version {version} is stored with this private package draft.
+          </p>
         </div>
       )}
 
@@ -378,8 +377,8 @@ export default function TravelFactsEditor({
         <div className={styles.emptyState}>
           <strong>No flight facts recorded yet</strong>
           <p>
-            This is a truthful empty state. Add a leg when the operator has airline
-            or airport facts to record.
+            This is a truthful empty state. Add a leg when the operator has
+            airline or airport facts to record.
           </p>
         </div>
       ) : (
@@ -401,8 +400,8 @@ export default function TravelFactsEditor({
                   <div>
                     <h2>Flight leg {index + 1}</h2>
                     <p>
-                      Record each connection independently so confirmation is never
-                      implied across the whole journey.
+                      Record each connection independently so confirmation is
+                      never implied across the whole journey.
                     </p>
                   </div>
                   <button

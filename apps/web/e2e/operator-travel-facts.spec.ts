@@ -19,7 +19,9 @@ async function mockOperatorShell(page: Page) {
   );
 }
 
-test("operator authors confirmed airline and airport facts", async ({ page }) => {
+test("operator authors confirmed airline and airport facts", async ({
+  page,
+}) => {
   let submitted: Record<string, unknown> | null = null;
   await mockOperatorShell(page);
 
@@ -69,9 +71,7 @@ test("operator authors confirmed airline and airport facts", async ({ page }) =>
   await page
     .getByLabel("Departure airport", { exact: true })
     .fill("Chhatrapati Shivaji Maharaj International Airport");
-  await page
-    .getByLabel("Departure airport code", { exact: true })
-    .fill("BOM");
+  await page.getByLabel("Departure airport code", { exact: true }).fill("BOM");
   await page
     .getByLabel("Arrival airport", { exact: true })
     .fill("King Abdulaziz International Airport");

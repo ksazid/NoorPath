@@ -213,11 +213,7 @@
   border: 1px solid
     color-mix(in srgb, var(--color-text-primary) 14%, transparent);
   border-radius: 18px;
-  background: color-mix(
-    in srgb,
-    var(--color-surface-canvas) 92%,
-    transparent
-  );
+  background: color-mix(in srgb, var(--color-surface-canvas) 92%, transparent);
   backdrop-filter: blur(14px);
 }
 
