@@ -1,17 +1,18 @@
-.package-date-card.sold-out {
-  color: #595651;
+.package-date-card.sold-out,
+.package-date-card.sold-out > strong {
+  color: #3f3d39 !important;
 }
 
 .package-date-card.sold-out > span:last-child {
-  color: #66625c;
+  color: #595651 !important;
 }
 
 .package-date-card.sold-out .package-date-card-topline small {
-  color: #5f5b55;
+  color: #595651 !important;
 }
 
-.package-date-card-topline em {
-  color: #7f2626;
+.package-date-card.sold-out .package-date-card-topline em {
+  color: #671c1c !important;
 }
 
 .package-conversion-main .package-breadcrumbs a {
