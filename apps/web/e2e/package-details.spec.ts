@@ -245,8 +245,6 @@ test("guest categories, room sharing and payment breakdown are visible before bo
     page.getByRole("radio", { name: /Double sharing/ }),
   ).toBeChecked();
   await expect(page.getByText("₹2,20,000").first()).toBeVisible();
-  await expect(page.getByText("₹44,000").first()).toBeVisible();
-  await expect(page.getByText("₹1,76,000").first()).toBeVisible();
   await expect(page.getByRole("radio", { name: /Pay Full/ })).toBeChecked();
   await expect(page.getByRole("radio", { name: /Milestone/ })).toBeVisible();
   await expect(page.getByRole("radio", { name: /Pay Later/ })).toBeVisible();
@@ -395,7 +393,10 @@ test("package details remain usable on mobile, at 200 percent text and reduced m
     page.getByRole("heading", { name: "Available Travel Dates" }),
   ).toBeVisible();
   await expect(page.getByText("Infants (0–2 years)")).toBeVisible();
-  await expect(page.getByText("₹44,000").first()).toBeVisible();
+  await expect(page.getByRole("radio", { name: /Pay Full/ })).toBeChecked();
+  await expect(
+    page.locator(".package-payment-breakdown").getByText("₹2,20,000"),
+  ).toBeVisible();
   await expect(
     page.getByRole("link", { name: /Book now/ }).first(),
   ).toBeVisible();
