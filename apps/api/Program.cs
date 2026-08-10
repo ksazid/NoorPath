@@ -113,6 +113,7 @@ app.MapOperatorAccess();
 app.MapAccountAccess();
 app.MapPlatformOperatorAdministration();
 app.MapCatalogueAuthoring();
+app.MapCatalogueTravelFacts();
 app.MapOperatorCatalogueQueries();
 app.MapOperatorBookingManagement();
 app.MapBookingAmendments();

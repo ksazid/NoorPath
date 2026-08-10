@@ -1,0 +1,69 @@
+{
+  "id": "VS-38",
+  "title": "Operator Airline & Airport Fact Authoring",
+  "slug": "operator-travel-fact-authoring",
+  "outcome": "Authorized operators record truthful airline, flight-leg and airport facts against an existing package departure while preserving explicit pending states and existing Makkah/Madinah hotel authority.",
+  "actor": "Authorized NoorPath operator staff maintaining a private package departure draft.",
+  "dependsOn": ["VS-23", "VS-37"],
+  "modules": [
+    "Catalogue owns package-version travel facts, validation, persistence and concurrency.",
+    "Operator web reuses the existing departure workspace and approved NoorPath operator visual language.",
+    "Existing Makkah and Madinah hotel authoring remains authoritative and is not duplicated.",
+    "External supplier lookup remains behind a future provider integration boundary."
+  ],
+  "routes": [
+    "Operator departure authoring -> /operator/departures/{departureId} -> Airline & airport facts.",
+    "Airline & airport facts -> /operator/departures/{departureId}/travel-facts -> add, edit, remove and save flight legs.",
+    "Travel facts -> Back to package draft or Preview package.",
+    "API -> GET/PUT /api/v1/operator/departures/{departureId}/travel-facts with server-resolved operator tenancy."
+  ],
+  "acceptance": [
+    "Only an authenticated operator member with administration access can read or write travel facts for that operator's departure.",
+    "Cross-operator departure identifiers return safe not-found behavior rather than leaking tenancy.",
+    "Draft departures support up to eight ordered flight legs with airline, flight number, departure airport, arrival airport and per-leg confirmation state.",
+    "Pending legs may preserve partial known facts; no missing airline, airport or flight fact is invented.",
+    "Confirmed legs require airline name, flight number and both airport names/codes before save.",
+    "Travel-fact writes use an independent version token and reject stale saves without conflicting with the existing departure composer version.",
+    "Ready-for-review and published departures render travel facts read-only.",
+    "The existing Makkah and Madinah hotel fields remain the sole accommodation authoring path for this slice.",
+    "The operator route exposes loading, empty, error, conflict, saved and locked states with keyboard-safe 44px controls and responsive reflow.",
+    "Rendered accessibility, target-size and no-horizontal-overflow checks pass.",
+    "Product Owner visually accepts screenshots for the exact final SHA before merge."
+  ],
+  "exclusions": [
+    "Google Places, Google Routes, Amadeus or other external airline/airport lookup integration.",
+    "Flight schedules, terminals, live status, PNR or ticketing integration.",
+    "A second hotel authoring model or inferred hotel claims.",
+    "Customer-facing package price-breakdown changes; public projection follows a later governed slice once provider/source rules are approved.",
+    "Production deployment before explicit authorization."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "component",
+    "migration",
+    "security",
+    "navigation-reachability",
+    "journey-linking",
+    "telemetry",
+    "accessibility",
+    "keyboard",
+    "focus",
+    "target-size",
+    "responsive-reflow",
+    "rendered-regression",
+    "design-token-consistency",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "apps/web/e2e/operator-travel-facts.spec.ts"
+  },
+  "specPath": "docs/slices/VS-38-OPERATOR-TRAVEL-FACT-AUTHORING.md",
+  "checklistPath": "docs/slices/VS-38-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-38-NAVIGATION-VERIFICATION.md"
+}

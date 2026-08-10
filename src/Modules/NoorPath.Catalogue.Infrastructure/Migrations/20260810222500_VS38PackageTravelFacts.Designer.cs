@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using NoorPath.Catalogue;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -8,9 +9,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NoorPath.Catalogue.Infrastructure.Migrations;
 
 [DbContext(typeof(CatalogueDbContext))]
-partial class CatalogueDbContextModelSnapshot : ModelSnapshot
+[Migration("20260810222500_VS38PackageTravelFacts")]
+partial class VS38PackageTravelFacts
 {
-    protected override void BuildModel(ModelBuilder modelBuilder)
+    protected override void BuildTargetModel(ModelBuilder modelBuilder)
     {
         modelBuilder
             .HasDefaultSchema("catalogue")
