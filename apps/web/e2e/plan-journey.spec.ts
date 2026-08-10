@@ -150,7 +150,7 @@ async function mockPlanApis(page: Page) {
 }
 
 async function completeQuote(page: Page) {
-  await page.goto(`/packages/${departureId}/plan`);
+  await page.goto(`/packages/${departureId}/plan?paymentMode=milestone`);
   await expect(
     page.getByRole("heading", { name: "Build your Umrah plan" }),
   ).toBeVisible();
@@ -199,6 +199,26 @@ async function secureAvailability(page: Page) {
     page.getByRole("checkbox", { name: /Amina Khan/ }),
   ).toBeDisabled();
 }
+
+test("authenticated traveller step shows names first and adds travellers progressively", async ({
+  page,
+}) => {
+  await mockPlanApis(page);
+  await page.goto(`/packages/${departureId}/plan?paymentMode=milestone`);
+
+  await expect(page.getByText("Amina Khan", { exact: true })).toBeVisible();
+  await expect(page.getByText("Born 17 May 1994")).toHaveCount(0);
+  const addTraveller = page.getByRole("button", { name: "Add traveller" });
+  await expect(addTraveller).toBeVisible();
+  await addTraveller.click();
+  await expect(page.getByLabel("Full name")).toBeVisible();
+  await expect(page.getByLabel("Date of birth")).toBeVisible();
+  await expect(
+    page.getByText(/Date of birth confirms adult eligibility/),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Cancel" })).toBeVisible();
+  await expectNoA11yViolations(page);
+});
 
 test("VS-08 renders the authoritative quote and active inventory hold accessibly", async ({
   page,

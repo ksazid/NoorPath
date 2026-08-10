@@ -195,7 +195,7 @@ export default function PlanJourneyPage() {
     kind: "loading",
   });
   const [occupancy, setOccupancy] = useState<Occupancy | null>(null);
-  const [paymentMode, setPaymentMode] = useState<PaymentMode>("milestone");
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>("pay-full");
   const [selectedTravellerIds, setSelectedTravellerIds] = useState<string[]>(
     [],
   );
@@ -207,6 +207,7 @@ export default function PlanJourneyPage() {
     Record<string, string>
   >({});
   const [savingTraveller, setSavingTraveller] = useState(false);
+  const [showTravellerForm, setShowTravellerForm] = useState(false);
 
   const applyHold = useCallback((hold: InventoryHold) => {
     if (hold.status === "active") {
@@ -312,9 +313,7 @@ export default function PlanJourneyPage() {
       const requestedOccupancy = searchParams.get("occupancy");
       const requestedPaymentMode = searchParams.get("paymentMode");
       setPaymentMode(
-        isPaymentMode(requestedPaymentMode)
-          ? requestedPaymentMode
-          : "milestone",
+        isPaymentMode(requestedPaymentMode) ? requestedPaymentMode : "pay-full",
       );
       const requestedAvailable = isOccupancy(requestedOccupancy)
         ? details.pricing.occupancies.find(
@@ -463,6 +462,7 @@ export default function PlanJourneyPage() {
       );
       setFullName("");
       setDateOfBirth("");
+      setShowTravellerForm(false);
       if (
         selectedMeta &&
         selectedTravellerIds.length < selectedMeta.travellers
@@ -834,9 +834,6 @@ export default function PlanJourneyPage() {
                                 </span>
                                 <span>
                                   <strong>{traveller.fullName}</strong>
-                                  <small>
-                                    Born {formatDate(traveller.dateOfBirth)}
-                                  </small>
                                 </span>
                               </label>
                             );
@@ -848,81 +845,105 @@ export default function PlanJourneyPage() {
                         </p>
                       )}
 
-                      <form
-                        className="traveller-add-form"
-                        onSubmit={addTraveller}
+                      <button
+                        className="traveller-add-toggle"
+                        type="button"
+                        disabled={selectionLocked}
+                        aria-expanded={showTravellerForm}
+                        onClick={() => setShowTravellerForm((value) => !value)}
                       >
-                        <div className="traveller-add-heading">
-                          <strong>Add an adult traveller</strong>
-                          <small>
-                            Travellers must be 18 or older on departure day.
-                          </small>
-                        </div>
-                        {travellerErrors.form ? (
-                          <p className="field-error" role="alert">
-                            {travellerErrors.form}
-                          </p>
-                        ) : null}
-                        <label>
-                          <span>Full name</span>
-                          <input
-                            type="text"
-                            autoComplete="name"
-                            value={fullName}
-                            disabled={selectionLocked}
-                            onChange={(event) =>
-                              setFullName(event.target.value)
-                            }
-                            aria-invalid={Boolean(travellerErrors.fullName)}
-                            aria-describedby={
-                              travellerErrors.fullName
-                                ? "traveller-name-error"
-                                : undefined
-                            }
-                          />
-                          {travellerErrors.fullName ? (
-                            <small
-                              className="field-error"
-                              id="traveller-name-error"
-                            >
-                              {travellerErrors.fullName}
-                            </small>
-                          ) : null}
-                        </label>
-                        <label>
-                          <span>Date of birth</span>
-                          <input
-                            type="date"
-                            value={dateOfBirth}
-                            disabled={selectionLocked}
-                            onChange={(event) =>
-                              setDateOfBirth(event.target.value)
-                            }
-                            aria-invalid={Boolean(travellerErrors.dateOfBirth)}
-                            aria-describedby={
-                              travellerErrors.dateOfBirth
-                                ? "traveller-dob-error"
-                                : undefined
-                            }
-                          />
-                          {travellerErrors.dateOfBirth ? (
-                            <small
-                              className="field-error"
-                              id="traveller-dob-error"
-                            >
-                              {travellerErrors.dateOfBirth}
-                            </small>
-                          ) : null}
-                        </label>
-                        <button
-                          type="submit"
-                          disabled={savingTraveller || selectionLocked}
+                        <span aria-hidden="true">+</span> Add traveller
+                      </button>
+
+                      {showTravellerForm ? (
+                        <form
+                          className="traveller-add-form"
+                          onSubmit={addTraveller}
                         >
-                          {savingTraveller
-                            ? "Adding traveller…"
-                            : "Add traveller"}
-                        </button>
-                      </form>
+                          <div className="traveller-add-heading">
+                            <strong>Add an adult traveller</strong>
+                            <small>
+                              Start with their name. Date of birth confirms
+                              adult eligibility before saving.
+                            </small>
+                          </div>
+                          {travellerErrors.form ? (
+                            <p className="field-error" role="alert">
+                              {travellerErrors.form}
+                            </p>
+                          ) : null}
+                          <label>
+                            <span>Full name</span>
+                            <input
+                              type="text"
+                              autoComplete="name"
+                              value={fullName}
+                              disabled={selectionLocked}
+                              onChange={(event) =>
+                                setFullName(event.target.value)
+                              }
+                              aria-invalid={Boolean(travellerErrors.fullName)}
+                              aria-describedby={
+                                travellerErrors.fullName
+                                  ? "traveller-name-error"
+                                  : undefined
+                              }
+                            />
+                            {travellerErrors.fullName ? (
+                              <small
+                                className="field-error"
+                                id="traveller-name-error"
+                              >
+                                {travellerErrors.fullName}
+                              </small>
+                            ) : null}
+                          </label>
+                          <label>
+                            <span>Date of birth</span>
+                            <input
+                              type="date"
+                              value={dateOfBirth}
+                              disabled={selectionLocked}
+                              onChange={(event) =>
+                                setDateOfBirth(event.target.value)
+                              }
+                              aria-invalid={Boolean(
+                                travellerErrors.dateOfBirth,
+                              )}
+                              aria-describedby={
+                                travellerErrors.dateOfBirth
+                                  ? "traveller-dob-error"
+                                  : undefined
+                              }
+                            />
+                            {travellerErrors.dateOfBirth ? (
+                              <small
+                                className="field-error"
+                                id="traveller-dob-error"
+                              >
+                                {travellerErrors.dateOfBirth}
+                              </small>
+                            ) : null}
+                          </label>
+                          <div className="traveller-add-actions">
+                            <button
+                              type="submit"
+                              disabled={savingTraveller || selectionLocked}
+                            >
+                              {savingTraveller
+                                ? "Adding traveller…"
+                                : "Save traveller"}
+                            </button>
+                            <button
+                              type="button"
+                              className="traveller-add-cancel"
+                              onClick={() => setShowTravellerForm(false)}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      ) : null}
                     </>
                   ) : null}
                 </section>
@@ -1287,19 +1308,73 @@ function HoldCountdown({ expiresAtUtc }: { expiresAtUtc: string }) {
 }
 
 function SignInNotice({ action = "create your quote" }: { action?: string }) {
-  const signInUrl = process.env.NEXT_PUBLIC_NOORPATH_SIGN_IN_URL;
+  const [mobile, setMobile] = useState("");
+  const [showCodePreview, setShowCodePreview] = useState(false);
+
+  const previewOtp = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setShowCodePreview(true);
+  };
+
   return (
-    <div className="plan-sign-in" role="status">
-      <Icon name="user-circle" />
-      <span>
-        <strong>Sign in to add travellers and {action}.</strong>
-        <small>
-          Package browsing stays public. Personal traveller details are
-          protected behind your NoorPath account.
-        </small>
-      </span>
-      {signInUrl ? <a href={signInUrl}>Sign in</a> : null}
-    </div>
+    <section className="plan-phone-auth" aria-labelledby="phone-auth-title">
+      <div className="plan-phone-auth-heading">
+        <Icon name="user-circle" />
+        <span>
+          <strong id="phone-auth-title">Login or sign up with phone OTP</strong>
+          <small>
+            Continue securely to add travellers and {action}. No password is
+            required.
+          </small>
+        </span>
+      </div>
+
+      <form className="plan-phone-auth-form" onSubmit={previewOtp}>
+        <label htmlFor="booking-mobile-number">Mobile number</label>
+        <div className="plan-phone-field">
+          <span aria-hidden="true">+91</span>
+          <input
+            id="booking-mobile-number"
+            type="tel"
+            inputMode="numeric"
+            autoComplete="tel-national"
+            pattern="[0-9]{10}"
+            maxLength={10}
+            placeholder="10-digit mobile number"
+            value={mobile}
+            onChange={(event) =>
+              setMobile(event.target.value.replace(/\\D/g, ""))
+            }
+            required
+          />
+        </div>
+        <button type="submit">Send Code</button>
+      </form>
+
+      {showCodePreview ? (
+        <div className="plan-otp-preview" role="status">
+          <label htmlFor="booking-otp-code">Verification code</label>
+          <input
+            id="booking-otp-code"
+            inputMode="numeric"
+            placeholder="6-digit code"
+            disabled
+          />
+          <button type="button" disabled>
+            Verify &amp; continue
+          </button>
+          <p>
+            OTP setup preview only — no code was sent. Delivery activates when
+            the SMS provider is configured.
+          </p>
+        </div>
+      ) : (
+        <p className="plan-phone-auth-note">
+          Phone OTP delivery is being configured. Your package selections stay
+          on this page.
+        </p>
+      )}
+    </section>
   );
 }
 

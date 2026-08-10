@@ -757,3 +757,225 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* VS-37: phone OTP preview and progressive traveller entry */
+.traveller-choice {
+  grid-template-columns: auto 38px 1fr;
+}
+
+.traveller-choice > span:last-child {
+  align-content: center;
+}
+
+.traveller-add-toggle {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 0 16px;
+  border: 1px solid var(--public-green);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--public-green-deep);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.traveller-add-toggle > span {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.traveller-add-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.traveller-add-actions > button {
+  min-width: 116px;
+}
+
+.traveller-add-cancel {
+  border-color: var(--public-line) !important;
+  background: var(--public-paper) !important;
+  color: var(--public-ink) !important;
+}
+
+.plan-phone-auth {
+  display: grid;
+  gap: 16px;
+  margin-top: 8px;
+  padding: clamp(18px, 3vw, 24px);
+  border: 1px solid var(--public-line);
+  border-radius: 12px;
+  background: var(--public-paper);
+}
+
+.plan-phone-auth-heading {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.plan-phone-auth-heading .public-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.plan-phone-auth-heading > span {
+  display: grid;
+  gap: 5px;
+}
+
+.plan-phone-auth-heading strong {
+  color: var(--public-ink);
+  font-size: 1rem;
+}
+
+.plan-phone-auth-heading small,
+.plan-phone-auth-note,
+.plan-otp-preview p {
+  color: var(--public-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.plan-phone-auth-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 10px;
+}
+
+.plan-phone-auth-form > label {
+  grid-column: 1 / -1;
+  color: var(--public-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.plan-phone-field {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 48px;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid var(--public-line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.plan-phone-field > span {
+  padding: 0 12px;
+  border-right: 1px solid var(--public-line);
+  color: var(--public-muted);
+  font-size: 0.9375rem;
+  font-weight: 650;
+}
+
+.plan-phone-field input,
+.plan-otp-preview input {
+  width: 100%;
+  min-height: 46px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 0;
+  background: #fff;
+  color: var(--public-ink);
+  font: inherit;
+  font-size: 1rem;
+}
+
+.plan-phone-auth-form > button,
+.plan-otp-preview > button {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid var(--public-green);
+  border-radius: 8px;
+  background: var(--public-green);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.plan-phone-auth-note {
+  margin: -4px 0 0;
+}
+
+.plan-otp-preview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--public-line);
+}
+
+.plan-otp-preview > label,
+.plan-otp-preview > p {
+  grid-column: 1 / -1;
+}
+
+.plan-otp-preview > label {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.plan-otp-preview input {
+  border: 1px solid var(--public-line);
+  border-radius: 8px;
+}
+
+.plan-otp-preview input:disabled,
+.plan-otp-preview button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.plan-otp-preview p {
+  margin: 0;
+}
+
+.traveller-add-toggle:focus-visible,
+.plan-phone-auth button:focus-visible,
+.plan-phone-auth input:focus-visible,
+.traveller-add-cancel:focus-visible {
+  outline: 3px solid var(--public-gold);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .traveller-add-toggle:hover {
+    border-color: var(--public-green-deep);
+    background: var(--public-ivory);
+  }
+}
+
+@media (max-width: 640px) {
+  .plan-phone-auth-form,
+  .plan-otp-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .plan-phone-auth-form > button,
+  .plan-otp-preview > button,
+  .traveller-add-toggle {
+    width: 100%;
+  }
+
+  .plan-otp-preview > label,
+  .plan-otp-preview > p {
+    grid-column: auto;
+  }
+
+  .traveller-add-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
