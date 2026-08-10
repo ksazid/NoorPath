@@ -1,0 +1,936 @@
+name: VS-37 Package Details One-shot
+
+on:
+  push:
+    branches:
+      - agent/vs37-package-details-booking-auth-design
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/vs37-package-details-booking-auth-design
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Apply VS-37 package details and booking-auth design
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+
+          def replace_once(path: str, old: str, new: str):
+              p = Path(path)
+              text = p.read_text()
+              if old not in text:
+                  raise SystemExit(f"Expected block not found in {path}: {old[:120]!r}")
+              p.write_text(text.replace(old, new, 1))
+
+          page = Path("apps/web/app/packages/[departureId]/page.tsx")
+          text = page.read_text()
+          text = text.replace(
+              'import { useCallback, useEffect, useState } from "react";',
+              'import { useCallback, useEffect, useRef, useState } from "react";'
+          )
+          text = text.replace(
+              'const [paymentMode, setPaymentMode] = useState<PaymentMode>("milestone");',
+              'const [paymentMode, setPaymentMode] = useState<PaymentMode>("pay-full");\n  const [bookingOpen, setBookingOpen] = useState(false);'
+          )
+          old_experience = '''  return (\n    <>\n      <main className="package-main package-conversion-main" id="main-content">\n        <nav className="package-breadcrumbs" aria-label="Breadcrumb">\n          <Link href="/">Home</Link>\n          <span aria-hidden="true">›</span>\n          <Link href="/#packages">Umrah Packages</Link>\n          <span aria-hidden="true">›</span>\n          <span>{details.packageName}</span>\n        </nav>\n\n        <TravelDates details={details} />\n\n        <section\n          className="package-conversion-overview"\n          aria-labelledby="package-title"\n        >\n          <Gallery selected={selected} />\n          <OperatorSummary details={details} />\n          <BookingCard\n            details={details}\n            selected={selected}\n            paymentMode={paymentMode}\n            onOccupancyChange={setOccupancy}\n            onPaymentModeChange={setPaymentMode}\n          />\n        </section>\n\n        <div className="package-conversion-content">\n          <Journey details={details} />\n          <PackageContent details={details} />\n          <TrustAndTerms details={details} />\n        </div>\n\n        <section className="package-conversion-about">\n          <h2>About this package</h2>\n          <p>{details.summary}</p>\n          <p>\n            Published pricing, current room availability and payment commitments\n            are visible before you start booking.\n          </p>\n        </section>\n      </main>\n\n      <PublicFooter />\n      <StickyBookingBar\n        details={details}\n        selected={selected}\n        paymentMode={paymentMode}\n      />\n    </>\n  );'''
+          new_experience = '''  return (\n    <>\n      <main className="package-main package-conversion-main" id="main-content">\n        <nav className="package-breadcrumbs" aria-label="Breadcrumb">\n          <Link href="/">Home</Link>\n          <span aria-hidden="true">›</span>\n          <Link href="/">Umrah Packages</Link>\n          <span aria-hidden="true">›</span>\n          <span>{details.packageName}</span>\n        </nav>\n\n        <section\n          className="package-conversion-overview"\n          aria-labelledby="package-title"\n        >\n          <div className="package-conversion-primary">\n            <div className="package-conversion-hero-row">\n              <Gallery selected={selected} />\n              <OperatorSummary details={details} />\n            </div>\n            <div className="package-conversion-content">\n              <Journey details={details} />\n              <PackageContent details={details} />\n            </div>\n          </div>\n          <BookingCard\n            details={details}\n            selected={selected}\n            paymentMode={paymentMode}\n            onOccupancyChange={setOccupancy}\n            onPaymentModeChange={setPaymentMode}\n            onBookNow={() => setBookingOpen(true)}\n          />\n        </section>\n\n        <div className="package-conversion-secondary">\n          <TrustAndTerms details={details} />\n          <section className="package-conversion-about">\n            <h2>About this package</h2>\n            <p>{details.summary}</p>\n            <p>\n              Published pricing, current room availability and payment commitments\n              are visible before you start booking.\n            </p>\n          </section>\n        </div>\n      </main>\n\n      <PublicFooter />\n      <StickyBookingBar\n        details={details}\n        selected={selected}\n        paymentMode={paymentMode}\n        onBookNow={() => setBookingOpen(true)}\n      />\n      <BookingAuthSheet\n        open={bookingOpen}\n        onClose={() => setBookingOpen(false)}\n        details={details}\n        selected={selected}\n        paymentMode={paymentMode}\n      />\n    </>\n  );'''
+          if old_experience not in text:
+              raise SystemExit("PackageExperience block not found")
+          text = text.replace(old_experience, new_experience, 1)
+
+          old_dates = '''function TravelDates({ details }: { details: PackageDetails }) {\n  const dates = details.travelDates?.length\n    ? details.travelDates\n    : [\n        {\n          departureId: details.departureId,\n          departureDate: details.departureDate,\n          returnDate: details.returnDate,\n          status: "available" as const,\n        },\n      ];\n\n  return (\n    <section\n      className="package-travel-dates"\n      aria-labelledby="travel-dates-title"\n    >\n      <div className="package-travel-dates-heading">\n        <div>\n          <h2 id="travel-dates-title">Available Travel Dates</h2>\n          <p>Other published departures from {details.origin}</p>\n        </div>\n        <span>{dates.length} dates</span>\n      </div>\n      <div\n        className="package-date-scroller"\n        aria-label={`Published ${details.origin} travel dates`}\n      >'''
+          new_dates = '''function TravelDates({ details }: { details: PackageDetails }) {\n  const scrollerRef = useRef<HTMLDivElement>(null);\n  const dates = details.travelDates?.length\n    ? details.travelDates\n    : [\n        {\n          departureId: details.departureId,\n          departureDate: details.departureDate,\n          returnDate: details.returnDate,\n          status: "available" as const,\n        },\n      ];\n\n  const moveDates = (direction: -1 | 1) => {\n    scrollerRef.current?.scrollBy({ left: direction * 220, behavior: "auto" });\n  };\n\n  return (\n    <section\n      className="package-travel-dates"\n      aria-labelledby="travel-dates-title"\n    >\n      <div className="package-travel-dates-heading">\n        <div>\n          <h2 id="travel-dates-title">Available Travel Dates</h2>\n          <p>Published departures from {details.origin}</p>\n        </div>\n        <div className="package-date-controls" aria-label="Browse travel dates">\n          <button\n            type="button"\n            aria-label="Previous travel dates"\n            onClick={() => moveDates(-1)}\n          >\n            ‹\n          </button>\n          <button\n            type="button"\n            aria-label="Next travel dates"\n            onClick={() => moveDates(1)}\n          >\n            ›\n          </button>\n        </div>\n      </div>\n      <div\n        ref={scrollerRef}\n        className="package-date-scroller"\n        aria-label={`Published ${details.origin} travel dates`}\n      >'''
+          if old_dates not in text:
+              raise SystemExit("TravelDates block start not found")
+          text = text.replace(old_dates, new_dates, 1)
+
+          old_booking_sig = '''function BookingCard({\n  details,\n  selected,\n  paymentMode,\n  onOccupancyChange,\n  onPaymentModeChange,\n}: {\n  details: PackageDetails;\n  selected: OccupancyDetail;\n  paymentMode: PaymentMode;\n  onOccupancyChange: (value: Occupancy) => void;\n  onPaymentModeChange: (value: PaymentMode) => void;\n}) {'''
+          new_booking_sig = '''function BookingCard({\n  details,\n  selected,\n  paymentMode,\n  onOccupancyChange,\n  onPaymentModeChange,\n  onBookNow,\n}: {\n  details: PackageDetails;\n  selected: OccupancyDetail;\n  paymentMode: PaymentMode;\n  onOccupancyChange: (value: Occupancy) => void;\n  onPaymentModeChange: (value: PaymentMode) => void;\n  onBookNow: () => void;\n}) {'''
+          if old_booking_sig not in text:
+              raise SystemExit("BookingCard signature not found")
+          text = text.replace(old_booking_sig, new_booking_sig, 1)
+
+          old_selection = '''      <a className="package-selection-row" href="#travel-dates-title">\n        <span>\n          <strong>Travel date</strong>\n          <small>{formatDate(details.departureDate)}</small>\n        </span>\n        <span className="package-selection-change">Change</span>\n      </a>'''
+          if old_selection not in text:
+              raise SystemExit("Travel date hash selection not found")
+          text = text.replace(old_selection, '      <TravelDates details={details} />', 1)
+
+          old_price = '''      <div className="package-price-breakdown">\n        <h3>Price Breakdown</h3>\n        <dl>\n          <div>\n            <dt>\n              Adult · {formatMoney(selected.amount, details.pricing.currency)} ×{" "}\n              {financials.adultGuests}\n            </dt>\n            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>\n          </div>\n          <div className="total">\n            <dt>Total package</dt>\n            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>\n          </div>\n          <div className="due">\n            <dt>Pay today</dt>\n            <dd>\n              {formatMoney(visibleFinancials.dueNow, details.pricing.currency)}\n            </dd>\n          </div>\n          <div>\n            <dt>Remaining</dt>\n            <dd>\n              {formatMoney(\n                visibleFinancials.remaining,\n                details.pricing.currency,\n              )}\n            </dd>\n          </div>\n        </dl>\n      </div>'''
+          new_price = '''      <div className="package-price-breakdown">\n        <h3>Price Breakdown</h3>\n        <dl>\n          <div>\n            <dt>Airline</dt>\n            <dd className="pending-value">To be published</dd>\n          </div>\n          <div>\n            <dt>Departure Route</dt>\n            <dd>{details.origin} to Jeddah</dd>\n          </div>\n          <div>\n            <dt>Return Route</dt>\n            <dd>Jeddah to {details.origin}</dd>\n          </div>\n          <div className="package-unit-price">\n            <dt>\n              {formatMoney(selected.amount, details.pricing.currency)} ×{" "}\n              {financials.adultGuests}\n              <small>\n                ({occupancyLabel(selected.occupancy)}, {financials.adultGuests}{" "}\n                people)\n              </small>\n            </dt>\n            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>\n          </div>\n          <div>\n            <dt>Total Price Before Discount</dt>\n            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>\n          </div>\n          <div className="discount">\n            <dt>Discount</dt>\n            <dd>0% · {formatMoney(0, details.pricing.currency)}</dd>\n          </div>\n          <div>\n            <dt>Total Price After Discount</dt>\n            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>\n          </div>\n          <div>\n            <dt>Service Provider</dt>\n            <dd>{details.operator.displayName}</dd>\n          </div>\n          <div>\n            <dt>Powered &amp; Supported by</dt>\n            <dd>NoorPath</dd>\n          </div>\n          <div className="total">\n            <dt>TOTAL</dt>\n            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>\n          </div>\n          <div className="due">\n            <dt>Pay today</dt>\n            <dd>\n              {formatMoney(visibleFinancials.dueNow, details.pricing.currency)}\n            </dd>\n          </div>\n          <div>\n            <dt>Remaining</dt>\n            <dd>\n              {formatMoney(\n                visibleFinancials.remaining,\n                details.pricing.currency,\n              )}\n            </dd>\n          </div>\n        </dl>\n        <p className="package-tax-note">\n          Taxes, if applicable, will be shown before payment. Discount and tax\n          rules are not yet operator-configurable.\n        </p>\n      </div>'''
+          if old_price not in text:
+              raise SystemExit("Price breakdown block not found")
+          text = text.replace(old_price, new_price, 1)
+
+          old_book_link = '''      <Link\n        className="package-book-now"\n        href={bookingHref(\n          details.departureId,\n          selected.occupancy,\n          effectivePaymentMode,\n        )}\n      >\n        Book now <span aria-hidden="true">›</span>\n      </Link>'''
+          new_book_button = '''      <button className="package-book-now" type="button" onClick={onBookNow}>\n        <Icon name="lock" /> Book now <span aria-hidden="true">›</span>\n      </button>'''
+          if old_book_link not in text:
+              raise SystemExit("Booking card Book now link not found")
+          text = text.replace(old_book_link, new_book_button, 1)
+
+          old_sticky_sig = '''function StickyBookingBar({\n  details,\n  selected,\n  paymentMode,\n}: {\n  details: PackageDetails;\n  selected: OccupancyDetail;\n  paymentMode: PaymentMode;\n}) {'''
+          new_sticky_sig = '''function StickyBookingBar({\n  details,\n  selected,\n  paymentMode,\n  onBookNow,\n}: {\n  details: PackageDetails;\n  selected: OccupancyDetail;\n  paymentMode: PaymentMode;\n  onBookNow: () => void;\n}) {'''
+          if old_sticky_sig not in text:
+              raise SystemExit("Sticky signature not found")
+          text = text.replace(old_sticky_sig, new_sticky_sig, 1)
+
+          old_sticky_link = '''      <Link\n        href={bookingHref(\n          details.departureId,\n          selected.occupancy,\n          effectivePaymentMode,\n        )}\n      >\n        Book now <span aria-hidden="true">›</span>\n      </Link>'''
+          new_sticky_button = '''      <button type="button" onClick={onBookNow}>\n        Book now <span aria-hidden="true">›</span>\n      </button>'''
+          if old_sticky_link not in text:
+              raise SystemExit("Sticky Book now link not found")
+          text = text.replace(old_sticky_link, new_sticky_button, 1)
+
+          marker = '''function occupancyForGuests(details: PackageDetails, guests: number) {'''
+          auth_component = r'''function BookingAuthSheet({
+  open,
+  onClose,
+  details,
+  selected,
+  paymentMode,
+}: {
+  open: boolean;
+  onClose: () => void;
+  details: PackageDetails;
+  selected: OccupancyDetail;
+  paymentMode: PaymentMode;
+}) {
+  const [stage, setStage] = useState<"phone" | "otp" | "travellers">("phone");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [travellers, setTravellers] = useState([""]);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const hasFuturePlan =
+    selected.financials.remaining > 0 &&
+    selected.financials.instalments.length > 0 &&
+    selected.financials.finalDueDate !== null;
+  const effectivePaymentMode: PaymentMode = hasFuturePlan
+    ? paymentMode
+    : "pay-full";
+  const visibleFinancials = paymentPreview(
+    selected.financials,
+    effectivePaymentMode,
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    setStage("phone");
+    setPhone("");
+    setOtp("");
+    setTravellers([""]);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.setTimeout(() => phoneRef.current?.focus(), 0);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  const maxTravellers = selected.financials.adultGuests;
+  const travellerNamesComplete =
+    travellers.length === maxTravellers &&
+    travellers.every((name) => name.trim().length > 0);
+
+  return (
+    <div className="package-auth-overlay" role="presentation">
+      <section
+        className="package-auth-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="package-auth-title"
+      >
+        <header>
+          <div>
+            <p>Secure booking</p>
+            <h2 id="package-auth-title">
+              {stage === "travellers" ? "Add travellers" : "Login with mobile OTP"}
+            </h2>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Close booking login">
+            ×
+          </button>
+        </header>
+
+        <div className="package-auth-summary">
+          <span>
+            <small>{details.packageName}</small>
+            <strong>{formatDate(details.departureDate)}</strong>
+          </span>
+          <span>
+            <small>{occupancyLabel(selected.occupancy)}</small>
+            <strong>{selected.financials.adultGuests} adults</strong>
+          </span>
+          <span>
+            <small>Pay today</small>
+            <strong>{formatMoney(visibleFinancials.dueNow, details.pricing.currency)}</strong>
+          </span>
+        </div>
+
+        {stage === "phone" ? (
+          <div className="package-auth-step">
+            <label htmlFor="booking-mobile">Mobile number</label>
+            <div className="package-phone-field">
+              <span>+91</span>
+              <input
+                ref={phoneRef}
+                id="booking-mobile"
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel-national"
+                placeholder="Enter mobile number"
+                value={phone}
+                onChange={(event) =>
+                  setPhone(event.target.value.replace(/\D/g, "").slice(0, 10))
+                }
+              />
+            </div>
+            <p>
+              We will use this number for booking updates and, once enabled,
+              WhatsApp journey notifications.
+            </p>
+            <button
+              className="package-auth-primary"
+              type="button"
+              disabled={phone.length !== 10}
+              onClick={() => setStage("otp")}
+            >
+              Send code
+            </button>
+            <small className="package-preview-note">
+              Design preview: no SMS is sent yet. Phone OTP will be connected in
+              the authentication slice.
+            </small>
+          </div>
+        ) : null}
+
+        {stage === "otp" ? (
+          <div className="package-auth-step">
+            <button
+              className="package-auth-back"
+              type="button"
+              onClick={() => setStage("phone")}
+            >
+              ‹ Change mobile number
+            </button>
+            <label htmlFor="booking-otp">6-digit verification code</label>
+            <input
+              id="booking-otp"
+              className="package-otp-field"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder="000000"
+              value={otp}
+              onChange={(event) =>
+                setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))
+              }
+            />
+            <button
+              className="package-auth-primary"
+              type="button"
+              disabled={otp.length !== 6}
+              onClick={() => setStage("travellers")}
+            >
+              Verify & continue
+            </button>
+            <small className="package-preview-note">
+              Design preview only. This step does not authenticate an account.
+            </small>
+          </div>
+        ) : null}
+
+        {stage === "travellers" ? (
+          <div className="package-auth-step package-traveller-step">
+            <p>
+              Add the names of the {maxTravellers} travellers for this room.
+              Passport details can be completed later in the governed journey.
+            </p>
+            <div className="package-traveller-list">
+              {travellers.map((name, index) => (
+                <label key={index}>
+                  <span>Traveller {index + 1}</span>
+                  <input
+                    type="text"
+                    autoComplete="name"
+                    placeholder="Full name"
+                    value={name}
+                    onChange={(event) =>
+                      setTravellers((current) =>
+                        current.map((item, itemIndex) =>
+                          itemIndex === index ? event.target.value : item,
+                        ),
+                      )
+                    }
+                  />
+                </label>
+              ))}
+            </div>
+            {travellers.length < maxTravellers ? (
+              <button
+                className="package-add-traveller"
+                type="button"
+                onClick={() => setTravellers((current) => [...current, ""])}
+              >
+                + Add traveller
+              </button>
+            ) : null}
+            <button
+              className="package-auth-primary"
+              type="button"
+              disabled={!travellerNamesComplete}
+            >
+              Continue to secure booking
+            </button>
+            <small className="package-preview-note">
+              Booking continuation will activate only after real OTP verification
+              is connected.
+            </small>
+          </div>
+        ) : null}
+      </section>
+    </div>
+  );
+}
+
+'''
+          if marker not in text:
+              raise SystemExit("occupancy helper marker not found")
+          text = text.replace(marker, auth_component + marker, 1)
+          text = text.replace('      <Link href="/#packages">Browse available packages</Link>', '      <Link href="/">Browse available packages</Link>')
+          page.write_text(text)
+
+          css = Path("apps/web/app/packages/[departureId]/package-conversion.css")
+          css.write_text(css.read_text() + r'''
+
+/* VS-37: Package Details dossier layout and booking-auth design preview */
+.package-conversion-overview {
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 390px);
+  gap: 30px;
+}
+
+.package-conversion-primary {
+  min-width: 0;
+}
+
+.package-conversion-hero-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(250px, 0.78fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.package-conversion-primary > .package-conversion-content {
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+  margin-top: 22px;
+}
+
+.package-conversion-secondary {
+  display: grid;
+  gap: 22px;
+  margin-top: 24px;
+}
+
+.package-conversion-secondary .package-conversion-about {
+  margin-top: 0;
+}
+
+.package-booking-card {
+  position: sticky;
+  top: 92px;
+}
+
+.package-booking-card .package-travel-dates {
+  margin: 0 0 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--public-line);
+}
+
+.package-booking-card .package-travel-dates-heading {
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.package-booking-card .package-travel-dates-heading h2 {
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.package-booking-card .package-travel-dates-heading p {
+  font-size: 0.75rem;
+}
+
+.package-date-controls {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.package-date-controls button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--public-line);
+  border-radius: 50%;
+  background: var(--package-surface);
+  color: var(--public-ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.35rem;
+  transition:
+    border-color 140ms var(--package-ease-out),
+    transform 120ms var(--package-ease-out);
+}
+
+.package-date-controls button:active,
+.package-book-now:active,
+.package-conversion-sticky > button:active,
+.package-auth-primary:active,
+.package-add-traveller:active {
+  transform: scale(0.97);
+}
+
+.package-booking-card .package-date-scroller {
+  gap: 8px;
+  padding-bottom: 5px;
+}
+
+.package-booking-card .package-date-card {
+  min-width: 184px;
+  min-height: 92px;
+  flex-basis: 184px;
+  padding: 12px;
+}
+
+.package-unit-price dt {
+  display: grid;
+  gap: 2px;
+}
+
+.package-unit-price dt small {
+  color: var(--public-muted);
+  font-size: 0.75rem;
+}
+
+.package-price-breakdown .discount dd {
+  color: var(--public-green-deep);
+}
+
+.package-price-breakdown .pending-value {
+  color: var(--public-muted);
+  font-weight: 600;
+}
+
+.package-price-breakdown dl > div {
+  align-items: baseline;
+}
+
+.package-price-breakdown dt {
+  min-width: 0;
+}
+
+.package-price-breakdown dd {
+  max-width: 58%;
+  overflow-wrap: anywhere;
+}
+
+.package-tax-note {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--public-line);
+  color: var(--public-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.package-book-now,
+.package-conversion-sticky > button {
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.package-book-now {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.package-book-now .public-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.package-conversion-sticky > button {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 22px;
+  border-radius: 10px;
+  background: var(--public-green);
+  color: white;
+  font-weight: 700;
+}
+
+.package-auth-overlay {
+  position: fixed;
+  z-index: 1200;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(23 23 21 / 52%);
+}
+
+.package-auth-sheet {
+  width: min(100%, 560px);
+  max-height: min(760px, calc(100dvh - 48px));
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 24px;
+  border: 1px solid var(--public-line);
+  border-radius: 18px;
+  background: var(--package-surface);
+  box-shadow: 0 28px 80px rgb(23 23 21 / 22%);
+}
+
+.package-auth-sheet > header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.package-auth-sheet > header p {
+  margin: 0 0 4px;
+  color: var(--public-green-deep);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.package-auth-sheet > header h2 {
+  margin: 0;
+  color: var(--public-ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.65rem;
+  font-weight: 500;
+}
+
+.package-auth-sheet > header > button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--public-line);
+  border-radius: 50%;
+  background: var(--package-surface);
+  color: var(--public-ink);
+  cursor: pointer;
+  font-size: 1.35rem;
+}
+
+.package-auth-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--package-soft);
+}
+
+.package-auth-summary span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.package-auth-summary small {
+  overflow: hidden;
+  color: var(--public-muted);
+  font-size: 0.6875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.package-auth-summary strong {
+  color: var(--public-ink);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.package-auth-step {
+  display: grid;
+  gap: 12px;
+}
+
+.package-auth-step > label,
+.package-traveller-list label > span {
+  color: var(--public-ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.package-auth-step > p {
+  margin: 0;
+  color: var(--public-muted);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.package-phone-field {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  min-height: 54px;
+  overflow: hidden;
+  border: 1px solid var(--public-line);
+  border-radius: 12px;
+  background: var(--package-surface);
+}
+
+.package-phone-field > span {
+  padding: 0 13px;
+  border-right: 1px solid var(--public-line);
+  color: var(--public-muted);
+  font-weight: 700;
+}
+
+.package-phone-field input,
+.package-otp-field,
+.package-traveller-list input {
+  min-width: 0;
+  min-height: 52px;
+  box-sizing: border-box;
+  border: 1px solid var(--public-line);
+  border-radius: 10px;
+  background: var(--package-surface);
+  color: var(--public-ink);
+  font: inherit;
+  font-size: 1rem;
+}
+
+.package-phone-field input {
+  border: 0;
+  border-radius: 0;
+  padding: 0 13px;
+  outline-offset: -3px;
+}
+
+.package-otp-field,
+.package-traveller-list input {
+  width: 100%;
+  padding: 0 14px;
+}
+
+.package-otp-field {
+  font-size: 1.35rem;
+  letter-spacing: 0.25em;
+  font-variant-numeric: tabular-nums;
+}
+
+.package-auth-primary,
+.package-add-traveller,
+.package-auth-back {
+  min-height: 48px;
+  border-radius: 10px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.package-auth-primary {
+  border: 0;
+  background: var(--public-green);
+  color: white;
+  font-weight: 700;
+}
+
+.package-auth-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.package-auth-back,
+.package-add-traveller {
+  justify-self: start;
+  padding: 0 14px;
+  border: 1px solid var(--public-line);
+  background: var(--package-surface);
+  color: var(--public-green-deep);
+  font-weight: 700;
+}
+
+.package-preview-note {
+  color: var(--public-muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.package-traveller-list {
+  display: grid;
+  gap: 12px;
+}
+
+.package-traveller-list label {
+  display: grid;
+  gap: 6px;
+}
+
+@media (max-width: 980px) {
+  .package-conversion-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .package-booking-card {
+    position: static;
+  }
+
+  .package-conversion-hero-row,
+  .package-conversion-primary > .package-conversion-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .package-conversion-main {
+    width: min(calc(100% - 28px), 1240px);
+  }
+
+  .package-conversion-hero-row {
+    gap: 14px;
+  }
+
+  .package-conversion-gallery {
+    min-height: 310px;
+  }
+
+  .package-conversion-operator {
+    padding: 8px 0 4px;
+  }
+
+  .package-booking-card {
+    padding: 18px 14px;
+  }
+
+  .package-booking-card .package-date-card {
+    min-width: min(78vw, 230px);
+    flex-basis: min(78vw, 230px);
+  }
+
+  .package-auth-overlay {
+    align-items: end;
+    padding: 0;
+  }
+
+  .package-auth-sheet {
+    width: 100%;
+    max-height: calc(100dvh - 16px);
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+    border-radius: 20px 20px 0 0;
+  }
+
+  .package-auth-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .package-auth-summary small {
+    white-space: normal;
+  }
+
+  .package-price-breakdown dl > div {
+    gap: 12px;
+  }
+
+  .package-price-breakdown dd {
+    max-width: 52%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .package-date-controls button,
+  .package-book-now,
+  .package-conversion-sticky > button,
+  .package-auth-primary,
+  .package-add-traveller {
+    transition: none;
+  }
+}
+''')
+
+          spec = '''# VS-37 — Package Details Booking Decision & OTP Design\n\n## Outcome\nA prospective customer can evaluate a published departure in one continuous Package Details dossier, choose among same-origin dates without hash navigation, review a complete commercial price breakdown, default to Pay Full, and open a design-first phone OTP/traveller flow before any booking commitment.\n\n## Product rules\n- Pay Full is the default payment choice.\n- Available Travel Dates replaces the single Travel date selector inside the booking card.\n- Previous/next date controls scroll in place and never write a hash fragment to the address bar.\n- Itinerary and operator-authored package content sit directly below the image/operator profile, not below the booking card row.\n- Price Breakdown is visible before Book now and includes route, unit price, pre-discount total, discount row, after-discount total, service provider, NoorPath support attribution, tax disclosure, final total, pay-today and remaining values.\n- Until discount/tax rules are implemented, the UI must not invent a discount; it displays zero discount and explicitly states configuration is pending.\n- Book now opens a design preview of mobile OTP. No SMS is sent and no account is authenticated in this slice.\n- The design preview exposes the post-login traveller-name step with + Add traveller up to the selected adult guest count.\n- Child/infant pricing remains out of scope.\n\n## Visual authority\nApproved NoorPath Package reference → design-system/MASTER.md → Design Taste Frontend for the package surface → UI UX Pro Max → Impeccable bounded refinement → Emil purposeful feedback → Ponytail minimum implementation.\n\n## Exclusions\n- Real phone OTP/Auth0 configuration or authentication persistence.\n- Traveller persistence from the preview.\n- Discount/tax operator configuration.\n- Airline data integration; airline is intentionally shown as pending until operator flight authoring is implemented.\n- Hotel/airport/airline operator authoring; that follows as VS-38.\n- Deployment.\n'''
+          Path("docs/slices/VS-37-PACKAGE-DETAILS-BOOKING-AUTH-DESIGN.md").write_text(spec)
+
+          checklist = '''# VS-37 Implementation Checklist\n\n- [x] Read AGENTS.md and NoorPath design skills.\n- [x] Preserve approved Package visual language.\n- [x] Remove hash navigation from changed Package Details interactions.\n- [x] Default payment mode to Pay Full.\n- [x] Move Available Travel Dates into booking card with previous/next controls.\n- [x] Recompose image/operator + itinerary/inclusions into a continuous primary column.\n- [x] Add complete pre-booking price breakdown with truthful zero-discount placeholder.\n- [x] Add design-preview mobile OTP sheet.\n- [x] Add post-login traveller-name design with + Add traveller.\n- [ ] Exact-head format/static/unit/integration gates.\n- [ ] Rendered desktop/mobile/200%/reduced-motion/keyboard review.\n- [ ] Product Owner screenshot acceptance.\n'''
+          Path("docs/slices/VS-37-IMPLEMENTATION-CHECKLIST.md").write_text(checklist)
+
+          navigation = '''# VS-37 Navigation Verification\n\n| Path | Expected outcome | Evidence |\n| --- | --- | --- |\n| `/packages/{departureId}` → Previous/Next travel dates | Date rail moves in place; URL remains hash-free | `apps/web/e2e/package-details.spec.ts` |\n| `/packages/{departureId}` → available sibling date | Navigates to sibling departure without a hash fragment; browser Back returns | `apps/web/e2e/package-details.spec.ts` |\n| Package Details → Guests/Room/Payment | Local selection changes do not mutate URL hash | `apps/web/e2e/package-details.spec.ts` |\n| Package Details → Book now | Opens OTP design sheet without route/hash mutation | `apps/web/e2e/package-details.spec.ts` |\n| OTP preview → traveller step → + Add traveller | Adds name-only traveller rows up to selected adult count; no persistence | `apps/web/e2e/package-details.spec.ts` |\n'''
+          Path("docs/slices/VS-37-NAVIGATION-VERIFICATION.md").write_text(navigation)
+
+          manifest = {
+            "id": "VS-37",
+            "title": "Package Details Booking Decision & OTP Design",
+            "slug": "package-details-booking-auth-design",
+            "outcome": "Customers evaluate dates, package facts and the complete price commitment in one hash-free Package Details dossier, then preview phone OTP and traveller-name capture before booking.",
+            "actor": "Unauthenticated prospective customers evaluating a published NoorPath Umrah departure.",
+            "dependsOn": ["VS-36", "VS-29", "VS-30"],
+            "modules": [
+              "Web-only design/interaction correction on the public package surface.",
+              "Existing authoritative package, occupancy and payment preview data remains unchanged.",
+              "No authentication, traveller, discount or tax persistence is introduced.",
+              "Approved NoorPath Package reference and design-system/MASTER.md remain visual authority."
+            ],
+            "routes": [
+              "Public discovery -> /packages/{departureId} -> Package Details dossier.",
+              "Package Details -> available sibling date -> /packages/{siblingDepartureId}, without hash fragments.",
+              "Package Details -> Previous/Next travel dates -> in-place rail movement, URL unchanged.",
+              "Package Details -> Book now -> phone OTP design preview, URL unchanged.",
+              "OTP preview -> traveller names -> + Add traveller, no persistence."
+            ],
+            "acceptance": [
+              "Pay Full is selected by default.",
+              "Available Travel Dates replaces the single Travel date row and exposes visible previous/next controls.",
+              "No changed Package Details section interaction writes a hash fragment into the address bar.",
+              "Your itinerary and operator-authored Package Includes/Not Included content render directly below image/operator profile in the primary content column.",
+              "Price Breakdown before Book now includes route, unit price, pre-discount, discount, after-discount, service provider, NoorPath attribution, tax disclosure, TOTAL, pay today and remaining.",
+              "Until real discount rules exist, the UI displays a truthful zero discount and a pending-configuration disclosure.",
+              "Book now opens a clearly labelled design preview for mobile OTP; no SMS/authentication is claimed.",
+              "The design preview exposes post-login name-only traveller capture and + Add traveller up to the authoritative adult count.",
+              "Desktop, mobile, keyboard, focus, target-size, axe, 200-percent-text, reduced-motion and no-horizontal-overflow checks pass.",
+              "Product Owner visually accepts screenshots for the exact final SHA before merge."
+            ],
+            "exclusions": [
+              "Real OTP/Auth0 provider configuration or account authentication.",
+              "Traveller persistence from the design preview.",
+              "Operator discount/tax configuration.",
+              "Airline, hotel, airport or flight-leg provider integration; those are VS-38.",
+              "Child/infant pricing or operator configuration.",
+              "Production deployment before explicit authorization."
+            ],
+            "qualityGates": [
+              "slice-governance", "format", "static-analysis", "unit", "integration",
+              "architecture", "component", "migration", "security", "journey-linking",
+              "navigation-reachability", "telemetry", "accessibility", "keyboard", "focus",
+              "target-size", "responsive-reflow", "rendered-regression", "design-token-consistency",
+              "product-owner"
+            ],
+            "rendered": {"enabled": True, "testFile": "apps/web/e2e/package-details.spec.ts"},
+            "specPath": "docs/slices/VS-37-PACKAGE-DETAILS-BOOKING-AUTH-DESIGN.md",
+            "checklistPath": "docs/slices/VS-37-IMPLEMENTATION-CHECKLIST.md",
+            "navigationPath": "docs/slices/VS-37-NAVIGATION-VERIFICATION.md"
+          }
+          Path("delivery/slices/VS-37.json").write_text(json.dumps(manifest, indent=2) + "\n")
+
+          test = Path("apps/web/e2e/package-details.spec.ts")
+          t = test.read_text()
+          t = t.replace(
+              'await expect(page.getByRole("radio", { name: /Milestone/ })).toBeChecked();',
+              'await expect(page.getByRole("radio", { name: /Pay Full/ })).toBeChecked();'
+          )
+          t = t.replace(
+              '''  await expect(\n    page.getByRole("heading", { name: "Milestone payment breakdown" }),\n  ).toBeVisible();\n  await expect(page.getByText("₹88,000").first()).toBeVisible();\n\n  await page.getByRole("radio", { name: /Pay Full/ }).check();''',
+              '''  await expect(\n    page.getByRole("heading", { name: "Pay full breakdown" }),\n  ).toBeVisible();\n  await expect(\n    page.locator(".package-payment-breakdown").getByText("₹2,20,000"),\n  ).toBeVisible();\n  await expect(page.getByText("Total Price Before Discount")).toBeVisible();\n  await expect(page.getByText("Total Price After Discount")).toBeVisible();\n  await expect(page.getByText("Service Provider")).toBeVisible();\n  await expect(page.getByText("Powered & Supported by")).toBeVisible();\n  await expect(page.getByText("0% · ₹0")).toBeVisible();\n\n  await page.getByRole("radio", { name: /Milestone/ }).check();\n  await expect(\n    page.getByRole("heading", { name: "Milestone payment breakdown" }),\n  ).toBeVisible();\n  await expect(page.getByText("₹88,000").first()).toBeVisible();\n\n  await page.getByRole("radio", { name: /Pay Full/ }).check();'''
+          )
+          old_book_assert = '''  await expect(\n    page.getByRole("link", { name: /Book now/ }).first(),\n  ).toHaveAttribute(\n    "href",\n    new RegExp(\n      `/packages/${departureId}/plan\\\\?occupancy=quad&paymentMode=pay-later`,\n    ),\n  );'''
+          if old_book_assert in t:
+              t = t.replace(old_book_assert, '''  await expect(\n    page.getByRole("button", { name: /Book now/ }).first(),\n  ).toBeVisible();''', 1)
+          else:
+              # tolerate the source regex escaping used by Prettier
+              start = t.find('  await expect(\n    page.getByRole("link", { name: /Book now/ }).first(),')
+              if start != -1:
+                  end = t.find('  await expectNoA11yViolations(page);', start)
+                  t = t[:start] + '''  await expect(\n    page.getByRole("button", { name: /Book now/ }).first(),\n  ).toBeVisible();\n''' + t[end:]
+
+          t = t.replace(
+              '''  await expect(\n    page.getByRole("link", { name: /Book now/ }).first(),\n  ).toBeVisible();''',
+              '''  await expect(\n    page.getByRole("button", { name: /Book now/ }).first(),\n  ).toBeVisible();'''
+          )
+          insert_before = 'test("package detail exposes safe unavailable and retry states"'
+          new_test = r'''test("date controls stay hash-free and Book now previews OTP then traveller names", async ({
+  page,
+}) => {
+  await page.goto(`/packages/${departureId}`);
+  await expect(page).not.toHaveURL(/#/);
+
+  await page.getByRole("button", { name: "Next travel dates" }).click();
+  await page.getByRole("button", { name: "Previous travel dates" }).click();
+  await expect(page).not.toHaveURL(/#/);
+
+  await page.getByRole("button", { name: /Book now/ }).first().click();
+  await expect(page).not.toHaveURL(/#/);
+  await expect(
+    page.getByRole("heading", { name: "Login with mobile OTP" }),
+  ).toBeVisible();
+  await expect(page.getByText(/no SMS is sent yet/i)).toBeVisible();
+
+  await page.getByLabel("Mobile number").fill("9876543210");
+  await page.getByRole("button", { name: "Send code" }).click();
+  await page.getByLabel("6-digit verification code").fill("123456");
+  await page.getByRole("button", { name: "Verify & continue" }).click();
+  await expect(page.getByRole("heading", { name: "Add travellers" })).toBeVisible();
+  await expect(page.getByLabel("Traveller 1")).toBeVisible();
+  await page.getByRole("button", { name: "+ Add traveller" }).click();
+  await expect(page.getByLabel("Traveller 2")).toBeVisible();
+  await expect(page.getByRole("button", { name: "+ Add traveller" })).toHaveCount(0);
+  await expect(page).not.toHaveURL(/#/);
+  await expectNoA11yViolations(page);
+});
+
+'''
+          if insert_before not in t:
+              raise SystemExit("E2E insertion marker not found")
+          t = t.replace(insert_before, new_test + insert_before, 1)
+          test.write_text(t)
+          PY
+      - name: Format changed files
+        run: |
+          pnpm --dir apps/web exec prettier --write \
+            'app/packages/[departureId]/page.tsx' \
+            'app/packages/[departureId]/package-conversion.css' \
+            'e2e/package-details.spec.ts' \
+            '../../delivery/slices/VS-37.json' \
+            '../../docs/slices/VS-37-PACKAGE-DETAILS-BOOKING-AUTH-DESIGN.md' \
+            '../../docs/slices/VS-37-IMPLEMENTATION-CHECKLIST.md' \
+            '../../docs/slices/VS-37-NAVIGATION-VERIFICATION.md'
+      - name: Commit VS-37 implementation
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/web/app/packages/'[departureId]'/page.tsx \
+            apps/web/app/packages/'[departureId]'/package-conversion.css \
+            apps/web/e2e/package-details.spec.ts \
+            delivery/slices/VS-37.json \
+            docs/slices/VS-37-PACKAGE-DETAILS-BOOKING-AUTH-DESIGN.md \
+            docs/slices/VS-37-IMPLEMENTATION-CHECKLIST.md \
+            docs/slices/VS-37-NAVIGATION-VERIFICATION.md
+          git commit -m 'VS-37 rework package details booking decision flow'
+          git push origin HEAD:agent/vs37-package-details-booking-auth-design
