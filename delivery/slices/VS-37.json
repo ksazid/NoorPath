@@ -1,0 +1,70 @@
+{
+  "id": "VS-37",
+  "title": "Package Details Booking Decision & OTP Design",
+  "slug": "package-details-booking-auth-design",
+  "outcome": "Customers evaluate dates, package facts and the complete price commitment in one hash-free Package Details dossier, then preview phone OTP and traveller-name capture before booking.",
+  "actor": "Unauthenticated prospective customers evaluating a published NoorPath Umrah departure.",
+  "dependsOn": ["VS-36", "VS-29", "VS-30"],
+  "modules": [
+    "Web-only design/interaction correction on the public package surface.",
+    "Existing authoritative package, occupancy and payment preview data remains unchanged.",
+    "No authentication, traveller, discount or tax persistence is introduced.",
+    "Approved NoorPath Package reference and design-system/MASTER.md remain visual authority."
+  ],
+  "routes": [
+    "Public discovery -> /packages/{departureId} -> Package Details dossier.",
+    "Package Details -> available sibling date -> /packages/{siblingDepartureId}, without hash fragments.",
+    "Package Details -> Previous/Next travel dates -> in-place rail movement, URL unchanged.",
+    "Package Details -> Book now -> phone OTP design preview, URL unchanged.",
+    "OTP preview -> traveller names -> + Add traveller, no persistence."
+  ],
+  "acceptance": [
+    "Pay Full is selected by default.",
+    "Available Travel Dates replaces the single Travel date row and exposes visible previous/next controls.",
+    "No changed Package Details section interaction writes a hash fragment into the address bar.",
+    "Your itinerary and operator-authored Package Includes/Not Included content render directly below image/operator profile in the primary content column.",
+    "Price Breakdown before Book now includes route, unit price, pre-discount, discount, after-discount, service provider, NoorPath attribution, tax disclosure, TOTAL, pay today and remaining.",
+    "Until real discount rules exist, the UI displays a truthful zero discount and a pending-configuration disclosure.",
+    "Book now opens a clearly labelled design preview for mobile OTP; no SMS/authentication is claimed.",
+    "The design preview exposes post-login name-only traveller capture and + Add traveller up to the authoritative adult count.",
+    "Desktop, mobile, keyboard, focus, target-size, axe, 200-percent-text, reduced-motion and no-horizontal-overflow checks pass.",
+    "Product Owner visually accepts screenshots for the exact final SHA before merge."
+  ],
+  "exclusions": [
+    "Real OTP/Auth0 provider configuration or account authentication.",
+    "Traveller persistence from the design preview.",
+    "Operator discount/tax configuration.",
+    "Airline, hotel, airport or flight-leg provider integration; those are VS-38.",
+    "Child/infant pricing or operator configuration.",
+    "Production deployment before explicit authorization."
+  ],
+  "qualityGates": [
+    "slice-governance",
+    "format",
+    "static-analysis",
+    "unit",
+    "integration",
+    "architecture",
+    "component",
+    "migration",
+    "security",
+    "journey-linking",
+    "navigation-reachability",
+    "telemetry",
+    "accessibility",
+    "keyboard",
+    "focus",
+    "target-size",
+    "responsive-reflow",
+    "rendered-regression",
+    "design-token-consistency",
+    "product-owner"
+  ],
+  "rendered": {
+    "enabled": true,
+    "testFile": "apps/web/e2e/package-details.spec.ts"
+  },
+  "specPath": "docs/slices/VS-37-PACKAGE-DETAILS-BOOKING-AUTH-DESIGN.md",
+  "checklistPath": "docs/slices/VS-37-IMPLEMENTATION-CHECKLIST.md",
+  "navigationPath": "docs/slices/VS-37-NAVIGATION-VERIFICATION.md"
+}

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon, PublicFooter, PublicHeader } from "../../public-ui";
 import {
   PackageContentIcon,
@@ -190,7 +190,8 @@ function PackageExperience({ details }: { details: PackageDetails }) {
   const [occupancy, setOccupancy] = useState<Occupancy>(
     firstAvailable?.occupancy ?? "double",
   );
-  const [paymentMode, setPaymentMode] = useState<PaymentMode>("milestone");
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>("pay-full");
+  const [bookingOpen, setBookingOpen] = useState(false);
   const selected =
     details.pricing.occupancies.find(
       (item) => item.occupancy === occupancy && item.status === "available",
@@ -210,41 +211,44 @@ function PackageExperience({ details }: { details: PackageDetails }) {
         <nav className="package-breadcrumbs" aria-label="Breadcrumb">
           <Link href="/">Home</Link>
           <span aria-hidden="true">›</span>
-          <Link href="/#packages">Umrah Packages</Link>
+          <Link href="/">Umrah Packages</Link>
           <span aria-hidden="true">›</span>
           <span>{details.packageName}</span>
         </nav>
-
-        <TravelDates details={details} />
 
         <section
           className="package-conversion-overview"
           aria-labelledby="package-title"
         >
-          <Gallery selected={selected} />
-          <OperatorSummary details={details} />
+          <div className="package-conversion-primary">
+            <div className="package-conversion-hero-row">
+              <Gallery selected={selected} />
+              <OperatorSummary details={details} />
+            </div>
+            <div className="package-conversion-content">
+              <Journey details={details} />
+              <PackageContent details={details} />
+            </div>
+            <div className="package-conversion-secondary">
+              <TrustAndTerms details={details} />
+              <section className="package-conversion-about">
+                <h2>About this package</h2>
+                <p>{details.summary}</p>
+                <p>
+                  Published pricing, current room availability and payment
+                  commitments are visible before you start booking.
+                </p>
+              </section>
+            </div>
+          </div>
           <BookingCard
             details={details}
             selected={selected}
             paymentMode={paymentMode}
             onOccupancyChange={setOccupancy}
             onPaymentModeChange={setPaymentMode}
+            onBookNow={() => setBookingOpen(true)}
           />
-        </section>
-
-        <div className="package-conversion-content">
-          <Journey details={details} />
-          <PackageContent details={details} />
-          <TrustAndTerms details={details} />
-        </div>
-
-        <section className="package-conversion-about">
-          <h2>About this package</h2>
-          <p>{details.summary}</p>
-          <p>
-            Published pricing, current room availability and payment commitments
-            are visible before you start booking.
-          </p>
         </section>
       </main>
 
@@ -253,12 +257,22 @@ function PackageExperience({ details }: { details: PackageDetails }) {
         details={details}
         selected={selected}
         paymentMode={paymentMode}
+        onBookNow={() => setBookingOpen(true)}
       />
+      {bookingOpen ? (
+        <BookingAuthSheet
+          onClose={() => setBookingOpen(false)}
+          details={details}
+          selected={selected}
+          paymentMode={paymentMode}
+        />
+      ) : null}
     </>
   );
 }
 
 function TravelDates({ details }: { details: PackageDetails }) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
   const dates = details.travelDates?.length
     ? details.travelDates
     : [
@@ -270,6 +284,10 @@ function TravelDates({ details }: { details: PackageDetails }) {
         },
       ];
 
+  const moveDates = (direction: -1 | 1) => {
+    scrollerRef.current?.scrollBy({ left: direction * 220, behavior: "auto" });
+  };
+
   return (
     <section
       className="package-travel-dates"
@@ -278,11 +296,27 @@ function TravelDates({ details }: { details: PackageDetails }) {
       <div className="package-travel-dates-heading">
         <div>
           <h2 id="travel-dates-title">Available Travel Dates</h2>
-          <p>Other published departures from {details.origin}</p>
+          <p>Published departures from {details.origin}</p>
         </div>
-        <span>{dates.length} dates</span>
+        <div className="package-date-controls" aria-label="Browse travel dates">
+          <button
+            type="button"
+            aria-label="Previous travel dates"
+            onClick={() => moveDates(-1)}
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            aria-label="Next travel dates"
+            onClick={() => moveDates(1)}
+          >
+            ›
+          </button>
+        </div>
       </div>
       <div
+        ref={scrollerRef}
         className="package-date-scroller"
         aria-label={`Published ${details.origin} travel dates`}
       >
@@ -406,12 +440,14 @@ function BookingCard({
   paymentMode,
   onOccupancyChange,
   onPaymentModeChange,
+  onBookNow,
 }: {
   details: PackageDetails;
   selected: OccupancyDetail;
   paymentMode: PaymentMode;
   onOccupancyChange: (value: Occupancy) => void;
   onPaymentModeChange: (value: PaymentMode) => void;
+  onBookNow: () => void;
 }) {
   const financials = selected.financials;
   const hasFuturePlan =
@@ -433,13 +469,7 @@ function BookingCard({
         <p>Review the full commitment before you book.</p>
       </div>
 
-      <a className="package-selection-row" href="#travel-dates-title">
-        <span>
-          <strong>Travel date</strong>
-          <small>{formatDate(details.departureDate)}</small>
-        </span>
-        <span className="package-selection-change">Change</span>
-      </a>
+      <TravelDates details={details} />
 
       <GuestSelector
         details={details}
@@ -476,38 +506,6 @@ function BookingCard({
           </label>
         ))}
       </fieldset>
-
-      <div className="package-price-breakdown">
-        <h3>Price Breakdown</h3>
-        <dl>
-          <div>
-            <dt>
-              Adult · {formatMoney(selected.amount, details.pricing.currency)} ×{" "}
-              {financials.adultGuests}
-            </dt>
-            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
-          </div>
-          <div className="total">
-            <dt>Total package</dt>
-            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
-          </div>
-          <div className="due">
-            <dt>Pay today</dt>
-            <dd>
-              {formatMoney(visibleFinancials.dueNow, details.pricing.currency)}
-            </dd>
-          </div>
-          <div>
-            <dt>Remaining</dt>
-            <dd>
-              {formatMoney(
-                visibleFinancials.remaining,
-                details.pricing.currency,
-              )}
-            </dd>
-          </div>
-        </dl>
-      </div>
 
       <fieldset className="package-payment-mode">
         <legend>Payment Options</legend>
@@ -566,31 +564,97 @@ function BookingCard({
           ) : null}
         </div>
       </fieldset>
+
       <PaymentBreakdown
         financials={financials}
         currency={details.pricing.currency}
         mode={effectivePaymentMode}
       />
+
+      <div className="package-price-breakdown">
+        <h3>Price Breakdown</h3>
+        <dl>
+          <div>
+            <dt>Airline</dt>
+            <dd className="pending-value">To be published</dd>
+          </div>
+          <div>
+            <dt>Departure Route</dt>
+            <dd>{details.origin} to Jeddah</dd>
+          </div>
+          <div>
+            <dt>Return Route</dt>
+            <dd>Jeddah to {details.origin}</dd>
+          </div>
+          <div className="package-unit-price">
+            <dt>
+              {formatMoney(selected.amount, details.pricing.currency)} ×{" "}
+              {financials.adultGuests}
+              <small>
+                ({occupancyLabel(selected.occupancy)}, {financials.adultGuests}{" "}
+                people)
+              </small>
+            </dt>
+            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
+          </div>
+          <div>
+            <dt>Total Price Before Discount</dt>
+            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
+          </div>
+          <div className="discount">
+            <dt>Discount</dt>
+            <dd>0% · {formatMoney(0, details.pricing.currency)}</dd>
+          </div>
+          <div>
+            <dt>Total Price After Discount</dt>
+            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
+          </div>
+          <div>
+            <dt>Service Provider</dt>
+            <dd>{details.operator.displayName}</dd>
+          </div>
+          <div>
+            <dt>Powered &amp; Supported by</dt>
+            <dd>NoorPath</dd>
+          </div>
+          <div className="total">
+            <dt>TOTAL</dt>
+            <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
+          </div>
+          <div className="due">
+            <dt>Pay today</dt>
+            <dd>
+              {formatMoney(visibleFinancials.dueNow, details.pricing.currency)}
+            </dd>
+          </div>
+          <div>
+            <dt>Remaining</dt>
+            <dd>
+              {formatMoney(
+                visibleFinancials.remaining,
+                details.pricing.currency,
+              )}
+            </dd>
+          </div>
+        </dl>
+        <p className="package-tax-note">
+          Taxes, if applicable, will be shown before payment. Discount and tax
+          rules are not yet operator-configurable.
+        </p>
+      </div>
+
       {!hasFuturePlan ? (
         <p className="package-full-payment">
           <Icon name="receipt" /> This departure is published as full payment
           only.
         </p>
       ) : null}
-
       <p className="package-payment-note">
         Price and availability are rechecked before a place is reserved.
       </p>
-      <Link
-        className="package-book-now"
-        href={bookingHref(
-          details.departureId,
-          selected.occupancy,
-          effectivePaymentMode,
-        )}
-      >
-        Book now <span aria-hidden="true">›</span>
-      </Link>
+      <button className="package-book-now" type="button" onClick={onBookNow}>
+        <Icon name="lock" /> Book now <span aria-hidden="true">›</span>
+      </button>
     </aside>
   );
 }
@@ -977,10 +1041,12 @@ function StickyBookingBar({
   details,
   selected,
   paymentMode,
+  onBookNow,
 }: {
   details: PackageDetails;
   selected: OccupancyDetail;
   paymentMode: PaymentMode;
+  onBookNow: () => void;
 }) {
   const hasFuturePlan =
     selected.financials.remaining > 0 &&
@@ -1016,16 +1082,227 @@ function StickyBookingBar({
           </strong>
         </span>
       </div>
-      <Link
-        href={bookingHref(
-          details.departureId,
-          selected.occupancy,
-          effectivePaymentMode,
-        )}
-      >
+      <button type="button" onClick={onBookNow}>
         Book now <span aria-hidden="true">›</span>
-      </Link>
+      </button>
     </aside>
+  );
+}
+
+function BookingAuthSheet({
+  onClose,
+  details,
+  selected,
+  paymentMode,
+}: {
+  onClose: () => void;
+  details: PackageDetails;
+  selected: OccupancyDetail;
+  paymentMode: PaymentMode;
+}) {
+  const [stage, setStage] = useState<"phone" | "otp" | "travellers">("phone");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [travellers, setTravellers] = useState([""]);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const hasFuturePlan =
+    selected.financials.remaining > 0 &&
+    selected.financials.instalments.length > 0 &&
+    selected.financials.finalDueDate !== null;
+  const effectivePaymentMode: PaymentMode = hasFuturePlan
+    ? paymentMode
+    : "pay-full";
+  const visibleFinancials = paymentPreview(
+    selected.financials,
+    effectivePaymentMode,
+  );
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusTimer = window.setTimeout(() => phoneRef.current?.focus(), 0);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.clearTimeout(focusTimer);
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [onClose]);
+
+  const maxTravellers = selected.financials.adultGuests;
+  const travellerNamesComplete =
+    travellers.length === maxTravellers &&
+    travellers.every((name) => name.trim().length > 0);
+
+  return (
+    <div className="package-auth-overlay" role="presentation">
+      <section
+        className="package-auth-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="package-auth-title"
+      >
+        <header>
+          <div>
+            <p>Secure booking</p>
+            <h2 id="package-auth-title">
+              {stage === "travellers"
+                ? "Add travellers"
+                : "Login with mobile OTP"}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close booking login"
+          >
+            ×
+          </button>
+        </header>
+
+        <div className="package-auth-summary">
+          <span>
+            <small>{details.packageName}</small>
+            <strong>{formatDate(details.departureDate)}</strong>
+          </span>
+          <span>
+            <small>{occupancyLabel(selected.occupancy)}</small>
+            <strong>{selected.financials.adultGuests} adults</strong>
+          </span>
+          <span>
+            <small>Pay today</small>
+            <strong>
+              {formatMoney(visibleFinancials.dueNow, details.pricing.currency)}
+            </strong>
+          </span>
+        </div>
+
+        {stage === "phone" ? (
+          <div className="package-auth-step">
+            <label htmlFor="booking-mobile">Mobile number</label>
+            <div className="package-phone-field">
+              <span>+91</span>
+              <input
+                ref={phoneRef}
+                id="booking-mobile"
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel-national"
+                placeholder="Enter mobile number"
+                value={phone}
+                onChange={(event) =>
+                  setPhone(event.target.value.replace(/\D/g, "").slice(0, 10))
+                }
+              />
+            </div>
+            <p>
+              We will use this number for booking updates and, once enabled,
+              WhatsApp journey notifications.
+            </p>
+            <button
+              className="package-auth-primary"
+              type="button"
+              disabled={phone.length !== 10}
+              onClick={() => setStage("otp")}
+            >
+              Send code
+            </button>
+            <small className="package-preview-note">
+              Design preview: no SMS is sent yet. Phone OTP will be connected in
+              the authentication slice.
+            </small>
+          </div>
+        ) : null}
+
+        {stage === "otp" ? (
+          <div className="package-auth-step">
+            <button
+              className="package-auth-back"
+              type="button"
+              onClick={() => setStage("phone")}
+            >
+              ‹ Change mobile number
+            </button>
+            <label htmlFor="booking-otp">6-digit verification code</label>
+            <input
+              id="booking-otp"
+              className="package-otp-field"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder="000000"
+              value={otp}
+              onChange={(event) =>
+                setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))
+              }
+            />
+            <button
+              className="package-auth-primary"
+              type="button"
+              disabled={otp.length !== 6}
+              onClick={() => setStage("travellers")}
+            >
+              Verify & continue
+            </button>
+            <small className="package-preview-note">
+              Design preview only. This step does not authenticate an account.
+            </small>
+          </div>
+        ) : null}
+
+        {stage === "travellers" ? (
+          <div className="package-auth-step package-traveller-step">
+            <p>
+              Add the names of the {maxTravellers} travellers for this room.
+              Passport details can be completed later in the governed journey.
+            </p>
+            <div className="package-traveller-list">
+              {travellers.map((name, index) => (
+                <label key={index}>
+                  <span>Traveller {index + 1}</span>
+                  <input
+                    aria-label={`Traveller ${index + 1}`}
+                    type="text"
+                    autoComplete="name"
+                    placeholder="Full name"
+                    value={name}
+                    onChange={(event) =>
+                      setTravellers((current) =>
+                        current.map((item, itemIndex) =>
+                          itemIndex === index ? event.target.value : item,
+                        ),
+                      )
+                    }
+                  />
+                </label>
+              ))}
+            </div>
+            {travellers.length < maxTravellers ? (
+              <button
+                className="package-add-traveller"
+                type="button"
+                onClick={() => setTravellers((current) => [...current, ""])}
+              >
+                + Add traveller
+              </button>
+            ) : null}
+            <button
+              className="package-auth-primary"
+              type="button"
+              disabled={!travellerNamesComplete}
+            >
+              Continue to secure booking
+            </button>
+            <small className="package-preview-note">
+              Booking continuation will activate only after real OTP
+              verification is connected.
+            </small>
+          </div>
+        ) : null}
+      </section>
+    </div>
   );
 }
 
@@ -1107,15 +1384,6 @@ function paymentPreview(
   return financials;
 }
 
-function bookingHref(
-  departureId: string,
-  occupancy: Occupancy,
-  paymentMode: PaymentMode,
-) {
-  const query = new URLSearchParams({ occupancy, paymentMode });
-  return `/packages/${departureId}/plan?${query.toString()}`;
-}
-
 function occupancyLabel(occupancy: Occupancy) {
   return occupancy === "double"
     ? "Double sharing"
@@ -1168,7 +1436,7 @@ function PackageUnavailable() {
         It may have been withdrawn, sold out, or is no longer eligible for
         public booking.
       </p>
-      <Link href="/#packages">Browse available packages</Link>
+      <Link href="/">Browse available packages</Link>
     </section>
   );
 }
