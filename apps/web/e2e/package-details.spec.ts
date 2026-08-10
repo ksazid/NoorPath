@@ -158,7 +158,9 @@ test("package details show travel dates, journey and operator-authored content",
   await expect(
     page.locator(".package-date-card.current").getByText("31 Aug 2026"),
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: /07 Sep 2026/ })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /07 Sep(?:t)? 2026/ }),
+  ).toBeVisible();
   await expect(page.getByText("Sold out")).toHaveCount(1);
   await expect(
     page.getByRole("heading", { name: "Noor International Tours & Travels" }),
@@ -185,10 +187,12 @@ test("available same-origin dates navigate and browser back returns safely", asy
 }) => {
   await page.goto(`/packages/${departureId}`);
 
-  await page.getByRole("link", { name: /07 Sep 2026/ }).click();
+  await page.getByRole("link", { name: /07 Sep(?:t)? 2026/ }).click();
   await expect(page).toHaveURL(`/packages/${siblingDepartureId}`);
   await expect(
-    page.locator(".package-date-card.current").getByText("07 Sep 2026"),
+    page
+      .locator(".package-date-card.current")
+      .getByText(/07 Sep(?:t)? 2026/),
   ).toBeVisible();
 
   await page.goBack();
