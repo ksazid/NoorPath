@@ -8,16 +8,16 @@
 
 | From | Action | Expected destination/state | Outcome |
 | --- | --- | --- | --- |
-| Existing departure authoring | Activate `Airline & airport facts` | `/operator/departures/{departureId}/travel-facts` | IMPLEMENTED |
-| Travel facts | Initial load with no facts | truthful empty state with `Add flight leg` | IMPLEMENTED |
-| Travel facts | Add flight leg | one editable pending leg appears | IMPLEMENTED |
-| Pending leg | Save partial supported facts | partial values remain pending; missing values are not invented | IMPLEMENTED |
-| Confirmed leg | Save without required airline/flight/airport facts | 422 validation feedback is shown | IMPLEMENTED |
-| Confirmed leg | Save complete supported facts | independent travel-fact version increments and success state renders | IMPLEMENTED |
-| Stale editor | Save older expected version | conflict state requires reload | IMPLEMENTED |
-| Ready-for-review/published departure | Open travel facts | existing facts render read-only | IMPLEMENTED |
-| Travel facts | Activate `Back to package draft` | `/operator/departures/{departureId}` | IMPLEMENTED |
-| Travel facts | Activate `Preview package` | `/operator/departures/{departureId}/preview` | IMPLEMENTED |
+| Existing departure authoring | Activate `Airline & airport facts` | `/operator/departures/{departureId}/travel-facts` | VERIFIED |
+| Travel facts | Initial load with no facts | truthful empty state with `Add flight leg` | VERIFIED |
+| Travel facts | Add flight leg | one editable pending leg appears | VERIFIED |
+| Pending leg | Save partial supported facts | partial values remain pending; missing values are not invented | VERIFIED |
+| Confirmed leg | Save without required airline/flight/airport facts | 422 validation feedback is shown | VERIFIED |
+| Confirmed leg | Save complete supported facts | independent travel-fact version increments and success state renders | VERIFIED |
+| Stale editor | Save older expected version | conflict state requires reload | VERIFIED |
+| Ready-for-review/published departure | Open travel facts | existing facts render read-only | VERIFIED |
+| Travel facts | Activate `Back to package draft` | `/operator/departures/{departureId}` | VERIFIED |
+| Travel facts | Activate `Preview package` | `/operator/departures/{departureId}/preview` | VERIFIED |
 
 ## Security reachability
 
