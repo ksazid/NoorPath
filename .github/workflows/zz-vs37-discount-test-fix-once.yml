@@ -1,0 +1,48 @@
+name: VS-37 Discount Row Test Fix One-shot
+
+on:
+  push:
+    branches:
+      - agent/vs37-package-booking-composition
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/vs37-package-booking-composition
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Scope discount assertions to the disclosure row
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('apps/web/e2e/package-details.spec.ts')
+          text = p.read_text()
+          old = '''  await expect(page.getByText("Discount", { exact: true })).toBeVisible();
+  await expect(page.getByText("No published discount")).toBeVisible();'''
+          new = '''  const discountRow = page.locator(".package-discount-row");
+  await expect(discountRow).toContainText("Discount");
+  await expect(discountRow).toContainText("No published discount");
+  await expect(discountRow).toContainText("0%");'''
+          if old not in text:
+              raise SystemExit('Discount assertion block not found')
+          p.write_text(text.replace(old, new, 1))
+          PY
+      - name: Format test
+        run: pnpm --dir apps/web exec prettier --write 'e2e/package-details.spec.ts'
+      - name: Commit test correction
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/web/e2e/package-details.spec.ts
+          git commit -m 'VS-37 scope discount row certification'
+          git push origin HEAD:agent/vs37-package-booking-composition
