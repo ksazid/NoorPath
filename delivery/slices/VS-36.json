@@ -2,12 +2,15 @@
   "id": "VS-36",
   "title": "Package Details Design Correction",
   "slug": "package-details-design-correction",
-  "outcome": "Prospective customers keep the certified VS-35 package, travel-date, pricing and booking behaviour but receive a readable NoorPath Package presentation with explicit adult, child and infant guest categories and operator-aligned content iconography.",
+  "outcome": "Prospective customers receive the corrected NoorPath Package presentation with explicit adult, child and infant guest categories plus three truthful payment choices: Pay Full, Milestone and Pay Later.",
   "actor": "Unauthenticated prospective customers evaluating a published NoorPath Umrah departure before booking.",
-  "dependsOn": ["VS-35", "VS-32"],
+  "dependsOn": [
+    "VS-35",
+    "VS-32"
+  ],
   "modules": [
-    "No API, database or commercial domain ownership changes are introduced.",
-    "The web application preserves server-authoritative VS-35 travel-date, pricing and payment data.",
+    "Pricing quote calculation interprets the selected payment mode without a database migration.",
+    "The web application preserves server-authoritative travel-date, occupancy and base payment-plan data.",
     "Operator package configuration remains the source of package inclusion and exclusion values.",
     "Approved NoorPath Package references and design-system/MASTER.md remain visual authority."
   ],
@@ -16,7 +19,7 @@
     "Package Details -> available same-origin sibling date -> /packages/{siblingDepartureId}.",
     "Package Details -> Guests -> adult plus/minus where the exact supported occupancy exists; child/infant rows visible but unavailable.",
     "Package Details -> Room Sharing -> existing authoritative financial preview.",
-    "Package Details -> Milestone or Pay Later -> existing authoritative payment presentation.",
+    "Package Details -> Pay Full, Milestone or Pay Later -> authoritative payment commitment.",
     "Package Details -> Book now -> existing /packages/{departureId}/plan flow with occupancy and paymentMode preserved."
   ],
   "acceptance": [
@@ -26,13 +29,13 @@
     "Adult guest count remains synchronized with supported saleable occupancy without client-side price invention.",
     "Same-origin travel-date navigation and sold-out semantics remain unchanged.",
     "Package, Travel Kit, Umrah Kit and Not Included items use the operator package icon vocabulary.",
-    "Milestone and Pay Later values, Book now query handoff and existing failure states remain unchanged semantically.",
+    "Pay Full, Milestone and Pay Later show correct pay-today/remaining values, carry through Book now, and create the matching authoritative quote schedule.",
     "Desktop, mobile, keyboard, focus, target-size, axe, 200-percent-text, reduced-motion and no-horizontal-overflow checks pass.",
     "Product Owner visually accepts screenshots for the exact final SHA before merge."
   ],
   "exclusions": [
     "Child/infant pricing, eligibility, inventory consumption or operator configuration.",
-    "API, database, Pricing, Inventory, Booking or payment-domain changes.",
+    "Database migrations, Inventory model changes, Booking schema changes or payment-provider changes.",
     "New airline or supplier integrations, detailed itinerary persistence or invented commercial facts.",
     "Production deployment before explicit authorization."
   ],

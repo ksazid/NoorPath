@@ -74,6 +74,64 @@ public sealed class QuoteApiTests
     }
 
     [Fact]
+    public async Task Customer_can_choose_pay_full_even_when_a_payment_plan_exists()
+    {
+        using var app = await CommercialApi.CreateAsync(TestContext.Current.CancellationToken);
+        var departureId = await PublishDepartureAsync(
+            app,
+            withPaymentPlan: true,
+            TestContext.Current.CancellationToken);
+        using var customer = app.CreateOperatorClient(CustomerIdentity);
+        var travellerIds = await CreateAdultTravellersAsync(
+            customer,
+            2,
+            TestContext.Current.CancellationToken);
+
+        var response = await customer.PostAsJsonAsync(
+            $"/api/v1/departures/{departureId}/quotes",
+            new CreateQuoteRequest("double", travellerIds, "pay-full"),
+            TestContext.Current.CancellationToken);
+
+        response.EnsureSuccessStatusCode();
+        using var body = JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        var root = body.RootElement;
+        Assert.Equal(220000m, root.GetProperty("total").GetDecimal());
+        Assert.Equal(220000m, root.GetProperty("dueNow").GetDecimal());
+        Assert.Equal(0m, root.GetProperty("remaining").GetDecimal());
+        Assert.Empty(root.GetProperty("instalments").EnumerateArray());
+    }
+
+    [Fact]
+    public async Task Customer_can_choose_pay_later_with_one_final_balance_deadline()
+    {
+        using var app = await CommercialApi.CreateAsync(TestContext.Current.CancellationToken);
+        var departureId = await PublishDepartureAsync(
+            app,
+            withPaymentPlan: true,
+            TestContext.Current.CancellationToken);
+        using var customer = app.CreateOperatorClient(CustomerIdentity);
+        var travellerIds = await CreateAdultTravellersAsync(
+            customer,
+            2,
+            TestContext.Current.CancellationToken);
+
+        var response = await customer.PostAsJsonAsync(
+            $"/api/v1/departures/{departureId}/quotes",
+            new CreateQuoteRequest("double", travellerIds, "pay-later"),
+            TestContext.Current.CancellationToken);
+
+        response.EnsureSuccessStatusCode();
+        using var body = JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        var root = body.RootElement;
+        Assert.Equal(44000m, root.GetProperty("dueNow").GetDecimal());
+        Assert.Equal(176000m, root.GetProperty("remaining").GetDecimal());
+        var instalment = Assert.Single(root.GetProperty("instalments").EnumerateArray().ToArray());
+        Assert.Equal(176000m, instalment.GetProperty("amount").GetDecimal());
+    }
+
+    [Fact]
     public async Task Published_price_without_payment_plan_requires_full_amount_now()
     {
         using var app = await CommercialApi.CreateAsync(TestContext.Current.CancellationToken);

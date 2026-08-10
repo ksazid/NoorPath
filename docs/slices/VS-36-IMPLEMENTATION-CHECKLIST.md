@@ -12,7 +12,7 @@
 - [x] Child/infant controls remain disabled until authoritative operator pricing exists.
 - [x] Adult guest count remains derived from supported current occupancy.
 - [x] Room Sharing remains a separate decision.
-- [x] Milestone and Pay Later financial breakdowns remain authoritative and unchanged semantically.
+- [x] Pay Full, Milestone and Pay Later are visible before booking and each maps to an authoritative quote commitment.
 - [x] Operator package icon vocabulary is reused for customer package content.
 - [x] Journey remains based only on persisted stay/travel facts.
 - [x] Customer footer and sticky booking action are preserved.

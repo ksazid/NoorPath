@@ -13,7 +13,7 @@ import "./package-conversion.css";
 
 type ConfirmationState = "confirmed" | "pending";
 type Occupancy = "double" | "triple" | "quad";
-type PaymentMode = "milestone" | "pay-later";
+type PaymentMode = "pay-full" | "milestone" | "pay-later";
 type ContentGroup = "package" | "travel-kit" | "umrah-kit" | "excluded";
 
 type StayDetails = {
@@ -418,6 +418,10 @@ function BookingCard({
     financials.remaining > 0 &&
     financials.instalments.length > 0 &&
     financials.finalDueDate !== null;
+  const effectivePaymentMode: PaymentMode = hasFuturePlan
+    ? paymentMode
+    : "pay-full";
+  const visibleFinancials = paymentPreview(financials, effectivePaymentMode);
 
   return (
     <aside
@@ -488,67 +492,102 @@ function BookingCard({
             <dd>{formatMoney(financials.total, details.pricing.currency)}</dd>
           </div>
           <div className="due">
-            <dt>Minimum to book today</dt>
-            <dd>{formatMoney(financials.dueNow, details.pricing.currency)}</dd>
+            <dt>Pay today</dt>
+            <dd>
+              {formatMoney(visibleFinancials.dueNow, details.pricing.currency)}
+            </dd>
           </div>
           <div>
             <dt>Remaining</dt>
             <dd>
-              {formatMoney(financials.remaining, details.pricing.currency)}
+              {formatMoney(
+                visibleFinancials.remaining,
+                details.pricing.currency,
+              )}
             </dd>
           </div>
         </dl>
       </div>
 
-      {hasFuturePlan ? (
-        <>
-          <fieldset className="package-payment-mode">
-            <legend>Pay the remaining balance</legend>
-            <div className="package-payment-mode-options">
-              <label className={paymentMode === "milestone" ? "selected" : ""}>
+      <fieldset className="package-payment-mode">
+        <legend>Payment Options</legend>
+        <div className="package-payment-mode-options">
+          <label
+            className={effectivePaymentMode === "pay-full" ? "selected" : ""}
+          >
+            <input
+              type="radio"
+              name="payment-mode"
+              checked={effectivePaymentMode === "pay-full"}
+              onChange={() => onPaymentModeChange("pay-full")}
+            />
+            <span>
+              <strong>Pay Full</strong>
+              <small>Pay the complete package amount today</small>
+            </span>
+          </label>
+          {hasFuturePlan ? (
+            <>
+              <label
+                className={
+                  effectivePaymentMode === "milestone" ? "selected" : ""
+                }
+              >
                 <input
                   type="radio"
                   name="payment-mode"
-                  checked={paymentMode === "milestone"}
+                  checked={effectivePaymentMode === "milestone"}
                   onChange={() => onPaymentModeChange("milestone")}
                 />
                 <span>
-                  <strong>Milestone plan</strong>
-                  <small>Split by published dates</small>
+                  <strong>Milestone</strong>
+                  <small>Pay in published stages before departure</small>
                 </span>
               </label>
-              <label className={paymentMode === "pay-later" ? "selected" : ""}>
+              <label
+                className={
+                  effectivePaymentMode === "pay-later" ? "selected" : ""
+                }
+              >
                 <input
                   type="radio"
                   name="payment-mode"
-                  checked={paymentMode === "pay-later"}
+                  checked={effectivePaymentMode === "pay-later"}
                   onChange={() => onPaymentModeChange("pay-later")}
                 />
                 <span>
-                  <strong>Pay later</strong>
-                  <small>Balance by final deadline</small>
+                  <strong>Pay Later</strong>
+                  <small>
+                    Minimum today, remaining balance by final deadline
+                  </small>
                 </span>
               </label>
-            </div>
-          </fieldset>
-          <PaymentBreakdown
-            financials={financials}
-            currency={details.pricing.currency}
-            mode={paymentMode}
-          />
-        </>
-      ) : (
+            </>
+          ) : null}
+        </div>
+      </fieldset>
+      <PaymentBreakdown
+        financials={financials}
+        currency={details.pricing.currency}
+        mode={effectivePaymentMode}
+      />
+      {!hasFuturePlan ? (
         <p className="package-full-payment">
-          <Icon name="receipt" /> Full payment applies to this departure.
+          <Icon name="receipt" /> This departure is published as full payment
+          only.
         </p>
-      )}
+      ) : null}
 
       <p className="package-payment-note">
         Price and availability are rechecked before a place is reserved.
       </p>
       <Link
         className="package-book-now"
-        href={bookingHref(details.departureId, selected.occupancy, paymentMode)}
+        href={bookingHref(
+          details.departureId,
+          selected.occupancy,
+          effectivePaymentMode,
+        )}
       >
         Book now <span aria-hidden="true">›</span>
       </Link>
@@ -690,19 +729,25 @@ function PaymentBreakdown({
   currency: string;
   mode: PaymentMode;
 }) {
+  const visibleFinancials = paymentPreview(financials, mode);
+
   return (
     <section className="package-payment-breakdown" aria-live="polite">
       <h3>
-        {mode === "milestone"
-          ? "Milestone payment breakdown"
-          : "Pay later breakdown"}
+        {mode === "pay-full"
+          ? "Pay full breakdown"
+          : mode === "milestone"
+            ? "Milestone payment breakdown"
+            : "Pay later breakdown"}
       </h3>
       <ol>
         <li>
           <span aria-hidden="true" />
           <div>
-            <strong>{formatMoney(financials.dueNow, currency)}</strong>
-            <small>Book your place</small>
+            <strong>{formatMoney(visibleFinancials.dueNow, currency)}</strong>
+            <small>
+              {mode === "pay-full" ? "Full package payment" : "Book your place"}
+            </small>
           </div>
           <time>Today</time>
         </li>
@@ -721,11 +766,13 @@ function PaymentBreakdown({
               <time dateTime={item.dueDate}>{formatDate(item.dueDate)}</time>
             </li>
           ))
-        ) : financials.finalDueDate ? (
+        ) : mode === "pay-later" && financials.finalDueDate ? (
           <li>
             <span aria-hidden="true" />
             <div>
-              <strong>{formatMoney(financials.remaining, currency)}</strong>
+              <strong>
+                {formatMoney(visibleFinancials.remaining, currency)}
+              </strong>
               <small>Remaining balance</small>
             </div>
             <time dateTime={financials.finalDueDate}>
@@ -935,6 +982,18 @@ function StickyBookingBar({
   selected: OccupancyDetail;
   paymentMode: PaymentMode;
 }) {
+  const hasFuturePlan =
+    selected.financials.remaining > 0 &&
+    selected.financials.instalments.length > 0 &&
+    selected.financials.finalDueDate !== null;
+  const effectivePaymentMode: PaymentMode = hasFuturePlan
+    ? paymentMode
+    : "pay-full";
+  const visibleFinancials = paymentPreview(
+    selected.financials,
+    effectivePaymentMode,
+  );
+
   return (
     <aside className="package-conversion-sticky" aria-label="Booking summary">
       <div>
@@ -947,21 +1006,22 @@ function StickyBookingBar({
         <span>
           <small>Pay today</small>
           <strong className="due">
-            {formatMoney(selected.financials.dueNow, details.pricing.currency)}
+            {formatMoney(visibleFinancials.dueNow, details.pricing.currency)}
           </strong>
         </span>
         <span className="remaining">
           <small>Remaining</small>
           <strong>
-            {formatMoney(
-              selected.financials.remaining,
-              details.pricing.currency,
-            )}
+            {formatMoney(visibleFinancials.remaining, details.pricing.currency)}
           </strong>
         </span>
       </div>
       <Link
-        href={bookingHref(details.departureId, selected.occupancy, paymentMode)}
+        href={bookingHref(
+          details.departureId,
+          selected.occupancy,
+          effectivePaymentMode,
+        )}
       >
         Book now <span aria-hidden="true">›</span>
       </Link>
@@ -1014,6 +1074,37 @@ function factLabels(details: PackageDetails, state: ConfirmationState) {
       facts.push("Umrah guidance included");
   }
   return facts;
+}
+
+function paymentPreview(
+  financials: FinancialPreview,
+  mode: PaymentMode,
+): FinancialPreview {
+  if (mode === "pay-full") {
+    return {
+      ...financials,
+      dueNow: financials.total,
+      remaining: 0,
+      instalments: [],
+    };
+  }
+
+  if (mode === "pay-later" && financials.remaining > 0) {
+    return {
+      ...financials,
+      instalments: financials.finalDueDate
+        ? [
+            {
+              sequence: 1,
+              dueDate: financials.finalDueDate,
+              amount: financials.remaining,
+            },
+          ]
+        : [],
+    };
+  }
+
+  return financials;
 }
 
 function bookingHref(

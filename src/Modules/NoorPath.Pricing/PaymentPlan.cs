@@ -1,5 +1,12 @@
 namespace NoorPath.Pricing;
 
+public enum QuotePaymentMode
+{
+    PayFull,
+    Milestone,
+    PayLater
+}
+
 public sealed record PaymentPlanDefinition(
     decimal DepositPercent,
     int InstalmentDayOfMonth,
@@ -39,6 +46,27 @@ public static class PaymentPlanPolicy
 
 public static class QuoteScheduleCalculator
 {
+    public static QuoteFinancials Calculate(
+        decimal total,
+        DateOnly departureDate,
+        DateTimeOffset createdAtUtc,
+        PaymentPlanDefinition? paymentPlan,
+        QuotePaymentMode paymentMode)
+    {
+        var governed = Calculate(total, departureDate, createdAtUtc, paymentPlan);
+        return paymentMode switch
+        {
+            QuotePaymentMode.PayFull => new(
+                governed.Total,
+                governed.Total,
+                0m,
+                Array.Empty<QuoteInstalment>()),
+            QuotePaymentMode.Milestone => governed,
+            QuotePaymentMode.PayLater => ToPayLater(governed),
+            _ => throw new ArgumentOutOfRangeException(nameof(paymentMode))
+        };
+    }
+
     public static QuoteFinancials Calculate(
         decimal total,
         DateOnly departureDate,
@@ -85,6 +113,19 @@ public static class QuoteScheduleCalculator
         }
 
         return new(total, dueNow, remaining, instalments);
+    }
+
+    private static QuoteFinancials ToPayLater(QuoteFinancials governed)
+    {
+        if (governed.Remaining <= 0m || governed.Instalments.Count == 0)
+            return governed;
+
+        var finalDueDate = governed.Instalments[^1].DueDate;
+        return new(
+            governed.Total,
+            governed.DueNow,
+            governed.Remaining,
+            [new QuoteInstalment(1, finalDueDate, governed.Remaining)]);
     }
 
     private static IReadOnlyList<DateOnly> BuildDueDates(

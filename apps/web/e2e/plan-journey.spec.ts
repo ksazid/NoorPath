@@ -121,8 +121,15 @@ async function mockPlanApis(page: Page) {
     }
     return route.fulfill({ status: 405, json: { title: "Not allowed" } });
   });
-  await page.route(`**/api/v1/departures/${departureId}/quotes`, (route) =>
-    route.fulfill({ json: quote }),
+  await page.route(
+    `**/api/v1/departures/${departureId}/quotes`,
+    async (route) => {
+      const request = route.request().postDataJSON() as {
+        paymentMode?: string;
+      };
+      expect(request.paymentMode).toBe("milestone");
+      await route.fulfill({ json: quote });
+    },
   );
   await page.route(`**/api/v1/quotes/${quoteId}/holds`, async (route) => {
     expect(route.request().method()).toBe("POST");

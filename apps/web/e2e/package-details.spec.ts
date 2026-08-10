@@ -247,15 +247,23 @@ test("guest categories, room sharing and payment breakdown are visible before bo
   await expect(page.getByText("₹2,20,000").first()).toBeVisible();
   await expect(page.getByText("₹44,000").first()).toBeVisible();
   await expect(page.getByText("₹1,76,000").first()).toBeVisible();
-  await expect(
-    page.getByRole("radio", { name: /Milestone plan/ }),
-  ).toBeChecked();
+  await expect(page.getByRole("radio", { name: /Pay Full/ })).toBeVisible();
+  await expect(page.getByRole("radio", { name: /Milestone/ })).toBeChecked();
+  await expect(page.getByRole("radio", { name: /Pay Later/ })).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Milestone payment breakdown" }),
   ).toBeVisible();
   await expect(page.getByText("₹88,000").first()).toBeVisible();
 
-  await page.getByRole("radio", { name: /Pay later/ }).check();
+  await page.getByRole("radio", { name: /Pay Full/ }).check();
+  await expect(
+    page.getByRole("heading", { name: "Pay full breakdown" }),
+  ).toBeVisible();
+  await expect(
+    page.locator(".package-payment-breakdown").getByText("₹2,20,000"),
+  ).toBeVisible();
+
+  await page.getByRole("radio", { name: /Pay Later/ }).check();
   await expect(
     page.getByRole("heading", { name: "Pay later breakdown" }),
   ).toBeVisible();
