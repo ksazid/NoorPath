@@ -221,7 +221,9 @@ test("guest categories, room sharing and payment breakdown are visible before bo
 }) => {
   await page.goto(`/packages/${departureId}`);
 
-  await expect(page.getByLabel("Adult guests")).toHaveText("2");
+  await expect(
+    page.locator('output[aria-label="Adult guests"]'),
+  ).toHaveText("2");
   await expect(page.getByText("Children (2–11 years)")).toBeVisible();
   await expect(page.getByText("Children (2–4 years)")).toBeVisible();
   await expect(page.getByText("Infants (0–2 years)")).toBeVisible();
@@ -255,7 +257,9 @@ test("guest categories, room sharing and payment breakdown are visible before bo
   ).toBeVisible();
 
   await page.getByRole("radio", { name: /Quad sharing/ }).check();
-  await expect(page.getByLabel("Adult guests")).toHaveText("4");
+  await expect(
+    page.locator('output[aria-label="Adult guests"]'),
+  ).toHaveText("4");
   await expect(page.getByText("₹3,60,000").first()).toBeVisible();
   await expect(page.getByText("₹72,000").first()).toBeVisible();
 
