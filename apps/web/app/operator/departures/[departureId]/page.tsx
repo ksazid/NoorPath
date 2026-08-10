@@ -1,5 +1,6 @@
 import OperatorWorkspaceShell from "../../OperatorWorkspaceShell";
 import DepartureComposer from "../DepartureComposer";
+import { TravelFactsLaunchLink } from "../TravelFactsEditor";
 
 export default async function EditDeparturePage({
   params,
@@ -16,6 +17,7 @@ export default async function EditDeparturePage({
       contentClassName="np-operator-legacy-embed"
     >
       <DepartureComposer initialDepartureId={departureId} />
+      <TravelFactsLaunchLink departureId={departureId} />
     </OperatorWorkspaceShell>
   );
 }
