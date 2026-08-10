@@ -51,6 +51,8 @@ partial class CatalogueDbContextModelSnapshot : ModelSnapshot
             b.Property<string>("Summary").IsRequired().HasMaxLength(600).HasColumnType("character varying(600)");
             b.Property<string>("TravelDetails").IsRequired().HasMaxLength(600).HasColumnType("character varying(600)");
             b.Property<FactConfirmationState>("TravelConfirmationState").IsRequired().HasMaxLength(16).HasColumnType("character varying(16)");
+            b.Property<string>("TravelFactsJson").IsRequired().HasColumnType("jsonb");
+            b.Property<int>("TravelFactsVersion").IsConcurrencyToken().HasColumnType("integer");
             b.Property<string>("TravelRouteSummary").IsRequired().HasMaxLength(200).HasColumnType("character varying(200)");
             b.Property<DateTimeOffset>("UpdatedAtUtc").HasColumnType("timestamp with time zone");
             b.HasKey("Id");
