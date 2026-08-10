@@ -27,23 +27,23 @@ jobs:
           from pathlib import Path
           p = Path('apps/web/e2e/package-details.spec.ts')
           text = p.read_text()
-          old = '''  await expect(page.getByText("₹2,20,000").first()).toBeVisible();
-          await expect(page.getByText("₹44,000").first()).toBeVisible();
-          await expect(page.getByText("₹1,76,000").first()).toBeVisible();
-          await expect(page.getByRole("radio", { name: /Pay Full/ })).toBeChecked();'''
-          new = '''  await expect(page.getByRole("radio", { name: /Pay Full/ })).toBeChecked();
-          await expect(page.getByText("₹2,20,000").first()).toBeVisible();
+
+          stale_due = '  await expect(page.getByText("₹44,000").first()).toBeVisible();\n'
+          stale_remaining = '  await expect(page.getByText("₹1,76,000").first()).toBeVisible();\n'
+          if stale_due not in text or stale_remaining not in text:
+              raise SystemExit('Default milestone assertions not found')
+          text = text.replace(stale_due, '', 1)
+          text = text.replace(stale_remaining, '', 1)
+
+          mobile_stale = '  await expect(page.getByText("₹44,000").first()).toBeVisible();\n'
+          mobile_replacement = '''  await expect(page.getByRole("radio", { name: /Pay Full/ })).toBeChecked();
           await expect(
             page.locator(".package-payment-breakdown").getByText("₹2,20,000"),
-          ).toBeVisible();'''
-          if old not in text:
-              raise SystemExit('Primary Pay Full assertion block not found')
-          text = text.replace(old, new, 1)
-          old = '  await expect(page.getByText("₹44,000").first()).toBeVisible();\n  await expect(\n    page.getByRole("link", { name: /Book now/ }).first(),\n  ).toBeVisible();'
-          new = '  await expect(page.getByRole("radio", { name: /Pay Full/ })).toBeChecked();\n  await expect(\n    page.locator(".package-payment-breakdown").getByText("₹2,20,000"),\n  ).toBeVisible();\n  await expect(\n    page.getByRole("link", { name: /Book now/ }).first(),\n  ).toBeVisible();'
-          if old not in text:
-              raise SystemExit('Mobile Pay Full assertion block not found')
-          text = text.replace(old, new, 1)
+          ).toBeVisible();
+          '''
+          if mobile_stale not in text:
+              raise SystemExit('Mobile milestone assertion not found')
+          text = text.replace(mobile_stale, mobile_replacement, 1)
           p.write_text(text)
           PY
       - name: Format test
